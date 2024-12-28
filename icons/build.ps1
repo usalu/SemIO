@@ -52,7 +52,7 @@ if (Test-Path -Path $tempFolder) {
         }
         Remove-Item -Path $folder.FullName -Recurse -Force
         $baseName = Join-Path -Path $root.FullName -ChildPath $folder.Name
-        ResizeImage -sourcePath "$($baseName)_512x512.png" -targetBasePath $baseName -targetResolutions 256, 32, 24
+        ResizeImage -sourcePath "$($baseName)_512x512.png" -targetPathBase $baseName -targetResolutions 256, 32, 24
     }
 }
 
