@@ -1,3 +1,5 @@
+. ..\powershell.ps1
+
 & magick emblem_1920x1920.png -define icon:auto-resize="256,128,96,64,48,32,16" favicon.ico
 & magick emblem_1920x1920.png -define icon:auto-resize="32" favicon_32x32.ico
 
