@@ -157,8 +157,10 @@ entity Connection {
     *connectedPieceId : int <<PK,FK>>
     *connectedPieceTypePortId : int <<FK>>
     ..
-    *gap : float
     *rotation : float
+    *tilt : float
+    *gap : float
+    *shift : float
     ..
     *designId : int <<FK>>
 }

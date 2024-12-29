@@ -13,3 +13,10 @@ foreach ($image in $images) {
     & magick $image.source -define icon:auto-resize="32" "$($image.target)_32x32.ico"
     ResizeImage -sourcePath $image.source -targetPathBase $image.target -targetResolutions $resolutions
 }
+
+#copy emblem_dark_round* to ..\icons\semio*
+$files = Get-ChildItem -Path . -Filter "emblem_dark_round*" -Recurse
+foreach ($file in $files) {
+    $suffix = $file.Name -replace "emblem_dark_round", ""
+    Copy-Item -Path $file.FullName -Destination "..\icons\semio$suffix"
+}
