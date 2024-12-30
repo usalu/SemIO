@@ -1,3 +1,4 @@
+#region License
 //Semio.cs
 //Copyright (C) 2024 Ueli Saluz
 
@@ -13,7 +14,9 @@
 
 //You should have received a copy of the GNU Affero General Public License
 //along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#endregion
 
+#region Usings
 using System.Collections;
 using System.Collections.Immutable;
 using System.Net;
@@ -26,14 +29,17 @@ using QuikGraph.Algorithms;
 using QuikGraph.Algorithms.Search;
 using Refit;
 using UnitsNet;
+#endregion
 
+namespace Semio;
+
+#region TODOs
 // TODO: Replace GetHashcode() with a proper hash function.
 // TODO: Add logging mechanism to all API calls if they fail.
 // TODO: Implement reflexive validation for model properties.
 // TODO: Add index to prop and add to list based on index not on source code order.
 // TODO: See if Utility.Encode(uri) can be added by attribute on parameters.
-
-namespace Semio;
+#endregion
 
 #region Constants
 
@@ -1307,6 +1313,55 @@ public class Design : DesignProps
     /// </summary>
     [ModelProp("📏", "Ql*", "Qualities", "The optional qualities of the design.", PropImportance.OPTIONAL)]
     public List<Quality> Qualities { get; set; } = new();
+    public void Bfs(Action<Piece> onRoot, Action<Piece, Piece, Connection> onConnection)
+    {
+        var pieces = Pieces.ToDictionary(p => p.Id);
+        var graph = new UndirectedGraph<string, Edge<string>>();
+        foreach (var piece in Pieces)
+            graph.AddVertex(piece.Id);
+        foreach (var connection in Connections)
+            graph.AddEdge(new Edge<string>(connection.Connected.Piece.Id, connection.Connecting.Piece.Id));
+        var components = new Dictionary<string, int>();
+        graph.ConnectedComponents(components);
+        var componentPieces = new Dictionary<int, Dictionary<string, Piece>>();
+        foreach (var kvp in components)
+        {
+            if (!componentPieces.ContainsKey(kvp.Value))
+                componentPieces[kvp.Value] = new Dictionary<string, Piece>();
+            componentPieces[kvp.Value][kvp.Key] = pieces[kvp.Key];
+        }
+
+        foreach (var component in componentPieces)
+        {
+            var subGraph = new UndirectedGraph<string, Edge<string>>();
+            foreach (var piece in component.Value)
+                subGraph.AddVertex(piece.Key);
+            foreach (var connection in Connections)
+                if (component.Value.ContainsKey(connection.Connected.Piece.Id) &&
+                    component.Value.ContainsKey(connection.Connecting.Piece.Id))
+                    subGraph.AddEdge(
+                        new Edge<string>(connection.Connected.Piece.Id, connection.Connecting.Piece.Id));
+            var root = subGraph.Vertices.FirstOrDefault(p => pieces[p].Plane != null);
+            if (root == null)
+            {
+                root = subGraph.Vertices.First();
+                onRoot(pieces[root]);
+            }
+
+            var bfs = new UndirectedBreadthFirstSearchAlgorithm<string, Edge<string>>(subGraph);
+            bfs.SetRootVertex(root);
+            bfs.TreeEdge += (g, edge) =>
+            {
+                var parent = pieces[edge.Source];
+                var child = pieces[edge.Target];
+                var connection = Connections.First(c =>
+                    (c.Connected.Piece.Id == parent.Id && c.Connecting.Piece.Id == child.Id) ||
+                    (c.Connected.Piece.Id == child.Id && c.Connecting.Piece.Id == parent.Id));
+                onConnection(parent, child, connection);
+            };
+            bfs.Compute();
+        }
+    }
 
     public Design Flatten(Type[] types,
         Func<Plane, Point, Vector, Point, Vector, float, float, float, float, Plane> computeChildPlane)
@@ -1314,7 +1369,6 @@ public class Design : DesignProps
         var clone = DeepClone();
         if (clone.Pieces.Count > 1 && clone.Connections.Count > 0)
         {
-            var pieces = clone.Pieces.ToDictionary(p => p.Id);
             var ports = new Dictionary<string, Dictionary<string, Dictionary<string, Port>>>();
             foreach (var type in types)
             {
@@ -1326,62 +1380,22 @@ public class Design : DesignProps
                     ports[type.Name][type.Variant][port.Id] = port;
             }
 
-            var graph = new UndirectedGraph<string, Edge<string>>();
-            foreach (var piece in clone.Pieces)
-                graph.AddVertex(piece.Id);
-            foreach (var connection in clone.Connections)
-                graph.AddEdge(new Edge<string>(connection.Connected.Piece.Id, connection.Connecting.Piece.Id));
-            var components = new Dictionary<string, int>();
-            graph.ConnectedComponents(components);
-            var componentPieces = new Dictionary<int, Dictionary<string, Piece>>();
-            foreach (var kvp in components)
+            var onRoot = new Action<Piece>(piece => { if (piece.Plane == null) piece.Plane = new Plane(); });
+            var onConnection = new Action<Piece, Piece, Connection>((parent, child, connection) =>
             {
-                if (!componentPieces.ContainsKey(kvp.Value))
-                    componentPieces[kvp.Value] = new Dictionary<string, Piece>();
-                componentPieces[kvp.Value][kvp.Key] = pieces[kvp.Key];
-            }
-
-            foreach (var component in componentPieces)
-            {
-                var subGraph = new UndirectedGraph<string, Edge<string>>();
-                foreach (var piece in component.Value)
-                    subGraph.AddVertex(piece.Key);
-                foreach (var connection in clone.Connections)
-                    if (component.Value.ContainsKey(connection.Connected.Piece.Id) &&
-                        component.Value.ContainsKey(connection.Connecting.Piece.Id))
-                        subGraph.AddEdge(
-                            new Edge<string>(connection.Connected.Piece.Id, connection.Connecting.Piece.Id));
-                var root = subGraph.Vertices.FirstOrDefault(p => pieces[p].Plane != null);
-                if (root == null)
-                {
-                    root = subGraph.Vertices.First();
-                    pieces[root].Plane = new Plane();
-                }
-
-                var bfs = new UndirectedBreadthFirstSearchAlgorithm<string, Edge<string>>(subGraph);
-                bfs.SetRootVertex(root);
-                bfs.TreeEdge += (g, edge) =>
-                {
-                    var parent = pieces[edge.Source];
-                    var child = pieces[edge.Target];
-                    var connection = clone.Connections.First(c =>
-                        (c.Connected.Piece.Id == parent.Id && c.Connecting.Piece.Id == child.Id) ||
-                        (c.Connected.Piece.Id == child.Id && c.Connecting.Piece.Id == parent.Id));
-                    var isParentConnected = connection.Connected.Piece.Id == parent.Id;
-                    var parentPlane = parent.Plane;
-                    var parentPort =
-                        ports[parent.Type.Name][parent.Type.Variant][
-                            isParentConnected ? connection.Connected.Port.Id : connection.Connecting.Port.Id];
-                    var childPort =
-                        ports[child.Type.Name][child.Type.Variant][
-                            isParentConnected ? connection.Connecting.Port.Id : connection.Connected.Port.Id];
-                    var childPlane = computeChildPlane(parentPlane, parentPort.Point, parentPort.Direction,
-                        childPort.Point,
-                        childPort.Direction, connection.Rotation, connection.Tilt, connection.Gap, connection.Shift);
-                    child.Plane = childPlane;
-                };
-                bfs.Compute();
-            }
+                var isParentConnected = connection.Connected.Piece.Id == parent.Id;
+                var parentPlane = parent.Plane;
+                var parentPort =
+                    ports[parent.Type.Name][parent.Type.Variant][
+                        isParentConnected ? connection.Connected.Port.Id : connection.Connecting.Port.Id];
+                var childPort =
+                    ports[child.Type.Name][child.Type.Variant][
+                        isParentConnected ? connection.Connecting.Port.Id : connection.Connected.Port.Id];
+                var childPlane = computeChildPlane(parentPlane, parentPort.Point, parentPort.Direction,
+                    childPort.Point,
+                    childPort.Direction, connection.Rotation, connection.Tilt, connection.Gap, connection.Shift);
+                child.Plane = childPlane;
+            });
         }
 
         clone.Connections = new List<Connection>();
@@ -1708,6 +1722,7 @@ public static class Api
 
 #endregion
 
+#region Meta
 public static class Meta
 {
     /// <summary>
@@ -1823,3 +1838,4 @@ public static class Meta
             kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray());
     }
 }
+#endregion
