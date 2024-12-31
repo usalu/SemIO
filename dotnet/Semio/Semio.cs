@@ -42,6 +42,7 @@ namespace Semio;
 // TODO: Implement reflexive validation for model properties.
 // TODO: Add index to prop and add to list based on index not on source code order.
 // TODO: See if Utility.Encode(uri) can be added by attribute on parameters.
+// TODO: Turn inplace and leave clone to the user of the function.
 #endregion
 
 #region Constants
@@ -1375,9 +1376,30 @@ public class Design : DesignProps
         }
     }
 
-    public Design Flatten(Type[] types,
+    Design FlattenDiagram()
+    {
+        // TODO: Turn inplace and leave clone to the user of the function.
+        var clone = DeepClone();
+        if (clone.Pieces.Count > 1 && clone.Connections.Count > 0)
+        {
+            var onRoot = new Action<Piece>(piece => { if (piece.ScreenPoint == null) piece.ScreenPoint = new ScreenPoint(); });
+            var onConnection = new Action<Piece, Piece, Connection>((parent, child, connection) =>
+            {
+                var childScreenPoint = new ScreenPoint
+                {
+                    X = parent.ScreenPoint.X + (int)(parentPort.Point.X - childPort.Point.X),
+                    Y = parent.ScreenPoint.Y + (int)(parentPort.Point.Y - childPort.Point.Y)
+                };
+                child.ScreenPoint = childScreenPoint;
+            });
+            Bfs(onRoot, onConnection);
+        }
+    }
+
+    Design FlattenConnections(Type[] types,
         Func<Plane, Point, Vector, Point, Vector, float, float, float, float, Plane> computeChildPlane)
     {
+        // TODO: Turn inplace and leave clone to the user of the function.
         var clone = DeepClone();
         if (clone.Pieces.Count > 1 && clone.Connections.Count > 0)
         {
@@ -1408,6 +1430,7 @@ public class Design : DesignProps
                     childPort.Direction, connection.Rotation, connection.Tilt, connection.Gap, connection.Shift);
                 child.Plane = childPlane;
             });
+            Bfs(onRoot, onConnection);
         }
 
         clone.Connections = new List<Connection>();
@@ -1415,37 +1438,43 @@ public class Design : DesignProps
         return clone;
     }
 
-    public string Diagram()
+    public Design Flatten(Type[] types,
+        Func<Plane, Point, Vector, Point, Vector, float, float, float, float, Plane> computeChildPlane)
     {
+        // TODO: Turn inplace and leave clone to the user of the function.
+        var flattenedConnections = FlattenConnections(types, computeChildPlane);
+        var flattenedDiagram = flattenedConnections.FlattenDiagram();
+        return flattenedDiagram;
+    }
 
-        var strokePiece = 1f;
-        var strokeConnection = 2f;
-        var pieceWidth = 50;
+    public string Diagram(float pieceWidth = 50, float pieceStroke = 1f, float connectionStroke = 2f)
+    {   
+        
         var svgDoc = new SvgDocument();
 
         var defs = new SvgDefinitionList();
 
-        var piece = new SvgCircle
+        var pieceCircle = new SvgCircle
         {
             ID = "piece",
             CenterX = pieceWidth / 2,
             CenterY = pieceWidth / 2,
-            Radius = pieceWidth / 2 - strokePiece / 2,
+            Radius = pieceWidth / 2 - pieceStroke / 2,
             Fill = new SvgColourServer(Color.White),
             Stroke = new SvgColourServer(Color.Black),
-            StrokeWidth = strokePiece,
+            StrokeWidth = pieceStroke,
         };
-        defs.Children.Add(piece);
+        defs.Children.Add(pieceCircle);
 
         var root = new SvgCircle
         {
             ID = "root",
             CenterX = pieceWidth / 2,
             CenterY = pieceWidth / 2,
-            Radius = pieceWidth / 2 + strokePiece,
+            Radius = pieceWidth / 2 + pieceStroke,
             Fill = new SvgColourServer(Color.White),
             Stroke = new SvgColourServer(Color.Black),
-            StrokeWidth = strokePiece,
+            StrokeWidth = pieceStroke,
         };
         defs.Children.Add(root);
 
@@ -1455,9 +1484,9 @@ public class Design : DesignProps
             Children = {
         new SvgCircle
             {
-                CenterX = pieceWidth/2-strokePiece,
-                CenterY = pieceWidth/2-strokePiece,
-                Radius = pieceWidth/2-strokePiece,
+                CenterX = pieceWidth/2-pieceStroke,
+                CenterY = pieceWidth/2-pieceStroke,
+                Radius = pieceWidth/2-pieceStroke,
                 Fill = new SvgColourServer(Color.White)
             }
     }
@@ -1465,14 +1494,14 @@ public class Design : DesignProps
         defs.Children.Add(pieceMask);
 
         // var building = SvgDocument.Open("building.svg");
-        // building.Width = 50-2*strokePiece;
-        // building.Height = 50-2*strokePiece;
+        // building.Width = 50-2*pieceStroke;
+        // building.Height = 50-2*pieceStroke;
         // building.CustomAttributes.Add("pieceMask", "url(#pieceMask)");
         var building = new SvgImage()
         {
             ID = "building",
-            Width = 50 - 2 * strokePiece,
-            Height = 50 - 2 * strokePiece,
+            Width = 50 - 2 * pieceStroke,
+            Height = 50 - 2 * pieceStroke,
             CustomAttributes = {
         {"href", "data:image/svg+xml;base64," + Convert.ToBase64String(File.ReadAllBytes("building.svg"))},
         { "mask", "url(#pieceMask)" }
@@ -1484,7 +1513,7 @@ public class Design : DesignProps
         };
         var buildingTransform = new SvgTransformCollection
         {
-            new SvgTranslate(strokePiece, strokePiece)
+            new SvgTranslate(pieceStroke, pieceStroke)
         };
         buildingTransformed.Transforms = buildingTransform;
         var buildingDef = new SvgGroup()
@@ -1499,8 +1528,8 @@ public class Design : DesignProps
         var capsule = new SvgImage()
         {
             ID = "capsule",
-            Width = 50 - 2 * strokePiece,
-            Height = 50 - 2 * strokePiece,
+            Width = 50 - 2 * pieceStroke,
+            Height = 50 - 2 * pieceStroke,
             CustomAttributes = {
         { "href", "data:image/png;base64," + Convert.ToBase64String(File.ReadAllBytes("capsule.jpeg")) },
         { "mask", "url(#pieceMask)" }
@@ -1512,7 +1541,7 @@ public class Design : DesignProps
             Children = { capsule }
         };
         var capsuleTransform = new SvgTransformCollection();
-        capsuleTransform.Add(new SvgTranslate(strokePiece, strokePiece));
+        capsuleTransform.Add(new SvgTranslate(pieceStroke, pieceStroke));
         capsuleTransformed.Transforms = capsuleTransform;
         var capsuleDef = new SvgGroup()
         {
@@ -1534,7 +1563,7 @@ public class Design : DesignProps
             EndX = 75,
             EndY = 75,
             Stroke = new SvgColourServer(Color.Black),
-            StrokeWidth = strokeConnection,
+            StrokeWidth = connectionStroke,
             Children = { new SvgTitle { Content = "b1 -- c0" } }
         };
         connections.Children.Add(connection1);
@@ -1546,13 +1575,18 @@ public class Design : DesignProps
             EndX = 125,
             EndY = pieceWidth / 2,
             Stroke = new SvgColourServer(Color.Black),
-            StrokeWidth = strokeConnection,
+            StrokeWidth = connectionStroke,
         };
         connections.Children.Add(connection2);
 
         svgDoc.Children.Add(connections);
 
         var pieces = new SvgGroup() { ID = "pieces" };
+
+        foreach (var piece in Pieces)
+        {
+            
+        }
 
         var buildingUse = new SvgUse
         {
