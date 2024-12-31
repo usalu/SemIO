@@ -19,6 +19,7 @@
 #region Usings
 using System.Collections;
 using System.Collections.Immutable;
+using System.Drawing;
 using System.Net;
 using System.Reflection;
 using FluentValidation;
@@ -28,6 +29,8 @@ using QuikGraph;
 using QuikGraph.Algorithms;
 using QuikGraph.Algorithms.Search;
 using Refit;
+using Svg;
+using Svg.Transforms;
 using UnitsNet;
 #endregion
 
@@ -96,6 +99,15 @@ public static class Utility
         {
             return "application/octet-stream";
         }
+    }
+
+    public static string ReadAndEncode(string filename)
+    {
+        var bytes = File.ReadAllBytes(filename);
+        var base64 = Convert.ToBase64String(bytes);
+        var mimeType = ParseMimeFromUrl(filename);
+        var dataUri = $"data:{mimeType};base64,{base64}";
+        return dataUri;
     }
 
     public static string Encode(string text)
@@ -1402,6 +1414,189 @@ public class Design : DesignProps
 
         return clone;
     }
+
+    public string Diagram()
+    {
+
+        var strokePiece = 1f;
+        var strokeConnection = 2f;
+        var pieceWidth = 50;
+        var svgDoc = new SvgDocument();
+
+        var defs = new SvgDefinitionList();
+
+        var piece = new SvgCircle
+        {
+            ID = "piece",
+            CenterX = pieceWidth / 2,
+            CenterY = pieceWidth / 2,
+            Radius = pieceWidth / 2 - strokePiece / 2,
+            Fill = new SvgColourServer(Color.White),
+            Stroke = new SvgColourServer(Color.Black),
+            StrokeWidth = strokePiece,
+        };
+        defs.Children.Add(piece);
+
+        var root = new SvgCircle
+        {
+            ID = "root",
+            CenterX = pieceWidth / 2,
+            CenterY = pieceWidth / 2,
+            Radius = pieceWidth / 2 + strokePiece,
+            Fill = new SvgColourServer(Color.White),
+            Stroke = new SvgColourServer(Color.Black),
+            StrokeWidth = strokePiece,
+        };
+        defs.Children.Add(root);
+
+        var pieceMask = new SvgMask
+        {
+            ID = "pieceMask",
+            Children = {
+        new SvgCircle
+            {
+                CenterX = pieceWidth/2-strokePiece,
+                CenterY = pieceWidth/2-strokePiece,
+                Radius = pieceWidth/2-strokePiece,
+                Fill = new SvgColourServer(Color.White)
+            }
+    }
+        };
+        defs.Children.Add(pieceMask);
+
+        // var building = SvgDocument.Open("building.svg");
+        // building.Width = 50-2*strokePiece;
+        // building.Height = 50-2*strokePiece;
+        // building.CustomAttributes.Add("pieceMask", "url(#pieceMask)");
+        var building = new SvgImage()
+        {
+            ID = "building",
+            Width = 50 - 2 * strokePiece,
+            Height = 50 - 2 * strokePiece,
+            CustomAttributes = {
+        {"href", "data:image/svg+xml;base64," + Convert.ToBase64String(File.ReadAllBytes("building.svg"))},
+        { "mask", "url(#pieceMask)" }
+        }
+        };
+        var buildingTransformed = new SvgGroup()
+        {
+            Children = { building }
+        };
+        var buildingTransform = new SvgTransformCollection
+        {
+            new SvgTranslate(strokePiece, strokePiece)
+        };
+        buildingTransformed.Transforms = buildingTransform;
+        var buildingDef = new SvgGroup()
+        {
+            ID = "building",
+            Children = {
+        new SvgUse(){CustomAttributes = { { "href", "#piece" } }},
+        buildingTransformed },
+        };
+        defs.Children.Add(buildingDef);
+
+        var capsule = new SvgImage()
+        {
+            ID = "capsule",
+            Width = 50 - 2 * strokePiece,
+            Height = 50 - 2 * strokePiece,
+            CustomAttributes = {
+        { "href", "data:image/png;base64," + Convert.ToBase64String(File.ReadAllBytes("capsule.jpeg")) },
+        { "mask", "url(#pieceMask)" }
+        }
+        };
+        // capsule.CustomAttributes.Add("pieceMask", "url(#pieceMask)");
+        var capsuleTransformed = new SvgGroup()
+        {
+            Children = { capsule }
+        };
+        var capsuleTransform = new SvgTransformCollection();
+        capsuleTransform.Add(new SvgTranslate(strokePiece, strokePiece));
+        capsuleTransformed.Transforms = capsuleTransform;
+        var capsuleDef = new SvgGroup()
+        {
+            ID = "capsule",
+            Children = {
+        new SvgUse(){CustomAttributes = { { "href", "#piece" } }},
+        capsuleTransformed }
+        };
+        defs.Children.Add(capsuleDef);
+
+        svgDoc.Children.Add(defs);
+
+        var connections = new SvgGroup() { ID = "connections" };
+
+        var connection1 = new SvgLine
+        {
+            StartX = pieceWidth / 2,
+            StartY = pieceWidth / 2,
+            EndX = 75,
+            EndY = 75,
+            Stroke = new SvgColourServer(Color.Black),
+            StrokeWidth = strokeConnection,
+            Children = { new SvgTitle { Content = "b1 -- c0" } }
+        };
+        connections.Children.Add(connection1);
+
+        var connection2 = new SvgLine
+        {
+            StartX = 75,
+            StartY = 75,
+            EndX = 125,
+            EndY = pieceWidth / 2,
+            Stroke = new SvgColourServer(Color.Black),
+            StrokeWidth = strokeConnection,
+        };
+        connections.Children.Add(connection2);
+
+        svgDoc.Children.Add(connections);
+
+        var pieces = new SvgGroup() { ID = "pieces" };
+
+        var buildingUse = new SvgUse
+        {
+            // ReferencedElement produces deprecated xlink:href attribute
+            // See https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href
+            // ReferencedElement = new Uri("#building", UriKind.Relative),
+            CustomAttributes = { { "href", "#building" } },
+            X = 0,
+            Y = 0,
+            Children = { new SvgTitle { Content = "b0" } }
+        };
+        pieces.Children.Add(buildingUse);
+
+        var buildingUse2Root = new SvgUse
+        {
+            CustomAttributes = { { "href", "#root" } },
+            X = 100,
+            Y = 0,
+        };
+        pieces.Children.Add(buildingUse2Root);
+        var buildingUse2 = new SvgUse
+        {
+            CustomAttributes = { { "href", "#building" } },
+            X = 100,
+            Y = 0,
+            Children = { new SvgTitle { Content = "b1" } }
+        };
+        pieces.Children.Add(buildingUse2);
+
+        var capsuleUse = new SvgUse
+        {
+            CustomAttributes = { { "href", "#capsule" } },
+            X = 50,
+            Y = 50,
+            Children = { new SvgTitle { Content = "c0" } }
+        };
+        pieces.Children.Add(capsuleUse);
+
+        svgDoc.Children.Add(pieces);
+
+        var svg = svgDoc.GetXML();
+        return svg;
+    }
+
 
     // TODO: Implement reflexive validation for model properties.
     public override (bool, List<string>) Validate()
