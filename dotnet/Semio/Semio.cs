@@ -82,7 +82,7 @@ public static class Constants
 //➡️,Dr,Drn,Direction,The direction of the port. When another piece connects the direction of the other port is flipped and then the pieces are aligned.
 //🏙️,Dn,Dsn,Design,A design is a collection of pieces that are connected.
 //🏙️,Dn*,Dsns,Designs,The optional designs of the kit.
-//📺,DP,DPt,Diagram Point,A normalized 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.
+//📺,DP,DPt,Diagram Point,A 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.
 //🚌,Dt,DTO,Data Transfer Object, The Data Transfer Object (DTO) base of the {{NAME}}.
 //🪣,Em,Emp,Empty,Empty all props and children of the {{NAME}}.
 //▢,En,Ent,Entity,An entity is a collection of properties and children.
@@ -144,10 +144,10 @@ public static class Constants
 //🏷️,Vl,Val,Value,The value of the tag.
 //🔢,Vl?,Val,Value,The optional value [ text | url ] of the quality. No value is equivalent to true for the name.
 //🔀,Vn?,Vnt,Variant,The optional variant of the {{NAME}}. No variant means the default variant.
-//🏁,X,X,X,The x-coordinate of the screen point.
+//🏁,X,X,X,The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.
 //🎚️,X,X,X,The x-coordinate of the point.
 //➡️,XA,XAx,XAxis,The x-axis of the plane.
-//🏁,Y,Y,Y,The y-coordinate of the screen point.
+//🏁,Y,Y,Y,The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.
 //🎚️,Y,Y,Y,The y-coordinate of the point.
 //➡️,YA,YAx,YAxis,The y-axis of the plane.
 //🏁,Z,Z,Z,The z-coordinate of the screen point.
@@ -471,6 +471,16 @@ public class IdAttribute : TextAttribute
         PropImportance importance = PropImportance.ID, bool isDefaultValid = false, bool skipValidation = false) : base(
         emoji, code,
         abbreviation, description, importance, isDefaultValid, skipValidation, Constants.IdLengthLimit)
+    {
+    }
+}
+
+public class EmailAttribute : TextAttribute
+{
+    public EmailAttribute(string emoji, string code, string abbreviation, string description,
+        PropImportance importance = PropImportance.OPTIONAL, bool isDefaultValid = false, bool skipValidation = false) :
+        base(emoji, code,
+            abbreviation, description, importance, isDefaultValid, skipValidation, Constants.IdLengthLimit)
     {
     }
 }
@@ -804,16 +814,16 @@ public class Locator : Model<Locator>
 }
 
 /// <summary>
-///     📺 A 2d-point (xy) of integers in screen plane.
+///     📺 A 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.
 /// </summary>
-[Model("📺", "DP", "DPt", "A 2d-point (xy) of integers in screen plane.")]
+[Model("📺", "DP", "DPt", "A 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.")]
 public class DiagramPoint : Model<DiagramPoint>
 {
-    [IntProp("🏁", "X", "X", "The x-coordinate of the screen point.", PropImportance.REQUIRED)]
-    public int X { get; set; } = 0;
+    [NumberProp("🎚️", "X", "X", "The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.", PropImportance.REQUIRED)]
+    public float X { get; set; } = 0;
 
-    [IntProp("🏁", "Y", "Y", "The y-coordinate of the screen point.", PropImportance.REQUIRED)]
-    public int Y { get; set; } = 0;
+    [NumberProp("🎚️", "Y", "Y", "The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.", PropImportance.REQUIRED)]
+    public float Y { get; set; } = 0;
 }
 
 /// <summary>
@@ -1103,6 +1113,37 @@ public class TypeProps : Model<Type>
 }
 
 /// <summary>
+///     👤 The information about the author.
+/// </summary>
+[Model("👤", "Au", "Aut", "The information about the author.")]
+public class Author : Model<Author>
+{
+    /// <summary>
+    ///     📛 The name of the author.
+    /// </summary>
+    [Name("📛", "Na", "Nam", "The name of the author.", PropImportance.REQUIRED)]
+    public string Name { get; set; } = "";
+
+    /// <summary>
+    ///     📧 The email of the author.
+    /// </summary>
+    [Email("📧", "Em", "Eml", "The email of the author.", PropImportance.ID)]
+    public string Email { get; set; } = "";
+
+    public override (bool, List<string>) Validate()
+    {
+        // TODO: proper email validation
+        var (isValid, errors) = base.Validate();
+        if (!Email.Contains("@"))
+        {
+            isValid = false;
+            errors.Add("The email must contain an @.");
+        }
+        return (isValid, errors);
+    }
+}
+
+/// <summary>
 ///     🧩 A type is a reusable element that can be connected with other types over ports.
 /// </summary>
 [Model("🧩", "Ty", "Typ", "A type is a reusable element that can be connected with other types over ports.")]
@@ -1123,8 +1164,14 @@ public class Type : TypeProps
     /// <summary>
     ///     📏 The optional qualities of the type.
     /// </summary>
-    [ModelProp("📏", "Ql*", "Qualities", "The optional qualities of the type.", PropImportance.OPTIONAL)]
+    [ModelProp("📏", "Ql*", "Qals", "The optional qualities of the type.", PropImportance.OPTIONAL)]
     public List<Quality> Qualities { get; set; } = new();
+
+    /// <summary>
+    ///    👥 The optional authors of the type.
+    /// </summary>
+    [ModelProp("👥", "Au*", "Auts", "The optional authors of the type.", PropImportance.OPTIONAL)]
+    public List<Author> Authors { get; set; } = new();
 
     // TODO: Implement reflexive validation for model properties.
     public override (bool, List<string>) Validate()
@@ -1149,6 +1196,13 @@ public class Type : TypeProps
             var (isValidQuality, errorsQuality) = quality.Validate();
             isValid = isValid && isValidQuality;
             errors.AddRange(errorsQuality.Select(e => "A quality is invalid: " + e));
+        }
+
+        foreach (var author in Authors)
+        {
+            var (isValidAuthor, errorsAuthor) = author.Validate();
+            isValid = isValid && isValidAuthor;
+            errors.AddRange(errorsAuthor.Select(e => "An author is invalid: " + e));
         }
 
         return (isValid, errors);
@@ -1213,12 +1267,12 @@ public class Piece : Model<Piece>
     public Plane? Plane { get; set; }
 
     /// <summary>
-    ///     📺 A normalized 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.
+    ///     📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.
     /// </summary>
-    [ModelProp("📺", "SP", "SPt",
-        "A normalized 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.",
+    [ModelProp("📺", "Ce", "Cen",
+        "The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
         PropImportance.OPTIONAL)]
-    public DiagramPoint DiagramPoint { get; set; } = new();
+    public DiagramPoint Center { get; set; } = new();
 
     // TODO: Implement reflexive validation for model properties.
     public override (bool, List<string>) Validate()
@@ -1412,8 +1466,15 @@ public class Design : DesignProps
     /// <summary>
     ///     📏 The optional qualities of the design.
     /// </summary>
-    [ModelProp("📏", "Ql*", "Qualities", "The optional qualities of the design.", PropImportance.OPTIONAL)]
+    [ModelProp("📏", "Ql*", "Qals", "The optional qualities of the design.", PropImportance.OPTIONAL)]
     public List<Quality> Qualities { get; set; } = new();
+
+    /// <summary>
+    ///    👥 The optional authors of the design.
+    /// </summary>
+    [ModelProp("👥", "Au*", "Auts", "The optional authors of the design.", PropImportance.OPTIONAL)]
+    public List<Author> Authors { get; set; } = new();
+
     public void Bfs(Action<Piece> onRoot, Action<Piece, Piece, Connection> onConnection)
     {
         var pieces = Pieces.ToDictionary(p => p.Id);
@@ -1470,18 +1531,22 @@ public class Design : DesignProps
         var clone = DeepClone();
         if (clone.Pieces.Count > 1 && clone.Connections.Count > 0)
         {
-            var onRoot = new Action<Piece>(piece => { if (piece.DiagramPoint == null) piece.DiagramPoint = new DiagramPoint(); });
+            var onRoot = new Action<Piece>(piece => { if (piece.Center == null) piece.Center = new DiagramPoint(); });
             var onConnection = new Action<Piece, Piece, Connection>((parent, child, connection) =>
             {
-                var childScreenPoint = new DiagramPoint
+                // TODO: Implement
+                var x = parent.Center.X;
+                var y = parent.Center.Y;
+                var childDiagramPoint = new DiagramPoint
                 {
-                    X = parent.DiagramPoint.X + (int)(parentPort.Point.X - childPort.Point.X),
-                    Y = parent.DiagramPoint.Y + (int)(parentPort.Point.Y - childPort.Point.Y)
+                    X = x,
+                    Y = y
                 };
-                child.DiagramPoint = childScreenPoint;
+                child.Center = childDiagramPoint;
             });
             Bfs(onRoot, onConnection);
         }
+        return clone;
     }
 
     Design FlattenConnections(Type[] types,
@@ -1747,6 +1812,14 @@ public class Design : DesignProps
             errors.AddRange(errorsQuality.Select(e => "A quality is invalid: " + e));
         }
 
+        var authorValidator = new ModelValidator<Author>();
+        foreach (var author in Authors)
+        {
+            var (isValidAuthor, errorsAuthor) = author.Validate();
+            isValid = isValid && isValidAuthor;
+            errors.AddRange(errorsAuthor.Select(e => "An author is invalid: " + e));
+        }
+
         var pieceIds = Pieces.Select(p => p.Id);
 
         var duplicatePieceIds = pieceIds.GroupBy(x => x).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
@@ -1855,6 +1928,12 @@ public class KitProps : Model<Kit>
     /// </summary>
     [Url("🏠", "Hp?", "Hmp", "The optional Unique Resource Locator (URL) of the homepage of the kit.")]
     public string Homepage { get; set; } = "";
+
+    /// <summary>
+    ///    ⚖️ The optional license of the kit.
+    /// </summary>
+    [Url("⚖️", "Ln?", "Lcn", "The optional license of the kit.")]
+    public string License { get; set; } = "";
 }
 
 /// <summary>

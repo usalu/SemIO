@@ -71,7 +71,7 @@
                         }
                     ],
                     "default": null,
-                    "description": "\u25f3 The plane of the piece."
+                    "description": "\u25f3 The optional plane of the piece. When pieces are connected only one piece can have a plane."
                 }
             },
             "required": [

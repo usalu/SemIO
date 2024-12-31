@@ -98,7 +98,7 @@ engine.py
 # 🧱,Sd,Sde,Side,A side of a piece in a connection.
 # ↔️,Sf,Sft,Shift,The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece.
 # 📌,SG?,SGr,Subgroup,The optional sub-group of the locator. No sub-group means true.
-# 📺,SP,SPt,Diagram Point,A normalized 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.
+# 📺,SP,SPt,Diagram Point,A 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.
 # ✅,Su,Suc,Success,{{NAME}} was successful.
 # 🏷️,Tg*,Tags,Tags,The optional tags to group representations. No tags means default.
 # ↗️,Tl?,Tlt,Tilt,The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.
@@ -115,10 +115,10 @@ engine.py
 # 🏷️,Vl,Val,Value,The value of the tag.
 # 🔢,Vl?,Val,Value,The optional value [ text | url ] of the quality. No value is equivalent to true for the name.
 # 🔀,Vn?,Vnt,Variant,The optional variant of the {{NAME}}. No variant means the default variant.
-# 🏁,X,X,X,The x-coordinate of the screen point.
+# 🏁,X,X,X,The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.
 # 🎚️,X,X,X,The x-coordinate of the point.
 # ➡️,XA,XAx,XAxis,The x-axis of the plane.
-# 🏁,Y,Y,Y,The y-coordinate of the screen point.
+# 🏁,Y,Y,Y,The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.
 # 🎚️,Y,Y,Y,The y-coordinate of the point.
 # ➡️,YA,YAx,YAxis,The y-axis of the plane.
 # 🏁,Z,Z,Z,The z-coordinate of the screen point.
@@ -886,18 +886,18 @@ class Locator(LocatorSubgroupField, Table, table=True):
 
 
 class DiagramPoint(Model):
-    """📺 A 2d-point (xy) of integers in screen coordinate system."""
+    """📺 A 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon."""
 
-    x: int = sqlmodel.Field(description="🏁 The x-coordinate of the screen point.")
-    """🏁 The x-coordinate of the screen point."""
-    y: int = sqlmodel.Field(description="🏁 The y-coordinate of the screen point.")
-    """🏁 The y-coordinate of the screen point."""
+    x: float = sqlmodel.Field(description="🏁 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.")
+    """🏁 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
+    y: float = sqlmodel.Field(description="🏁 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.")
+    """🏁 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
 
     def __str__(self) -> str:
-        return f"[{pretty(self.x)}, {pretty(self.y)}, {pretty(self.z)}]"
+        return f"[{pretty(self.x)}, {pretty(self.y)}]"
 
     def __repr__(self) -> str:
-        return f"[{pretty(self.x)}, {pretty(self.y)}, {pretty(self.z)}]"
+        return f"[{pretty(self.x)}, {pretty(self.y)}]"
 
     # def __init__(self, x: int = 0, y: int = 0):
     #     super().__init__(x=x, y=y)
@@ -917,19 +917,19 @@ class DiagramPoint(Model):
     #     return iter((self.x, self.y))
 
 
-class ScreenPointInput(DiagramPoint, Input):
+class DiagramPointInput(DiagramPoint, Input):
     """📺 A 2d-point (xy) of integers in screen coordinate system."""
 
 
-class ScreenPointContext(DiagramPoint, Context):
+class DiagramPointContext(DiagramPoint, Context):
     """📺 A 2d-point (xy) of integers in screen coordinate system."""
 
 
-class ScreenPointOutput(DiagramPoint, Output):
+class DiagramPointOutput(DiagramPoint, Output):
     """📺 A 2d-point (xy) of integers in screen coordinate system."""
 
 
-class ScreenPointPrediction(DiagramPoint, Prediction):
+class DiagramPointPrediction(DiagramPoint, Prediction):
     """📺 A 2d-point (xy) of integers in screen coordinate system."""
 
 
@@ -2152,21 +2152,21 @@ class PieceTypeField(MaskedField, abc.ABC):
 
 
 class PiecePlaneField(MaskedField, abc.ABC):
-    """◳ The plane of the piece."""
+    """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
 
     plane: Plane = sqlmodel.Field(
-        description="◳ The plane of the piece.",
+        description="◳ The optional plane of the piece. When pieces are connected only one piece can have a plane.",
     )
-    """◳ The plane of the piece."""
+    """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
 
 
-class PieceScreenPointField(MaskedField, abc.ABC):
-    """📺 The screen point of the piece."""
+class PieceCenterField(MaskedField, abc.ABC):
+    """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
 
     center: DiagramPoint = sqlmodel.Field(
-        description="📺 The screen point of the piece.",
+        description="📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
     )
-    """📺 The screen point of the piece."""
+    """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
 
 
 class PieceId(PieceIdField, Id):
@@ -2174,7 +2174,7 @@ class PieceId(PieceIdField, Id):
 
 
 class PieceProps(
-    PieceScreenPointField, PiecePlaneField, PieceTypeField, PieceIdField, Props
+    PieceCenterField, PiecePlaneField, PieceTypeField, PieceIdField, Props
 ):
     """🎫 The props of a piece."""
 
@@ -2183,13 +2183,13 @@ class PieceInput(PieceTypeField, PieceIdField, Input):
     """⭕ A piece is a 3d-instance of a type in a design."""
 
     plane: typing.Optional[PlaneInput] = sqlmodel.Field(
-        description="◳ The plane of the piece.",
+        description="◳ The optional plane of the piece. When pieces are connected only one piece can have a plane.",
     )
-    """◳ The plane of the piece."""
-    center: ScreenPointInput = sqlmodel.Field(
-        description="📺 The screen point of the piece.",
+    """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
+    center: DiagramPointInput = sqlmodel.Field(
+        description="📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
     )
-    """📺 The screen point of the piece."""
+    """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
 
 
 class PieceContext(PieceTypeField, PieceIdField, Context):
@@ -2197,13 +2197,13 @@ class PieceContext(PieceTypeField, PieceIdField, Context):
 
     plane: typing.Optional[PlaneContext] = sqlmodel.Field(
         default=None,
-        description="◳ The plane of the piece.",
+        description="◳ The optional plane of the piece. When pieces are connected only one piece can have a plane.",
     )
-    """◳ The plane of the piece."""
-    # center: ScreenPointContext = sqlmodel.Field(
-    #     description="📺 The screen point of the piece.",
+    """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
+    # center: DiagramPointContext = sqlmodel.Field(
+    #     description="📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
     # )
-    # """📺 The screen point of the piece."""
+    # """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
 
 
 class PieceOutput(PieceTypeField, PieceIdField, Output):
@@ -2211,22 +2211,22 @@ class PieceOutput(PieceTypeField, PieceIdField, Output):
 
     plane: typing.Optional[PlaneOutput] = sqlmodel.Field(
         default=None,
-        description="◳ The plane of the piece.",
+        description="◳ The optional plane of the piece. When pieces are connected only one piece can have a plane.",
     )
-    """◳ The plane of the piece."""
-    center: ScreenPointOutput = sqlmodel.Field(
-        description="📺 The screen point of the piece.",
+    """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
+    center: DiagramPointOutput = sqlmodel.Field(
+        description="📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
     )
-    """📺 The screen point of the piece."""
+    """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
 
 
 class PiecePrediction(PieceTypeField, PieceIdField, Prediction):
     """⭕ A piece is a 3d-instance of a type in a design."""
 
-    # center: ScreenPointPrediction = sqlmodel.Field(
-    #     description="📺 The screen point of the piece.",
+    # center: DiagramPointPrediction = sqlmodel.Field(
+    #     description="📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
     # )
-    # """📺 The screen point of the piece."""
+    # """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
 
 
 class Piece(TableEntity, table=True):
@@ -2275,11 +2275,11 @@ class Piece(TableEntity, table=True):
     )
     """🔑 The foreign primary key of the plane of the piece in the database."""
     plane: typing.Optional[Plane] = sqlmodel.Relationship(back_populates="piece")
-    """◳ The plane of the piece."""
+    """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
     centerX: int = sqlmodel.Field(exclude=True)
-    """📏 The x-coordinate of the screen point of the piece."""
+    """🎚️ The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
     centerY: int = sqlmodel.Field(exclude=True)
-    """📏 The y-coordinate of the screen point of the piece."""
+    """🎚️ The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
     designPk: typing.Optional[int] = sqlmodel.Field(
         sa_column=sqlmodel.Column(
             "designId",
@@ -3896,7 +3896,7 @@ GRAPHQLTYPES = {
     "float": graphene.NonNull(graphene.Float),
     "bool": graphene.NonNull(graphene.Boolean),
     "list[str]": graphene.NonNull(graphene.List(graphene.NonNull(graphene.String))),
-    "DiagramPoint": graphene.NonNull(lambda: ScreenPointNode),
+    "DiagramPoint": graphene.NonNull(lambda: DiagramPointNode),
     "Point": graphene.NonNull(lambda: PointNode),
     "Vector": graphene.NonNull(lambda: VectorNode),
     "Plane": graphene.NonNull(lambda: PlaneNode),
@@ -4055,14 +4055,14 @@ class LocatorInputNode(InputNode):
         model = LocatorInput
 
 
-class ScreenPointNode(Node):
+class DiagramPointNode(Node):
     class Meta:
         model = DiagramPoint
 
 
-class ScreenPointInputNode(InputNode):
+class DiagramPointInputNode(InputNode):
     class Meta:
-        model = ScreenPointInput
+        model = DiagramPointInput
 
 
 class PointNode(Node):

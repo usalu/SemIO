@@ -242,10 +242,10 @@ type Plane {
 
 """📺 A 2d-point (xy) of integers in screen coordinate system."""
 type DiagramPoint {
-  """🏁 The x-coordinate of the screen point."""
+  """🏁 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
   x: Int!
 
-  """🏁 The y-coordinate of the screen point."""
+  """🏁 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
   y: Int!
 }
 
@@ -486,11 +486,11 @@ input PieceInputNode {
   """🆔 The id of the piece."""
   id_: String = ""
 
-  """◳ The plane of the piece."""
+  """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
   plane: PlaneInputNode!
 
-  """📺 The screen point of the piece."""
-  center: ScreenPointInputNode!
+  """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
+  center: DiagramPointInputNode!
   type: TypeIdInputNode!
 }
 
@@ -505,11 +505,11 @@ input PlaneInputNode {
   yAxis: VectorInputNode!
 }
 
-input ScreenPointInputNode {
-  """🏁 The x-coordinate of the screen point."""
+input DiagramPointInputNode {
+  """🏁 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
   x: Int!
 
-  """🏁 The y-coordinate of the screen point."""
+  """🏁 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
   y: Int!
 }
 

@@ -185,11 +185,11 @@
                         }
                     ],
                     "default": null,
-                    "description": "\u25f3 The plane of the piece."
+                    "description": "\u25f3 The optional plane of the piece. When pieces are connected only one piece can have a plane."
                 },
                 "center": {
                     "$ref": "#/$defs/DiagramPoint",
-                    "description": "\ud83d\udcfa The screen point of the piece."
+                    "description": "\ud83d\udcfa The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."
                 }
             },
             "required": [
@@ -377,12 +377,12 @@
             "description": "\ud83d\udcfa A 2d-point (xy) of integers in screen coordinate system.",
             "properties": {
                 "x": {
-                    "description": "\ud83c\udfc1 The x-coordinate of the screen point.",
+                    "description": "\ud83c\udfc1 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.",
                     "title": "X",
                     "type": "integer"
                 },
                 "y": {
-                    "description": "\ud83c\udfc1 The y-coordinate of the screen point.",
+                    "description": "\ud83c\udfc1 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.",
                     "title": "Y",
                     "type": "integer"
                 }

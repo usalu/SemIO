@@ -580,11 +580,11 @@ import { ThemeConfig } from 'antd/lib'
 
 // /** ✏️ The diagram indesign of a piece. */
 // export type PieceDiagramInput = {
-//     point: ScreenPointInput;
+//     point: DiagramPointInput;
 // };
 
 // /** 📺 A 2d-point (xy) of integers in screen plane. */
-// export type ScreenPointInput = {
+// export type DiagramPointInput = {
 //     x?: InputMaybe<Scalars['Int']['input']>;
 //     y?: InputMaybe<Scalars['Int']['input']>;
 // };

@@ -125,20 +125,20 @@ entity Piece {
     *localId : string
     *typeId : int <<FK>>
     ..
-    rootPlaneOriginX : float
-    rootPlaneOriginY : float
-    rootPlaneOriginZ : float
+    planeOriginX : float
+    planeOriginY : float
+    planeOriginZ : float
     ..
-    rootPlaneXAxisX : float
-    rootPlaneXAxisY : float
-    rootPlaneXAxisZ : float
+    planeXAxisX : float
+    planeXAxisY : float
+    planeXAxisZ : float
     ..
-    rootPlaneYAxisX : float
-    rootPlaneYAxisY : float
-    rootPlaneYAxisZ : float
+    planeYAxisX : float
+    planeYAxisY : float
+    planeYAxisZ : float
     ..
-    *diagramPointX : int
-    *diagramPointY : int
+    *centerX : int
+    *centerY : int
     ..
     *designId : int <<FK>>
 }
