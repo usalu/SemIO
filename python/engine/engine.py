@@ -98,7 +98,7 @@ engine.py
 # 🧱,Sd,Sde,Side,A side of a piece in a connection.
 # ↔️,Sf,Sft,Shift,The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece.
 # 📌,SG?,SGr,Subgroup,The optional sub-group of the locator. No sub-group means true.
-# 📺,SP,SPt,Screen Point,The 2d-point (xy) of integers in screen plane of the center of the icon in the diagram of the piece.
+# 📺,SP,SPt,Diagram Point,A normalized 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.
 # ✅,Su,Suc,Success,{{NAME}} was successful.
 # 🏷️,Tg*,Tags,Tags,The optional tags to group representations. No tags means default.
 # ↗️,Tl?,Tlt,Tilt,The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.
@@ -885,7 +885,7 @@ class Locator(LocatorSubgroupField, Table, table=True):
 ### Screen Points ###
 
 
-class ScreenPoint(Model):
+class DiagramPoint(Model):
     """📺 A 2d-point (xy) of integers in screen coordinate system."""
 
     x: int = sqlmodel.Field(description="🏁 The x-coordinate of the screen point.")
@@ -917,19 +917,19 @@ class ScreenPoint(Model):
     #     return iter((self.x, self.y))
 
 
-class ScreenPointInput(ScreenPoint, Input):
+class ScreenPointInput(DiagramPoint, Input):
     """📺 A 2d-point (xy) of integers in screen coordinate system."""
 
 
-class ScreenPointContext(ScreenPoint, Context):
+class ScreenPointContext(DiagramPoint, Context):
     """📺 A 2d-point (xy) of integers in screen coordinate system."""
 
 
-class ScreenPointOutput(ScreenPoint, Output):
+class ScreenPointOutput(DiagramPoint, Output):
     """📺 A 2d-point (xy) of integers in screen coordinate system."""
 
 
-class ScreenPointPrediction(ScreenPoint, Prediction):
+class ScreenPointPrediction(DiagramPoint, Prediction):
     """📺 A 2d-point (xy) of integers in screen coordinate system."""
 
 
@@ -2163,7 +2163,7 @@ class PiecePlaneField(MaskedField, abc.ABC):
 class PieceScreenPointField(MaskedField, abc.ABC):
     """📺 The screen point of the piece."""
 
-    screenPoint: ScreenPoint = sqlmodel.Field(
+    center: DiagramPoint = sqlmodel.Field(
         description="📺 The screen point of the piece.",
     )
     """📺 The screen point of the piece."""
@@ -2186,7 +2186,7 @@ class PieceInput(PieceTypeField, PieceIdField, Input):
         description="◳ The plane of the piece.",
     )
     """◳ The plane of the piece."""
-    screenPoint: ScreenPointInput = sqlmodel.Field(
+    center: ScreenPointInput = sqlmodel.Field(
         description="📺 The screen point of the piece.",
     )
     """📺 The screen point of the piece."""
@@ -2200,7 +2200,7 @@ class PieceContext(PieceTypeField, PieceIdField, Context):
         description="◳ The plane of the piece.",
     )
     """◳ The plane of the piece."""
-    # screenPoint: ScreenPointContext = sqlmodel.Field(
+    # center: ScreenPointContext = sqlmodel.Field(
     #     description="📺 The screen point of the piece.",
     # )
     # """📺 The screen point of the piece."""
@@ -2214,7 +2214,7 @@ class PieceOutput(PieceTypeField, PieceIdField, Output):
         description="◳ The plane of the piece.",
     )
     """◳ The plane of the piece."""
-    screenPoint: ScreenPointOutput = sqlmodel.Field(
+    center: ScreenPointOutput = sqlmodel.Field(
         description="📺 The screen point of the piece.",
     )
     """📺 The screen point of the piece."""
@@ -2223,7 +2223,7 @@ class PieceOutput(PieceTypeField, PieceIdField, Output):
 class PiecePrediction(PieceTypeField, PieceIdField, Prediction):
     """⭕ A piece is a 3d-instance of a type in a design."""
 
-    # screenPoint: ScreenPointPrediction = sqlmodel.Field(
+    # center: ScreenPointPrediction = sqlmodel.Field(
     #     description="📺 The screen point of the piece.",
     # )
     # """📺 The screen point of the piece."""
@@ -2276,9 +2276,9 @@ class Piece(TableEntity, table=True):
     """🔑 The foreign primary key of the plane of the piece in the database."""
     plane: typing.Optional[Plane] = sqlmodel.Relationship(back_populates="piece")
     """◳ The plane of the piece."""
-    screenPointX: int = sqlmodel.Field(exclude=True)
+    centerX: int = sqlmodel.Field(exclude=True)
     """📏 The x-coordinate of the screen point of the piece."""
-    screenPointY: int = sqlmodel.Field(exclude=True)
+    centerY: int = sqlmodel.Field(exclude=True)
     """📏 The y-coordinate of the screen point of the piece."""
     designPk: typing.Optional[int] = sqlmodel.Field(
         sa_column=sqlmodel.Column(
@@ -2306,15 +2306,15 @@ class Piece(TableEntity, table=True):
     __table_args__ = (sqlalchemy.UniqueConstraint("localId", "designId"),)
 
     @property
-    def screenPoint(self) -> ScreenPoint:
+    def center(self) -> DiagramPoint:
         """↗️ Get the masked screen point of the piece."""
-        return ScreenPoint(self.screenPointX, self.screenPointY)
+        return DiagramPoint(self.centerX, self.centerY)
 
-    @screenPoint.setter
-    def screenPoint(self, screenPoint: ScreenPoint):
+    @center.setter
+    def center(self, center: DiagramPoint):
         """↘️ Set the masked screen point of the piece."""
-        self.screenPointX = screenPoint.x
-        self.screenPointY = screenPoint.y
+        self.centerX = center.x
+        self.centerY = center.y
 
     @property
     def connections(self) -> list["Connection"]:
@@ -2347,8 +2347,8 @@ class Piece(TableEntity, table=True):
             entity.type = types[type.name][type.variant]
         except KeyError:
             raise TypeNotFound(type)
-        screenPoint = ScreenPoint.parse(obj["screenPoint"])
-        entity.screenPoint = screenPoint
+        center = DiagramPoint.parse(obj["center"])
+        entity.center = center
         try:
             plane = Plane.parse(obj["plane"])
             # TODO: Proper mechanism of nullable fields.
@@ -3896,7 +3896,7 @@ GRAPHQLTYPES = {
     "float": graphene.NonNull(graphene.Float),
     "bool": graphene.NonNull(graphene.Boolean),
     "list[str]": graphene.NonNull(graphene.List(graphene.NonNull(graphene.String))),
-    "ScreenPoint": graphene.NonNull(lambda: ScreenPointNode),
+    "DiagramPoint": graphene.NonNull(lambda: ScreenPointNode),
     "Point": graphene.NonNull(lambda: PointNode),
     "Vector": graphene.NonNull(lambda: VectorNode),
     "Plane": graphene.NonNull(lambda: PlaneNode),
@@ -4057,7 +4057,7 @@ class LocatorInputNode(InputNode):
 
 class ScreenPointNode(Node):
     class Meta:
-        model = ScreenPoint
+        model = DiagramPoint
 
 
 class ScreenPointInputNode(InputNode):

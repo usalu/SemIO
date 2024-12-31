@@ -63,9 +63,97 @@ public static class Constants
 
 #region Copilot
 
-//GraphQL
+#region GraphQL
+#endregion
 
-//Dictionary
+#region Dictionary
+//Symbol,Code,Abbreviation,Name,Description
+//👥,Bs,Bas,Base,The shared base props for {{NAME}} models.
+//🧲,Cd,Cnd,Connected,The connected side of the piece of the connection.
+//🧲,Cg,Cng,Connecting,The connecting side of the piece of the connection.
+//🖇️,Co,Con,Connection,A connection between two pieces in a design.
+//🖇️,Co*,Cons,Connections,The optional connections of a design.
+//⌚,CA,CAt,Created At,The time when the {{NAME}} was created.
+//💬,Dc?,Dsc,Description,The optional human description of the {{NAME}}.
+//📖,Df,Def,Definition,The optional definition [ text | url ] of the quality.
+//✏️,Dg,Dgm,Diagram,The diagram of the design.
+//📁,Di?,Dir,Directory,The optional directory where to find the kit.
+//🏅,Dl,Dfl,Default,Whether it is the default representation of the type. There can be only one default representation per type.
+//➡️,Dr,Drn,Direction,The direction of the port. When another piece connects the direction of the other port is flipped and then the pieces are aligned.
+//🏙️,Dn,Dsn,Design,A design is a collection of pieces that are connected.
+//🏙️,Dn*,Dsns,Designs,The optional designs of the kit.
+//📺,DP,DPt,Diagram Point,A normalized 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.
+//🚌,Dt,DTO,Data Transfer Object, The Data Transfer Object (DTO) base of the {{NAME}}.
+//🪣,Em,Emp,Empty,Empty all props and children of the {{NAME}}.
+//▢,En,Ent,Entity,An entity is a collection of properties and children.
+//🔑,FK,FKy,Foreign Key, The foreign primary key of the parent {{PARENT_NAME}} of the {{NAME}} in the database.
+//↕️,Gp?,Gap,Gap,The optional longitudinal gap (applied after rotation and tilt in port direction) between the connected and the connecting piece. 
+//🆔,GI,GID,Globally Unique Identifier,A Globally Unique Identifier (GUID) of the entity.
+//👪,Gr,Grp,Group,The group of the locator.
+//🏠,Hp?,Hmp,Homepage,The optional url of the homepage of the kit.
+//🖼️,Ic?,Ico,Icon,The optional icon [ emoji | name | url ] of the {{NAME}}.
+//🆔,Id,Id,Identifier,The local identifier of the {{NAME}} within the {{PARENT_NAME}}.
+//🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
+//🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
+//↘️,In,Inp,Input,The input for a {{NAME}}.
+//🗃️,Kt,Kit,Kit,A kit is a collection of designs that use types.
+//🗺️,Lc,Loc,Locator,A locator is metadata for grouping ports.
+//🗺️,Lc*,Locs,Locators,The optional locators of the port.
+//🔍,Ld?,Lod,Level of Detail,The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod.
+//📛,Na,Nam,Name,The name of the {{NAME}}.
+//✉️,Mm,Mim,Mime,The Multipurpose Internet Mail Extensions (MIME) type of the content of the resource of the representation.
+//⌱,Og,Org,Origin,The origin of the plane.
+//↗️,Ou,Out,Output,The output for a {{NAME}}.
+//👪,Pa,Par,Parent,The parent of {{NAME}}.
+//⚒️,Pr,Prs,Parse,Parse the {{NAME}} from an input.
+//🔢,Pl,Plu,Plural,The plural of the singular of the entity name.
+//⭕,Pc,Pce,Piece,A piece is a 3d-instance of a type in a design.
+//⭕,Pc?,Pces,Pieces,The optional pieces of the design.
+//🔑,PK,PKy,Primary Key, The {{PROP_NAME}} is the primary key of the {{NAME}} in the database.
+//🔌,Po,Por,Port,A port is a connection point (with a direction) of a type.
+//🔌,Po+,Pors,Ports,The ports of the type.
+//🎫,Pp,Prp,Props,The props are all values of an entity without its children.
+//◳,Pn,Pln,Plane,A plane is an origin (point) and an orientation (x-axis and y-axis).
+//◳,Pn?,Pln,Plane,The optional plane of the piece. When pieces are connected only one piece can have a plane.
+//✖️,Pt,Pnt,Point,A 3d-point (xyz) of floating point numbers.
+//✖️,Pt,Pnt,Point,The connection point of the port that is attracted to another connection point.
+//📏,Ql,Qal,Quality,A quality is a named value with a unit and a definition.
+//📏,Ql*,Qals,Qualities,The optional qualities of the {{NAME}}.
+//🍾,Rl,Rel,Release,The release of the engine that created this database.
+//☁️,Rm?,Rmt,Remote,The optional Unique Resource Locator (URL) where to fetch the kit remotely.
+//💾,Rp,Rep,Representation,A representation is a link to a resource that describes a type for a certain level of detail and tags.
+//🔄,Rt?,Rot,Rotation,The optional horizontal rotation in port direction between the connected and the connecting piece in degrees.
+//🧱,Sd,Sde,Side,A side of a piece in a connection.
+//↔️,Sf,Sft,Shift,The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece.
+//📌,SG?,SGr,Subgroup,The optional sub-group of the locator. No sub-group means true.
+//✅,Su,Suc,Success,{{NAME}} was successful.
+//🏷️,Tg*,Tags,Tags,The optional tags to group representations. No tags means default.
+//↗️,Tl?,Tlt,Tilt,The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.
+//▦,Tf,Trf,Transform,A 4x4 translation and rotation transformation matrix (no scaling or shearing).
+//🧩,Ty,Typ,Type,A type is a reusable element that can be connected with other types over ports.
+//🧩,Ty,Typ,Type,The type-related information of the side.
+//🧩,Ty*,Typs,Types,The optional types of the kit.
+//🔗,Ur,Url,Unique Resource Locator,The Unique Resource Locator (URL) to the resource of the representation.
+//Ⓜ️,Ut,Unt,Unit,The length unit for all distance-related information of the {{PARENT_NAME}}.
+//Ⓜ️,Ut,Unt,Unit,The optional unit of the value of the quality.
+//🔄,Up,Upd,Update,Update the props of the {{NAME}}. Optionally empty the {{NAME}} before.
+//🔀,Vn?,Vnt,Variant,The optional variant of the {{PARENT_NAME}}. No variant means the default variant. 
+//➡️,Vc,Vec,Vector,A 3d-vector (xyz) of floating point numbers.
+//🔀,Ve,Ver,Version,The optional version of the kit. No version means the latest version.
+//🛂,Vd,Vld,Validate,Check if the {{NAME}} is valid.
+//🏷️,Vl,Val,Value,The value of the tag.
+//🔢,Vl?,Val,Value,The optional value [ text | url ] of the quality. No value is equivalent to true for the name.
+//🔀,Vn?,Vnt,Variant,The optional variant of the {{NAME}}. No variant means the default variant.
+//🏁,X,X,X,The x-coordinate of the screen point.
+//🎚️,X,X,X,The x-coordinate of the point.
+//➡️,XA,XAx,XAxis,The x-axis of the plane.
+//🏁,Y,Y,Y,The y-coordinate of the screen point.
+//🎚️,Y,Y,Y,The y-coordinate of the point.
+//➡️,YA,YAx,YAxis,The y-axis of the plane.
+//🏁,Z,Z,Z,The z-coordinate of the screen point.
+//🎚️,Z,Z,Z,The z-coordinate of the point.
+//➡️,ZA,ZAx,ZAxis,The z-axis of the plane.
+#endregion
 
 #endregion
 
@@ -718,8 +806,8 @@ public class Locator : Model<Locator>
 /// <summary>
 ///     📺 A 2d-point (xy) of integers in screen plane.
 /// </summary>
-[Model("📺", "SP", "SPt", "A 2d-point (xy) of integers in screen plane.")]
-public class ScreenPoint : Model<ScreenPoint>
+[Model("📺", "DP", "DPt", "A 2d-point (xy) of integers in screen plane.")]
+public class DiagramPoint : Model<DiagramPoint>
 {
     [IntProp("🏁", "X", "X", "The x-coordinate of the screen point.", PropImportance.REQUIRED)]
     public int X { get; set; } = 0;
@@ -1125,12 +1213,12 @@ public class Piece : Model<Piece>
     public Plane? Plane { get; set; }
 
     /// <summary>
-    ///     📺 The 2d-point (xy) of integers in screen plane of the center of the icon in the diagram of the piece.
+    ///     📺 A normalized 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.
     /// </summary>
     [ModelProp("📺", "SP", "SPt",
-        "The 2d-point (xy) of integers in screen plane of the center of the icon in the diagram of the piece.",
+        "A normalized 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.",
         PropImportance.OPTIONAL)]
-    public ScreenPoint ScreenPoint { get; set; } = new();
+    public DiagramPoint DiagramPoint { get; set; } = new();
 
     // TODO: Implement reflexive validation for model properties.
     public override (bool, List<string>) Validate()
@@ -1382,15 +1470,15 @@ public class Design : DesignProps
         var clone = DeepClone();
         if (clone.Pieces.Count > 1 && clone.Connections.Count > 0)
         {
-            var onRoot = new Action<Piece>(piece => { if (piece.ScreenPoint == null) piece.ScreenPoint = new ScreenPoint(); });
+            var onRoot = new Action<Piece>(piece => { if (piece.DiagramPoint == null) piece.DiagramPoint = new DiagramPoint(); });
             var onConnection = new Action<Piece, Piece, Connection>((parent, child, connection) =>
             {
-                var childScreenPoint = new ScreenPoint
+                var childScreenPoint = new DiagramPoint
                 {
-                    X = parent.ScreenPoint.X + (int)(parentPort.Point.X - childPort.Point.X),
-                    Y = parent.ScreenPoint.Y + (int)(parentPort.Point.Y - childPort.Point.Y)
+                    X = parent.DiagramPoint.X + (int)(parentPort.Point.X - childPort.Point.X),
+                    Y = parent.DiagramPoint.Y + (int)(parentPort.Point.Y - childPort.Point.Y)
                 };
-                child.ScreenPoint = childScreenPoint;
+                child.DiagramPoint = childScreenPoint;
             });
             Bfs(onRoot, onConnection);
         }

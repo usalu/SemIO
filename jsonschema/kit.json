@@ -187,14 +187,14 @@
                     "default": null,
                     "description": "\u25f3 The plane of the piece."
                 },
-                "screenPoint": {
-                    "$ref": "#/$defs/ScreenPoint",
+                "center": {
+                    "$ref": "#/$defs/DiagramPoint",
                     "description": "\ud83d\udcfa The screen point of the piece."
                 }
             },
             "required": [
                 "type",
-                "screenPoint"
+                "center"
             ],
             "title": "Piece",
             "type": "object"
@@ -373,7 +373,7 @@
             "title": "Representation",
             "type": "object"
         },
-        "ScreenPoint": {
+        "DiagramPoint": {
             "description": "\ud83d\udcfa A 2d-point (xy) of integers in screen coordinate system.",
             "properties": {
                 "x": {
@@ -391,7 +391,7 @@
                 "x",
                 "y"
             ],
-            "title": "ScreenPoint",
+            "title": "DiagramPoint",
             "type": "object"
         },
         "Side": {

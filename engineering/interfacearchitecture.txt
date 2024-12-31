@@ -69,7 +69,7 @@ kit : !Kit{
                     z : !Float
                 }
             }
-            screen_point :  ?ScreenPoint{
+            screen_point :  ?DiagramPoint{
                 x : !Integer
                 y : !Integer
             }

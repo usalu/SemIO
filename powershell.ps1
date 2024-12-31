@@ -15,3 +15,15 @@ function ResizeImage {
         $newImage.Dispose()
     }
 }
+
+function Rename {
+    param (
+        [string]$prefix,
+        [string]$newPrefix
+    )
+    $files = Get-ChildItem -Path . -File -Filter "$prefix*" -Recurse
+    foreach ($file in $files) {
+        $newFileName = $file.FullName -replace $prefix, $newPrefix
+        Move-Item -Path $file.FullName -Destination $newFileName -Force
+    }
+}

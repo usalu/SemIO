@@ -13,6 +13,7 @@ Symbol,Code,Abbreviation,Name,Description
 ➡️,Dr,Drn,Direction,The direction of the port. When another piece connects the direction of the other port is flipped and then the pieces are aligned.
 🏙️,Dn,Dsn,Design,A design is a collection of pieces that are connected.
 🏙️,Dn*,Dsns,Designs,The optional designs of the kit.
+📺,DP,DPt,Diagram Point,A normalized 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.
 🚌,Dt,DTO,Data Transfer Object, The Data Transfer Object (DTO) base of the {{NAME}}.
 🪣,Em,Emp,Empty,Empty all props and children of the {{NAME}}.
 ▢,En,Ent,Entity,An entity is a collection of properties and children.
@@ -56,7 +57,6 @@ Symbol,Code,Abbreviation,Name,Description
 🧱,Sd,Sde,Side,A side of a piece in a connection.
 ↔️,Sf,Sft,Shift,The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece.
 📌,SG?,SGr,Subgroup,The optional sub-group of the locator. No sub-group means true.
-📺,SP,SPt,Screen Point,The 2d-point (xy) of integers in screen plane of the center of the icon in the diagram of the piece.
 ✅,Su,Suc,Success,{{NAME}} was successful.
 🏷️,Tg*,Tags,Tags,The optional tags to group representations. No tags means default.
 ↗️,Tl?,Tlt,Tilt,The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.

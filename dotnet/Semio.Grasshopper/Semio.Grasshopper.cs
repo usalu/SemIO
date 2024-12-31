@@ -508,13 +508,13 @@ public class TypeGoo : ModelGoo<Type>
     }
 }
 
-public class ScreenPointGoo : ModelGoo<ScreenPoint>
+public class ScreenPointGoo : ModelGoo<DiagramPoint>
 {
     public ScreenPointGoo()
     {
     }
 
-    public ScreenPointGoo(ScreenPoint value) : base(value)
+    public ScreenPointGoo(DiagramPoint value) : base(value)
     {
     }
 
@@ -537,7 +537,7 @@ public class ScreenPointGoo : ModelGoo<ScreenPoint>
         var point = new Point3d();
         if (GH_Convert.ToPoint3d(source, ref point, GH_Conversion.Both))
         {
-            Value = new ScreenPoint
+            Value = new DiagramPoint
             {
                 X = (int)point.X,
                 Y = (int)point.Y
@@ -674,7 +674,7 @@ public class TypeParam : ModelParam<TypeGoo, Type>
     public override Guid ComponentGuid => new("301FCFFA-2160-4ACA-994F-E067C4673D45");
 }
 
-public class ScreenPointParam : ModelParam<ScreenPointGoo, ScreenPoint>
+public class ScreenPointParam : ModelParam<ScreenPointGoo, DiagramPoint>
 {
     public override Guid ComponentGuid => new("4685CCE8-C629-4638-8DF6-F76A17571841");
 }
@@ -853,7 +853,7 @@ public class SerializeTypeComponent : SerializeComponent<TypeParam, TypeGoo, Typ
     public override Guid ComponentGuid => new("BD184BB8-8124-4604-835C-E7B7C199673A");
 }
 
-public class SerializeScreenPointComponent : SerializeComponent<ScreenPointParam, ScreenPointGoo, ScreenPoint>
+public class SerializeScreenPointComponent : SerializeComponent<ScreenPointParam, ScreenPointGoo, DiagramPoint>
 {
     public override Guid ComponentGuid => new("EDD83721-D2BD-4CF1-929F-FBB07F0A6A99");
 }
@@ -956,7 +956,7 @@ public class DeserializeTypeComponent : DeserializeComponent<TypeParam, TypeGoo,
     public override Guid ComponentGuid => new("F21A80E0-2A62-4BFD-BC2B-A04363732F84");
 }
 
-public class DeserializeScreenPointComponent : DeserializeComponent<ScreenPointParam, ScreenPointGoo, ScreenPoint>
+public class DeserializeScreenPointComponent : DeserializeComponent<ScreenPointParam, ScreenPointGoo, DiagramPoint>
 {
     public override Guid ComponentGuid => new("7FBEECE1-ECAC-4AC1-8DAF-C659A9B6238C");
 }
@@ -1351,7 +1351,7 @@ public class TypeComponent : ModelComponent<TypeParam, TypeGoo, Type>
     }
 }
 
-public class ScreenPointComponent : ModelComponent<ScreenPointParam, ScreenPointGoo, ScreenPoint>
+public class ScreenPointComponent : ModelComponent<ScreenPointParam, ScreenPointGoo, DiagramPoint>
 {
     public override Guid ComponentGuid => new("61FB9BBE-64DE-42B2-B7EF-69CD97FDD9E3");
 }
@@ -1372,8 +1372,8 @@ public class PieceComponent : ModelComponent<PieceParam, PieceGoo, Piece>
         pManager.AddPlaneParameter("Plane", "Pn?",
             "The optional plane of the piece. When pieces are connected only one piece can have a plane.",
             GH_ParamAccess.item);
-        pManager.AddParameter(new ScreenPointParam(), "Screen Point", "SP",
-            "The 2d-point (xy) of integers in screen plane of the center of the icon in the diagram of the piece.",
+        pManager.AddParameter(new ScreenPointParam(), "Diagram Point", "SP",
+            "A normalized 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.",
             GH_ParamAccess.item);
     }
 
@@ -1383,7 +1383,7 @@ public class PieceComponent : ModelComponent<PieceParam, PieceGoo, Piece>
         var typeName = "";
         var typeVariant = "";
         var rootPlane = new Rhino.Geometry.Plane();
-        var screenPointGoo = new ScreenPointGoo();
+        var centerGoo = new ScreenPointGoo();
 
         if (DA.GetData(2, ref id))
             pieceGoo.Value.Id = id;
@@ -1393,8 +1393,8 @@ public class PieceComponent : ModelComponent<PieceParam, PieceGoo, Piece>
             pieceGoo.Value.Type.Variant = typeVariant;
         if (DA.GetData(5, ref rootPlane))
             pieceGoo.Value.Plane = rootPlane.Convert();
-        if (DA.GetData(6, ref screenPointGoo))
-            pieceGoo.Value.ScreenPoint = screenPointGoo.Value;
+        if (DA.GetData(6, ref centerGoo))
+            pieceGoo.Value.DiagramPoint = centerGoo.Value;
     }
 
     protected override void SetData(IGH_DataAccess DA, dynamic pieceGoo)
@@ -1403,7 +1403,7 @@ public class PieceComponent : ModelComponent<PieceParam, PieceGoo, Piece>
         DA.SetData(3, pieceGoo.Value.Type.Name);
         DA.SetData(4, pieceGoo.Value.Type.Variant);
         DA.SetData(5, (pieceGoo.Value.Plane as Plane)?.Convert());
-        DA.SetData(6, new ScreenPointGoo(pieceGoo.Value.ScreenPoint as ScreenPoint));
+        DA.SetData(6, new ScreenPointGoo(pieceGoo.Value.DiagramPoint as DiagramPoint));
     }
 }
 

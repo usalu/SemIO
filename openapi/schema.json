@@ -825,7 +825,7 @@
                         ],
                         "description": "\u25f3 The plane of the piece."
                     },
-                    "screenPoint": {
+                    "center": {
                         "$ref": "#/components/schemas/ScreenPointInput",
                         "description": "\ud83d\udcfa The screen point of the piece."
                     }
@@ -834,7 +834,7 @@
                 "required": [
                     "type",
                     "plane",
-                    "screenPoint"
+                    "center"
                 ],
                 "title": "PieceInput",
                 "description": "\u2b55 A piece is a 3d-instance of a type in a design."
@@ -863,15 +863,15 @@
                         ],
                         "description": "\u25f3 The plane of the piece."
                     },
-                    "screenPoint": {
-                        "$ref": "#/components/schemas/ScreenPoint",
+                    "center": {
+                        "$ref": "#/components/schemas/DiagramPoint",
                         "description": "\ud83d\udcfa The screen point of the piece."
                     }
                 },
                 "type": "object",
                 "required": [
                     "type",
-                    "screenPoint"
+                    "center"
                 ],
                 "title": "Piece",
                 "description": "\u2b55 A piece is a 3d-instance of a type in a design."
@@ -1231,7 +1231,7 @@
                 "title": "ScreenPointInput",
                 "description": "\ud83d\udcfa A 2d-point (xy) of integers in screen coordinate system."
             },
-            "ScreenPoint": {
+            "DiagramPoint": {
                 "properties": {
                     "x": {
                         "type": "integer",
@@ -1249,7 +1249,7 @@
                     "x",
                     "y"
                 ],
-                "title": "ScreenPoint",
+                "title": "DiagramPoint",
                 "description": "\ud83d\udcfa A 2d-point (xy) of integers in screen coordinate system."
             },
             "SideInput": {

@@ -189,12 +189,12 @@ export const TOLERANCE = 1e-5
 // /** ✏️ The diagram indesign of a piece. */
 // export type PieceDiagram = {
 //     __typename?: 'PieceDiagram'
-//     point: ScreenPoint
+//     point: DiagramPoint
 // }
 
 // /** 📺 A 2d-point (xy) of integers in screen plane. */
-// export type ScreenPoint = {
-//     __typename?: 'ScreenPoint'
+// export type DiagramPoint = {
+//     __typename?: 'DiagramPoint'
 //     x: Scalars['Int']['output']
 //     y: Scalars['Int']['output']
 // }
