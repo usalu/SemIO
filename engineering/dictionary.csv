@@ -1,7 +1,9 @@
 Symbol,Code,Abbreviation,Name,Description
+↻,An?,Ang,Angle,The optional clock-wise angle for the radius between the connecting and the connecting piece in the diagram in degrees.
 👤,Au,Aut,Author,The information about the author.
 👥,Au*,Auts,Authors,The optional authors of the {{NAME}}.
 👥,Bs,Bas,Base,The shared base props for {{NAME}} models.
+⌖,Ce,Cen,Center,The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.
 🧲,Cd,Cnd,Connected,The connected side of the piece of the connection.
 🧲,Cg,Cng,Connecting,The connecting side of the piece of the connection.
 🖇️,Co,Con,Connection,A connection between two pieces in a design.
@@ -30,6 +32,7 @@ Symbol,Code,Abbreviation,Name,Description
 🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
 ↘️,In,Inp,Input,The input for a {{NAME}}.
 🗃️,Kt,Kit,Kit,A kit is a collection of designs that use types.
+⚖️,Ln,Lcn,License,The license of the kit.
 🗺️,Lc,Loc,Locator,A locator is metadata for grouping ports.
 🗺️,Lc*,Locs,Locators,The optional locators of the port.
 🔍,Ld?,Lod,Level of Detail,The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod.
@@ -61,7 +64,7 @@ Symbol,Code,Abbreviation,Name,Description
 📌,SG?,SGr,Subgroup,The optional sub-group of the locator. No sub-group means true.
 ✅,Su,Suc,Success,{{NAME}} was successful.
 🏷️,Tg*,Tags,Tags,The optional tags to group representations. No tags means default.
-↗️,Tl?,Tlt,Tilt,The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.
+∡,Tl?,Tlt,Tilt,The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.
 ▦,Tf,Trf,Transform,A 4x4 translation and rotation transformation matrix (no scaling or shearing).
 🧩,Ty,Typ,Type,A type is a reusable element that can be connected with other types over ports.
 🧩,Ty,Typ,Type,The type-related information of the side.
@@ -79,9 +82,11 @@ Symbol,Code,Abbreviation,Name,Description
 🔀,Vn?,Vnt,Variant,The optional variant of the {{NAME}}. No variant means the default variant.
 🎚️,X,X,X,The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.
 🎚️,X,X,X,The x-coordinate of the point.
+➡️,X?,X,X,The optional additional offset in x direction between the icons of the child and the parent piece in the diagram.
 ➡️,XA,XAx,XAxis,The x-axis of the plane.
 🎚️,Y,Y,Y,The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.
 🎚️,Y,Y,Y,The y-coordinate of the point.
+⬆️,Y?,Y,Y,The optional additional offset in x direction between the icons of the child and the parent piece in the diagram.
 ➡️,YA,YAx,YAxis,The y-axis of the plane.
 🎚️,Z,Z,Z,The z-coordinate of the screen point.
 🎚️,Z,Z,Z,The z-coordinate of the point.

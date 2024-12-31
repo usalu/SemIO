@@ -1267,9 +1267,9 @@ public class Piece : Model<Piece>
     public Plane? Plane { get; set; }
 
     /// <summary>
-    ///     📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.
+    ///     ⌖ The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.
     /// </summary>
-    [ModelProp("📺", "Ce", "Cen",
+    [ModelProp("⌖", "Ce", "Cen",
         "The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
         PropImportance.OPTIONAL)]
     public DiagramPoint Center { get; set; } = new();
@@ -1338,6 +1338,7 @@ public class Connection : Model<Connection>
 {
     private float _rotation;
     private float _tilt;
+    private float _angle;
 
     /// <summary>
     ///     🧲 The connected side of the piece of the connection.
@@ -1362,9 +1363,9 @@ public class Connection : Model<Connection>
     }
 
     /// <summary>
-    ///     ↗️ The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.
+    ///     ∡ The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.
     /// </summary>
-    [AngleProp("↗️", "Tl?", "Tlt",
+    [AngleProp("∡", "Tl?", "Tlt",
         "The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.")]
     public float Tilt
     {
@@ -1388,6 +1389,35 @@ public class Connection : Model<Connection>
     [NumberProp("↔️", "Sf?", "Sft",
         "The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece.")]
     public float Shift { get; set; } = 0;
+
+    /// <summary>
+    ///     ↻ The optional clock-wise angle for the radius between the icons of the child and the parent piece in the diagram in degrees.
+    /// </summary>
+    [AngleProp("↻", "An?", "Ang", "The optional clock-wise angle for the radius between the icons of the child and the parent piece in the diagram in degrees.")]
+    public float Angle
+    {
+        get => _angle;
+        set => _angle = (value % 360 + 360) % 360;
+    }
+
+    /// <summary>
+    ///     ↗️ The optional radius for the offset between the icons of the child and the parent piece in the diagram.
+    /// </summary>
+    [NumberProp("↗️", "Rd?", "Rad", "The optional radius for the offset between the icons of the child and the parent piece in the diagram.")]
+    public float Radius { get; set; } = 0;
+
+    /// <summary>
+    ///    ➡️ The optional additional offset in x direction between the icons of the child and the parent piece in the diagram.
+    /// </summary>
+    [NumberProp("➡️","X?","X", "The optional additional offset in x direction between the icons of the child and the parent piece in the diagram.")]
+    public float X { get; set; } = 0;
+
+    /// <summary>
+    ///   ⬆️ The optional additional offset in y direction between the icons of the child and the parent piece in the diagram.
+    /// </summary>
+    [NumberProp("⬆️", "Y?", "Y", "The optional additional offset in y direction between the icons of the child and the parent piece in the diagram.")]
+    public float Y { get; set; } = 0;
+
 
     public override string ToString()
     {

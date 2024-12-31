@@ -497,6 +497,40 @@ public class QualityGoo : ModelGoo<Quality>
     }
 }
 
+public class AuthorGoo : ModelGoo<Author>
+{
+    public AuthorGoo()
+    {
+    }
+    public AuthorGoo(Author value) : base(value)
+    {
+    }
+    public override bool CastTo<Q>(ref Q target)
+    {
+        if (typeof(Q).IsAssignableFrom(typeof(GH_String)))
+        {
+            object ptr = new GH_String(Value.Email);
+            target = (Q)ptr;
+            return true;
+        }
+        return false;
+    }
+    public override bool CastFrom(object source)
+    {
+        if (source == null) return false;
+        string str;
+        if (GH_Convert.ToString(source, out str, GH_Conversion.Both))
+        {
+            Value = new Author
+            {
+                Email = str
+            };
+            return true;
+        }
+        return false;
+    }
+}
+
 public class TypeGoo : ModelGoo<Type>
 {
     public TypeGoo()
@@ -667,6 +701,11 @@ public class PortParam : ModelParam<PortGoo, Port>
 public class QualityParam : ModelParam<QualityGoo, Quality>
 {
     public override Guid ComponentGuid => new("431125C0-B98C-4122-9598-F72714AC9B94");
+}
+
+public class AuthorParam : ModelParam<AuthorGoo, Author>
+{
+    public override Guid ComponentGuid => new("9F52380B-1812-42F7-9DAD-952C2F7A635A");
 }
 
 public class TypeParam : ModelParam<TypeGoo, Type>
@@ -846,6 +885,11 @@ public class SerializePortComponent : SerializeComponent<PortParam, PortGoo, Por
 public class SerializeQualityComponent : SerializeComponent<QualityParam, QualityGoo, Quality>
 {
     public override Guid ComponentGuid => new("C651F24C-BFF8-4821-8974-8588BCA75250");
+}
+
+public class SerializeAuthorComponent : SerializeComponent<AuthorParam, AuthorGoo, Author>
+{
+    public override Guid ComponentGuid => new("99130A53-4FC1-4E64-9A46-2ACEC4634878");
 }
 
 public class SerializeTypeComponent : SerializeComponent<TypeParam, TypeGoo, Type>
@@ -1433,6 +1477,18 @@ public class ConnectionComponent : ModelComponent<ConnectionParam, ConnectionGoo
             GH_ParamAccess.item);
         pManager.AddNumberParameter("Shift", "Sf?",
             "The optional lateral shift (applied after rotation and tilt in port direction) between the connected and the connecting piece.",
+            GH_ParamAccess.item);
+        pManager.AddNumberParameter("Angle", "An?",
+            "The optional clock-wise angle for the radius between the icons of the child and the parent piece in the diagram in degrees.",
+            GH_ParamAccess.item);
+        pManager.AddNumberParameter("Radius", "Rd?",
+            "The optional radius for the offset between the icons of the child and the parent piece in the diagram.",
+            GH_ParamAccess.item);
+        pManager.AddNumberParameter("X", "X?",
+            "The optional additional offset in x direction between the icons of the child and the parent piece in the diagram.",
+            GH_ParamAccess.item);
+        pManager.AddNumberParameter("Y", "Y?",
+            "The optional additional offset in y direction between the icons of the child and the parent piece in the diagram.",
             GH_ParamAccess.item);
     }
 

@@ -2276,9 +2276,9 @@ class Piece(TableEntity, table=True):
     """🔑 The foreign primary key of the plane of the piece in the database."""
     plane: typing.Optional[Plane] = sqlmodel.Relationship(back_populates="piece")
     """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
-    centerX: int = sqlmodel.Field(exclude=True)
+    centerX: float = sqlmodel.Field(exclude=True)
     """🎚️ The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
-    centerY: int = sqlmodel.Field(exclude=True)
+    centerY: float = sqlmodel.Field(exclude=True)
     """🎚️ The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
     designPk: typing.Optional[int] = sqlmodel.Field(
         sa_column=sqlmodel.Column(
