@@ -91,7 +91,7 @@ public static class Constants
 //🆔,GI,GID,Globally Unique Identifier,A Globally Unique Identifier (GUID) of the entity.
 //👪,Gr,Grp,Group,The group of the locator.
 //🏠,Hp?,Hmp,Homepage,The optional url of the homepage of the kit.
-//🖼️,Ic?,Ico,Icon,The optional icon [ emoji | name | url ] of the {{NAME}}.
+//🪙,Ic?,Ico,Icon,The optional url to the icon [ emoji | name | url ] of the {{NAME}}.
 //🆔,Id,Id,Identifier,The local identifier of the {{NAME}} within the {{PARENT_NAME}}.
 //🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
 //🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
@@ -1093,10 +1093,16 @@ public class TypeProps : Model<Type>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🖼️ The optional icon [ emoji | name | url ] of the type.
+    ///     🪙 The optional url to the icon [ emoji | name | url ] of the type.
     /// </summary>
-    [Url("🖼️", "Ic?", "Ico", "The optional icon [ emoji | name | url ] of the type.")]
+    [Url("🪙", "Ic?", "Ico", "The optional url to the icon [ emoji | name | url ] of the type.")]
     public string Icon { get; set; } = "";
+
+    /// <summary>
+    ///    🖼️ The optional url to the icon of the type.
+    /// </summary>
+    [Url("🖼️", "Im?", "Img", "The optional url to the icon of the type.")]
+    public string Image { get; set; } = "";
 
     /// <summary>
     ///     🔀 The optional value of the type.
@@ -1338,7 +1344,6 @@ public class Connection : Model<Connection>
 {
     private float _rotation;
     private float _tilt;
-    private float _angle;
 
     /// <summary>
     ///     🧲 The connected side of the piece of the connection.
@@ -1391,31 +1396,15 @@ public class Connection : Model<Connection>
     public float Shift { get; set; } = 0;
 
     /// <summary>
-    ///     ↻ The optional clock-wise angle for the radius between the icons of the child and the parent piece in the diagram in degrees.
+    ///    ➡️ The optional offset in x direction between the icons of the child and the parent piece in the diagram.
     /// </summary>
-    [AngleProp("↻", "An?", "Ang", "The optional clock-wise angle for the radius between the icons of the child and the parent piece in the diagram in degrees.")]
-    public float Angle
-    {
-        get => _angle;
-        set => _angle = (value % 360 + 360) % 360;
-    }
-
-    /// <summary>
-    ///     ↗️ The optional radius for the offset between the icons of the child and the parent piece in the diagram.
-    /// </summary>
-    [NumberProp("↗️", "Rd?", "Rad", "The optional radius for the offset between the icons of the child and the parent piece in the diagram.")]
-    public float Radius { get; set; } = 0;
-
-    /// <summary>
-    ///    ➡️ The optional additional offset in x direction between the icons of the child and the parent piece in the diagram.
-    /// </summary>
-    [NumberProp("➡️","X?","X", "The optional additional offset in x direction between the icons of the child and the parent piece in the diagram.")]
+    [NumberProp("➡️","X?","X", "The optional offset in x direction between the icons of the child and the parent piece in the diagram.")]
     public float X { get; set; } = 0;
 
     /// <summary>
-    ///   ⬆️ The optional additional offset in y direction between the icons of the child and the parent piece in the diagram.
+    ///   ⬆️ The optional offset in y direction between the icons of the child and the parent piece in the diagram.
     /// </summary>
-    [NumberProp("⬆️", "Y?", "Y", "The optional additional offset in y direction between the icons of the child and the parent piece in the diagram.")]
+    [NumberProp("⬆️", "Y?", "Y", "The optional offset in y direction between the icons of the child and the parent piece in the diagram.")]
     public float Y { get; set; } = 0;
 
 
@@ -1456,10 +1445,16 @@ public class DesignProps : Model<Design>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🖼️ The optional icon [ emoji | name | url ] of the design.
+    ///     🪙 The optional url to the icon [ emoji | name | url ] of the design.
     /// </summary>
-    [Url("🖼️", "Ic?", "Ico", "The optional icon [ emoji | name | url ] of the design.")]
+    [Url("🪙", "Ic?", "Ico", "The optional url to the icon [ emoji | name | url ] of the design.")]
     public string Icon { get; set; } = "";
+
+    /// <summary>
+    ///    🖼️ The optional url to the icon of the design.
+    /// </summary>
+    [Url("🖼️", "Im?", "Img", "The optional url to the icon of the design.")]
+    public string Image { get; set; } = "";
 
     /// <summary>
     ///     🔀 The optional variant of the design. No variant means the default variant.
@@ -1936,9 +1931,9 @@ public class KitProps : Model<Kit>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🖼️ The optional icon [ emoji | name | url ] of the design.
+    ///     🪙 The optional url to the icon [ emoji | name | url ] of the design.
     /// </summary>
-    [Url("🖼️", "Ic?", "Ico", "The optional icon [ emoji | name | url ] of the design.")]
+    [Url("🪙", "Ic?", "Ico", "The optional url to the icon [ emoji | name | url ] of the design.")]
     public string Icon { get; set; } = "";
 
     /// <summary>

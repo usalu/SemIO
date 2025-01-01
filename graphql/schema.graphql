@@ -329,7 +329,7 @@ input KitInputNode {
   """💬 The description of the kit."""
   description: String = ""
 
-  """🖼️ The icon of the kit."""
+  """🪙 The optional url to the icon [ emoji | name | url ] of the kit."""
   icon: String = ""
 
   """
@@ -359,7 +359,7 @@ input TypeInputNode {
   """💬 The description of the type."""
   description: String = ""
 
-  """🖼️ The icon of the type."""
+  """🪙 The optional url to the icon [ emoji | name | url ] of the type."""
   icon: String = ""
 
   """
@@ -467,7 +467,7 @@ input DesignInputNode {
   """💬 The description of the design."""
   description: String = ""
 
-  """🖼️ The icon of the design."""
+  """🪙 The optional url to the icon [ emoji | name | url ] of the design."""
   icon: String = ""
 
   """

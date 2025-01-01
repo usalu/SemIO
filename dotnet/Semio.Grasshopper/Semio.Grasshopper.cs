@@ -1485,10 +1485,10 @@ public class ConnectionComponent : ModelComponent<ConnectionParam, ConnectionGoo
             "The optional radius for the offset between the icons of the child and the parent piece in the diagram.",
             GH_ParamAccess.item);
         pManager.AddNumberParameter("X", "X?",
-            "The optional additional offset in x direction between the icons of the child and the parent piece in the diagram.",
+            "The optional offset in x direction between the icons of the child and the parent piece in the diagram.",
             GH_ParamAccess.item);
         pManager.AddNumberParameter("Y", "Y?",
-            "The optional additional offset in y direction between the icons of the child and the parent piece in the diagram.",
+            "The optional offset in y direction between the icons of the child and the parent piece in the diagram.",
             GH_ParamAccess.item);
     }
 

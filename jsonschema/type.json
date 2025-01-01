@@ -204,7 +204,7 @@
         },
         "icon": {
             "default": "",
-            "description": "\ud83d\uddbc\ufe0f The icon of the type.",
+            "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the type.",
             "maxLength": 1024,
             "title": "Icon",
             "type": "string"

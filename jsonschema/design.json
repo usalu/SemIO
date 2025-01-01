@@ -307,7 +307,7 @@
         },
         "icon": {
             "default": "",
-            "description": "\ud83d\uddbc\ufe0f The icon of the design.",
+            "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the design.",
             "maxLength": 1024,
             "title": "Icon",
             "type": "string"

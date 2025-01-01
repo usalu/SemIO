@@ -79,7 +79,7 @@ Let me start by what semio is **not**:
 
   A _vector_ tool ↗️
 
-  > In semio you **link** drawings 🖼️
+  > In semio you **link** drawings 🪙
 
 - EnergyPlus, TRYNSIS, Modellica, …
 

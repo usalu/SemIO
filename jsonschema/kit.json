@@ -65,7 +65,7 @@
                 },
                 "icon": {
                     "default": "",
-                    "description": "\ud83d\uddbc\ufe0f The icon of the design.",
+                    "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the design.",
                     "maxLength": 1024,
                     "title": "Icon",
                     "type": "string"
@@ -452,7 +452,7 @@
                 },
                 "icon": {
                     "default": "",
-                    "description": "\ud83d\uddbc\ufe0f The icon of the type.",
+                    "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the type.",
                     "maxLength": 1024,
                     "title": "Icon",
                     "type": "string"
@@ -562,7 +562,7 @@
         },
         "icon": {
             "default": "",
-            "description": "\ud83d\uddbc\ufe0f The icon of the kit.",
+            "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the kit.",
             "maxLength": 1024,
             "title": "Icon",
             "type": "string"

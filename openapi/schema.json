@@ -452,7 +452,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The icon of the design.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the design.",
                         "default": ""
                     },
                     "variant": {
@@ -517,7 +517,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The icon of the design.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the design.",
                         "default": ""
                     },
                     "variant": {
@@ -607,7 +607,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The icon of the kit.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the kit.",
                         "default": ""
                     },
                     "version": {
@@ -680,7 +680,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The icon of the kit.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the kit.",
                         "default": ""
                     },
                     "version": {
@@ -1328,7 +1328,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The icon of the type.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the type.",
                         "default": ""
                     },
                     "variant": {
@@ -1393,7 +1393,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The icon of the type.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the icon [ emoji | name | url ] of the type.",
                         "default": ""
                     },
                     "variant": {

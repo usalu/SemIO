@@ -25,6 +25,7 @@ engine.py
 # TODOs
 
 
+# TODO: Implement Author parse logic.
 # TODO: Automatic derive from Id model.
 # TODO: Automatic emptying.
 # TODO: Automatic updating based on props.
@@ -63,7 +64,7 @@ engine.py
 # 🆔,GI,GID,Globally Unique Identifier,A Globally Unique Identifier (GUID) of the entity.
 # 👪,Gr,Grp,Group,The group of the locator.
 # 🏠,Hp?,Hmp,Homepage,The optional url of the homepage of the kit.
-# 🖼️,Ic?,Ico,Icon,The optional icon [ emoji | name | url ] of the {{NAME}}.
+# 🪙,Ic?,Ico,Icon,The optional url to the icon [ emoji | name | url ] of the {{NAME}}.
 # 🆔,Id,Id,Identifier,The local identifier of the {{NAME}} within the {{PARENT_NAME}}.
 # 🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
 # 🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
@@ -1873,6 +1874,93 @@ class Quality(
         """🪪 The members that form the id of the quality within its parent type."""
         return self.name
 
+### Authors ###
+
+class AuthorNameField(RealField, abc.ABC):
+    """📛 The name of the author."""
+
+    name: str = sqlmodel.Field(
+        max_length=NAME_LENGTH_LIMIT,
+        description="📛 The name of the author.",
+    )
+    """📛 The name of the author."""
+
+
+class AuthorEmailField(RealField, abc.ABC):
+    """📧 The email of the author."""
+
+    email: str = sqlmodel.Field(
+        max_length=ID_LENGTH_LIMIT,
+        description="📧 The email of the author.",
+    )
+    """📧 The email of the author."""
+
+
+class AuthorId(AuthorEmailField, Id):
+    """🪪 The props to identify the author."""
+
+class AuthorProps(AuthorEmailField, AuthorNameField, Props):
+    """🎫 The props of an author."""
+
+class AuthorInput(AuthorEmailField, AuthorNameField, Input):
+    """👤 The input for an author."""
+
+class AuthorOutput(AuthorEmailField, AuthorNameField, Output):
+    """📑 The output of an author."""
+
+class Author(
+    AuthorEmailField,
+    AuthorNameField,
+    TableEntity,
+    table=True):
+    """👤 An author is a person who created a type."""
+
+    PLURAL = "authors"
+    __tablename__ = "author"
+    pk: typing.Optional[int] = sqlmodel.Field(
+        sa_column=sqlmodel.Column(
+            "id",
+            sqlalchemy.Integer(),
+            primary_key=True,
+        ),
+        default=None,
+        exclude=True,
+    )
+    """🔑 The primary key of the author in the database."""
+    typePk: typing.Optional[int] = sqlmodel.Field(
+        # alias="typeId",  # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
+        sa_column=sqlmodel.Column(
+            "typeId",
+            sqlalchemy.Integer(),
+            sqlalchemy.ForeignKey("type.id"),
+        ),
+        default=None,
+        exclude=True,
+    )
+    """🔑 The foreign primary key of the parent type of the author in the database."""
+    type: typing.Optional["Type"] = sqlmodel.Relationship(back_populates="authors")
+    """👪 The parent type of the author."""
+    designPk: typing.Optional[int] = sqlmodel.Field(
+        # alias="designId",  # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
+        sa_column=sqlmodel.Column(
+            "designId",
+            sqlalchemy.Integer(),
+            sqlalchemy.ForeignKey("design.id"),
+        ),
+        default=None,
+        exclude=True,
+    )
+    """🔑 The foreign primary key of the parent design of the author in the database."""
+    design: typing.Optional["Design"] = sqlmodel.Relationship(
+        back_populates="authors"
+    )
+    __tableargs__ = (
+        sqlalchemy.CheckConstraint(
+            "typeId IS NOT NULL AND designId IS NULL OR typeId IS NULL AND designId IS NOT NULL",
+            name="typeOrDesignSet",
+        ),
+        sqlalchemy.UniqueConstraint("email", "typeId", "designId"),
+    )
 
 ### Types ###
 
@@ -1899,14 +1987,25 @@ class TypeDescriptionField(RealField, abc.ABC):
 
 
 class TypeIconField(RealField, abc.ABC):
-    """🖼️ The icon of the type."""
+    """🪙 The optional url to the icon [ emoji | name | url ] of the type."""
 
     icon: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🖼️ The icon of the type.",
+        description="🪙 The optional url to the icon [ emoji | name | url ] of the type.",
     )
-    """🖼️ The icon of the type."""
+    """🪙 The optional url to the icon [ emoji | name | url ] of the type."""
+
+
+class TypeImageField(RealField, abc.ABC):
+    """🖼️ The optional url to the icon of the type."""
+
+    image: str = sqlmodel.Field(
+        default="",
+        max_length=URL_LENGTH_LIMIT,
+        description="🖼️ The optional url to the icon of the type.",
+    )
+    """🖼️ The optional url to the icon of the type."""
 
 
 class TypeVariantField(RealField, abc.ABC):
@@ -1958,6 +2057,7 @@ class TypeId(TypeVariantField, TypeNameField, Id):
 class TypeProps(
     TypeUnitField,
     TypeVariantField,
+    TypeImageField,
     TypeIconField,
     TypeDescriptionField,
     TypeNameField,
@@ -1969,6 +2069,7 @@ class TypeProps(
 class TypeInput(
     TypeUnitField,
     TypeVariantField,
+    TypeImageField,
     TypeIconField,
     TypeDescriptionField,
     TypeNameField,
@@ -1979,6 +2080,7 @@ class TypeInput(
     representations: list[RepresentationInput] = sqlmodel.Field(default_factory=list)
     ports: list[PortInput] = sqlmodel.Field(default_factory=list)
     qualities: list[QualityInput] = sqlmodel.Field(default_factory=list)
+    authors: list[AuthorInput] = sqlmodel.Field(default_factory=list)
 
 
 class TypeOutput(
@@ -1986,6 +2088,7 @@ class TypeOutput(
     TypeCreatedAtField,
     TypeUnitField,
     TypeVariantField,
+    TypeImageField,
     TypeIconField,
     TypeDescriptionField,
     TypeNameField,
@@ -1996,6 +2099,7 @@ class TypeOutput(
     representations: list[RepresentationOutput] = sqlmodel.Field(default_factory=list)
     ports: list[PortOutput] = sqlmodel.Field(default_factory=list)
     qualities: list[QualityOutput] = sqlmodel.Field(default_factory=list)
+    authors: list[AuthorOutput] = sqlmodel.Field(default_factory=list)
 
 
 class TypeContext(
@@ -2012,6 +2116,7 @@ class Type(
     TypeCreatedAtField,
     TypeUnitField,
     TypeVariantField,
+    TypeImageField,
     TypeIconField,
     TypeDescriptionField,
     TypeNameField,
@@ -2045,6 +2150,10 @@ class Type(
         back_populates="type", cascade_delete=True
     )
     """📏 The qualities of the type."""
+    authors: list[Author] = sqlmodel.Relationship(
+        back_populates="type", cascade_delete=True
+    )
+    """👤 The authors of the type."""
     kitPk: typing.Optional[int] = sqlmodel.Field(
         # alias="kitId", # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
         sa_column=sqlmodel.Column(
@@ -2098,6 +2207,11 @@ class Type(
         try:
             qualities = [Quality.parse(q) for q in obj["qualities"]]
             entity.qualities = qualities
+        except KeyError:
+            pass
+        try:
+            authors = [Author.parse(a) for a in obj["authors"]]
+            entity.authors = authors
         except KeyError:
             pass
         return entity
@@ -2808,14 +2922,25 @@ class DesignDescriptionField(RealField, abc.ABC):
 
 
 class DesignIconField(RealField, abc.ABC):
-    """🖼️ The icon of the design."""
+    """🪙 The optional url to the icon [ emoji | name | url ] of the design."""
 
     icon: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🖼️ The icon of the design.",
+        description="🪙 The optional url to the icon [ emoji | name | url ] of the design.",
     )
-    """🖼️ The icon of the design."""
+    """🪙 The optional url to the icon [ emoji | name | url ] of the design."""
+
+
+class DesignImageField(RealField, abc.ABC):
+    """🖼️ The optional url to the image of the design."""
+
+    image: str = sqlmodel.Field(
+        default="",
+        max_length=URL_LENGTH_LIMIT,
+        description="🖼️ The optional url to the image of the design.",
+    )
+    """🖼️ The optional url to the image of the design."""
 
 
 class DesignVariantField(RealField, abc.ABC):
@@ -2867,6 +2992,7 @@ class DesignId(DesignNameField, DesignVariantField, Id):
 class DesignProps(
     DesignUnitField,
     DesignVariantField,
+    DesignImageField,
     DesignIconField,
     DesignDescriptionField,
     DesignNameField,
@@ -2878,6 +3004,7 @@ class DesignProps(
 class DesignInput(
     DesignUnitField,
     DesignVariantField,
+    DesignImageField,
     DesignIconField,
     DesignDescriptionField,
     DesignNameField,
@@ -2888,6 +3015,7 @@ class DesignInput(
     pieces: list[PieceInput] = sqlmodel.Field(default_factory=list)
     connections: list[ConnectionInput] = sqlmodel.Field(default_factory=list)
     qualities: list[QualityInput] = sqlmodel.Field(default_factory=list)
+    authors: list[AuthorInput] = sqlmodel.Field(default_factory=list)
 
 
 class DesignContext(
@@ -2909,6 +3037,7 @@ class DesignOutput(
     DesignCreatedAtField,
     DesignUnitField,
     DesignVariantField,
+    DesignImageField,
     DesignIconField,
     DesignDescriptionField,
     DesignNameField,
@@ -2919,6 +3048,7 @@ class DesignOutput(
     pieces: list[PieceOutput] = sqlmodel.Field(default_factory=list)
     connections: list[ConnectionOutput] = sqlmodel.Field(default_factory=list)
     qualities: list[QualityOutput] = sqlmodel.Field(default_factory=list)
+    authors: list[AuthorOutput] = sqlmodel.Field(default_factory=list)
 
 
 class DesignPrediction(
@@ -2935,6 +3065,7 @@ class Design(
     DesignCreatedAtField,
     DesignUnitField,
     DesignVariantField,
+    DesignImageField,
     DesignIconField,
     DesignDescriptionField,
     DesignNameField,
@@ -2961,6 +3092,9 @@ class Design(
         back_populates="design", cascade_delete=True
     )
     qualities: list[Quality] = sqlmodel.Relationship(
+        back_populates="design", cascade_delete=True
+    )
+    authors: list[Author] = sqlmodel.Relationship(
         back_populates="design", cascade_delete=True
     )
     kitPk: typing.Optional[int] = sqlmodel.Field(
@@ -3020,6 +3154,11 @@ class Design(
         try:
             qualities = [Quality.parse(q) for q in obj["qualities"]]
             entity.qualities = qualities
+        except KeyError:
+            pass
+        try:
+            authors = [Author.parse(a) for a in obj["authors"]]
+            entity.authors = authors
         except KeyError:
             pass
         return entity
@@ -3083,14 +3222,25 @@ class KitDescriptionField(RealField, abc.ABC):
 
 
 class KitIconField(RealField, abc.ABC):
-    """🖼️ The icon of the kit."""
+    """🪙 The optional url to the icon [ emoji | name | url ] of the kit."""
 
     icon: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🖼️ The icon of the kit.",
+        description="🪙 The optional url to the icon [ emoji | name | url ] of the kit.",
     )
-    """🖼️ The icon of the kit."""
+    """🪙 The optional url to the icon [ emoji | name | url ] of the kit."""
+
+
+class KitImageField(RealField, abc.ABC):
+    """🖼️ The optional url to the image of the kit."""
+
+    image: str = sqlmodel.Field(
+        default="",
+        max_length=URL_LENGTH_LIMIT,
+        description="🖼️ The optional url to the image of the kit.",
+    )
+    """🖼️ The optional url to the image of the kit."""
 
 
 class KitVersionField(RealField, abc.ABC):
@@ -3126,6 +3276,17 @@ class KitHomepage(RealField, abc.ABC):
     """🏠 The optional url of the homepage of the kit."""
 
 
+class KitLicenseField(RealField, abc.ABC):
+    """⚖️ The optional license of the kit."""
+
+    license: str = sqlmodel.Field(
+        default="",
+        max_length=URL_LENGTH_LIMIT,
+        description="⚖️ The optional license of the kit.",
+    )
+    """⚖️ The optional license of the kit."""
+
+
 class KitCreatedAtField(RealField, abc.ABC):
     """🕒 The creation date of the kit."""
 
@@ -3151,9 +3312,11 @@ class KitId(KitUriField, Id):
 
 
 class KitProps(
+    KitLicenseField,
     KitHomepage,
     KitRemoteField,
     KitVersionField,
+    KitImageField,
     KitIconField,
     KitDescriptionField,
     KitNameField,
@@ -3164,9 +3327,11 @@ class KitProps(
 
 
 class KitInput(
+    KitLicenseField,
     KitHomepage,
     KitRemoteField,
     KitVersionField,
+    KitImageField,
     KitIconField,
     KitDescriptionField,
     KitNameField,
@@ -3187,9 +3352,11 @@ class KitInput(
 class KitOutput(
     KitLastUpdateAtField,
     KitCreatedAtField,
+    KitLicenseField,
     KitHomepage,
     KitRemoteField,
     KitVersionField,
+    KitImageField,
     KitIconField,
     KitDescriptionField,
     KitNameField,
@@ -3211,9 +3378,11 @@ class KitOutput(
 class Kit(
     KitLastUpdateAtField,
     KitCreatedAtField,
+    KitLicenseField,
     KitHomepage,
     KitRemoteField,
     KitVersionField,
+    KitImageField,
     KitIconField,
     KitDescriptionField,
     KitNameField,
