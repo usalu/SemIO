@@ -124,9 +124,7 @@ entity Author {
     *typeId : int <<PK,FK>>
     *designId : int <<PK,FK>>
 }
-note right of Author
-    name is optional
-    (can be set to "").
+note right of Authors
     Either typeId or designId
     must be set.
 end note

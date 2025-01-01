@@ -889,9 +889,13 @@ class Locator(LocatorSubgroupField, Table, table=True):
 class DiagramPoint(Model):
     """📺 A 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon."""
 
-    x: float = sqlmodel.Field(description="🏁 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.")
+    x: float = sqlmodel.Field(
+        description="🏁 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."
+    )
     """🏁 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
-    y: float = sqlmodel.Field(description="🏁 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.")
+    y: float = sqlmodel.Field(
+        description="🏁 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."
+    )
     """🏁 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
 
     def __str__(self) -> str:
@@ -1874,7 +1878,9 @@ class Quality(
         """🪪 The members that form the id of the quality within its parent type."""
         return self.name
 
+
 ### Authors ###
+
 
 class AuthorNameField(RealField, abc.ABC):
     """📛 The name of the author."""
@@ -1899,20 +1905,20 @@ class AuthorEmailField(RealField, abc.ABC):
 class AuthorId(AuthorEmailField, Id):
     """🪪 The props to identify the author."""
 
+
 class AuthorProps(AuthorEmailField, AuthorNameField, Props):
     """🎫 The props of an author."""
+
 
 class AuthorInput(AuthorEmailField, AuthorNameField, Input):
     """👤 The input for an author."""
 
+
 class AuthorOutput(AuthorEmailField, AuthorNameField, Output):
     """📑 The output of an author."""
 
-class Author(
-    AuthorEmailField,
-    AuthorNameField,
-    TableEntity,
-    table=True):
+
+class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
     """👤 An author is a person who created a type."""
 
     PLURAL = "authors"
@@ -1951,9 +1957,7 @@ class Author(
         exclude=True,
     )
     """🔑 The foreign primary key of the parent design of the author in the database."""
-    design: typing.Optional["Design"] = sqlmodel.Relationship(
-        back_populates="authors"
-    )
+    design: typing.Optional["Design"] = sqlmodel.Relationship(back_populates="authors")
     __tableargs__ = (
         sqlalchemy.CheckConstraint(
             "typeId IS NOT NULL AND designId IS NULL OR typeId IS NULL AND designId IS NOT NULL",
@@ -1961,6 +1965,7 @@ class Author(
         ),
         sqlalchemy.UniqueConstraint("email", "typeId", "designId"),
     )
+
 
 ### Types ###
 
