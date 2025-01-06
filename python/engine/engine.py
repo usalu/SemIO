@@ -1919,7 +1919,7 @@ class AuthorOutput(AuthorEmailField, AuthorNameField, Output):
 
 
 class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
-    """👤 An author is a person who created a type."""
+    """👤 The information about the author."""
 
     PLURAL = "authors"
     __tablename__ = "author"
@@ -1943,9 +1943,9 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         default=None,
         exclude=True,
     )
-    """🔑 The foreign primary key of the parent type of the author in the database."""
+    """🔑 The optional foreign primary key of the parent type of the author in the database."""
     type: typing.Optional["Type"] = sqlmodel.Relationship(back_populates="authors")
-    """👪 The parent type of the author."""
+    """👪 The optional parent type of the author."""
     designPk: typing.Optional[int] = sqlmodel.Field(
         # alias="designId",  # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
         sa_column=sqlmodel.Column(
@@ -1956,7 +1956,7 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         default=None,
         exclude=True,
     )
-    """🔑 The foreign primary key of the parent design of the author in the database."""
+    """🔑 The optional foreign primary key of the parent design of the author in the database."""
     design: typing.Optional["Design"] = sqlmodel.Relationship(back_populates="authors")
     __tableargs__ = (
         sqlalchemy.CheckConstraint(
@@ -1965,6 +1965,7 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         ),
         sqlalchemy.UniqueConstraint("email", "typeId", "designId"),
     )
+    """🔑 The optional parent design of the author."""
 
 
 ### Types ###
