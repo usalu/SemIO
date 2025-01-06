@@ -1117,9 +1117,9 @@ public class TypeProps : Model<Type>
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.
+    ///    🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.")]
     public string Image { get; set; } = "";
 
     /// <summary>
@@ -1979,9 +1979,9 @@ public class KitProps : Model<Kit>
     public string Homepage { get; set; } = "";
 
     /// <summary>
-    ///    ⚖️ The optional license of the kit.
+    ///    ⚖️ The optional license [ spdx id | url ] of the kit.
     /// </summary>
-    [Url("⚖️", "Ln?", "Lcn", "The optional license of the kit.")]
+    [Url("⚖️", "Ln?", "Lcn", "The optional license [ spdx id | url ] of the kit.")]
     public string License { get; set; } = "";
 }
 

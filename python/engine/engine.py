@@ -3283,14 +3283,14 @@ class KitHomepage(RealField, abc.ABC):
 
 
 class KitLicenseField(RealField, abc.ABC):
-    """⚖️ The optional license of the kit."""
+    """⚖️ The optional license [ spdx id | url ] of the kit."""
 
     license: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="⚖️ The optional license of the kit.",
+        description="⚖️ The optional license [ spdx id | url ] of the kit.",
     )
-    """⚖️ The optional license of the kit."""
+    """⚖️ The optional license [ spdx id | url ] of the kit."""
 
 
 class KitCreatedAtField(RealField, abc.ABC):

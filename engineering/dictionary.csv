@@ -32,7 +32,7 @@ Symbol,Code,Abbreviation,Name,Description
 ↘️,In,Inp,Input,The input for a {{NAME}}.
 🖼️,Im,Img,Image,The optional url to the image of the {{NAME}}. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.
 🗃️,Kt,Kit,Kit,A kit is a collection of designs that use types.
-⚖️,Ln,Lcn,License,The license of the kit.
+⚖️,Ln?,Lcn,License,The optional license [ spdx id | url ] of the kit.
 🗺️,Lc,Loc,Locator,A locator is metadata for grouping ports.
 🗺️,Lc*,Locs,Locators,The optional locators of the port.
 🔍,Ld?,Lod,Level of Detail,The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod.

@@ -1,0 +1,32 @@
+Extension,MIME,Name
+.glb,GLTF Binary,Graphics Library Transmission Format Binary
+.gltf,GLTF JSON,Graphics Library Transmission Format JSON
+.stl,STL,Stereolithography
+.obj,OBJ,Object File
+.blend,Blender,Blender File
+.3dm,Rhino,Rhino 3D Model
+.ifc,IFC,Industry Foundation Classes
+.dwg,DWG,Drawing
+.dxf,DXF,Drawing Exchange Format
+.rvt,Revit,Revit Project
+.speckle,Speckle,Speckle Model
+.png,PNG,Portable Network Graphics
+.jpg,JPEG,Joint Photographic Experts Group
+.svg,SVG,Scalable Vector Graphics
+.gif,GIF,Graphics Interchange Format
+.bmp,BMP,Bitmap
+.tiff,TIFF,Tagged Image File Format
+.pdf,PDF,Portable Document Format
+.zip,ZIP,Zip Archive
+.json,JSON,JavaScript Object Notation
+.doc,Word Document,Microsoft Word Document
+.docx,Word Document (OpenXML),Microsoft Word Document (OpenXML)
+.xls,Excel Spreadsheet,Microsoft Excel Spreadsheet
+.xlsx,Excel Spreadsheet (OpenXML),Microsoft Excel Spreadsheet (OpenXML)
+.ppt,PowerPoint Presentation,Microsoft PowerPoint Presentation
+.pptx,PowerPoint Presentation (OpenXML),Microsoft PowerPoint Presentation (OpenXML)
+.bcf,BCF,BIM Collaboration Format
+.csv,CSV,Comma-Separated Values
+.txt,Text File,Plain Text File
+.mp4,MP4 Video,MPEG-4 Video
+.mp3,MP3 Audio,MPEG-1 Audio Layer III
