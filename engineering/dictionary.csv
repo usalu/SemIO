@@ -25,12 +25,12 @@ Symbol,Code,Abbreviation,Name,Description
 🆔,GI,GId,Globally Unique Identifier,A Globally Unique Identifier (GUID) of the entity.
 👪,Gr,Grp,Group,The group of the locator.
 🏠,Hp?,Hmp,Homepage,The optional url of the homepage of the kit.
-🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. {{NAME}}.
+🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the {{NAME}}. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.
 🆔,Id,Id,Identifier,The local identifier of the {{NAME}} within the {{PARENT_NAME}}.
 🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
 🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
 ↘️,In,Inp,Input,The input for a {{NAME}}.
-🖼️,Im,Img,Image,The optional url to the icon of the {{NAME}}.
+🖼️,Im,Img,Image,The optional url to the image of the {{NAME}}. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.
 🗃️,Kt,Kit,Kit,A kit is a collection of designs that use types.
 ⚖️,Ln,Lcn,License,The license of the kit.
 🗺️,Lc,Loc,Locator,A locator is metadata for grouping ports.

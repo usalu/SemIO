@@ -2004,14 +2004,14 @@ class TypeIconField(RealField, abc.ABC):
 
 
 class TypeImageField(RealField, abc.ABC):
-    """🖼️ The optional url to the icon of the type."""
+    """🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels."""
 
     image: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🖼️ The optional url to the icon of the type.",
+        description="🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.",
     )
-    """🖼️ The optional url to the icon of the type."""
+    """🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels."""
 
 
 class TypeVariantField(RealField, abc.ABC):
@@ -3228,14 +3228,14 @@ class KitDescriptionField(RealField, abc.ABC):
 
 
 class KitIconField(RealField, abc.ABC):
-    """🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit."""
 
     icon: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit.",
+        description="🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit.",
     )
-    """🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit."""
 
 
 class KitImageField(RealField, abc.ABC):

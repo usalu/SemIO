@@ -1093,15 +1093,15 @@ public class TypeProps : Model<Type>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.")]
+    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.")]
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the icon of the type.
+    ///    🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the icon of the type.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.")]
     public string Image { get; set; } = "";
 
     /// <summary>
@@ -1445,15 +1445,15 @@ public class DesignProps : Model<Design>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional icon [ emoji | logogram | url ] of the design. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the design. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.")]
+    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.")]
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the icon of the design.
+    ///    🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the icon of the design.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.")]
     public string Image { get; set; } = "";
 
     /// <summary>
@@ -1931,10 +1931,16 @@ public class KitProps : Model<Kit>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.")]
+    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.")]
     public string Icon { get; set; } = "";
+
+    /// <summary>
+    ///    🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.
+    /// </summary>
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.")]
+    public string Image { get; set; } = "";
 
     /// <summary>
     ///     🔀 The optional version of the kit. No version means the latest version.
