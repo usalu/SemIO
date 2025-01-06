@@ -50,6 +50,7 @@ namespace Semio.Grasshopper;
 // Think of a better way to handle this.
 // The invalid check happen twice and code is duplicated.
 // TODO: Figure out why cast from Piece to Text is not triggering the casts. ToString has somehow has precedence.
+// TODO: NameM.ToLower() doesn't work for composite names. E.g. "DiagramPoint" -> "diagrampoint".
 
 #endregion
 
@@ -995,6 +996,11 @@ public class DeserializeQualityComponent : DeserializeComponent<QualityParam, Qu
     public override Guid ComponentGuid => new("AECB1169-EB65-470F-966E-D491EB46A625");
 }
 
+public class DeserializeAuthorComponent : DeserializeComponent<AuthorParam, AuthorGoo, Author>
+{
+    public override Guid ComponentGuid => new("DDC0A2EC-4BAD-4FFE-B3A6-F9644C8B0072");
+}
+
 public class DeserializeTypeComponent : DeserializeComponent<TypeParam, TypeGoo, Type>
 {
     public override Guid ComponentGuid => new("F21A80E0-2A62-4BFD-BC2B-A04363732F84");
@@ -1082,7 +1088,7 @@ public class ConvertUnitComponent : Component
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddNumberParameter("Value", "Vl", "Value to convert.", GH_ParamAccess.item,1);
+        pManager.AddNumberParameter("Value", "Vl", "Value to convert.", GH_ParamAccess.item, 1);
         pManager.AddTextParameter("From Unit", "FU", "Unit to convert from.", GH_ParamAccess.item);
         pManager.AddTextParameter("To Unit", "TU", "Unit to convert to.", GH_ParamAccess.item);
     }
@@ -1188,7 +1194,7 @@ public abstract class ModelComponent<T, U, V> : Component
     }
 
     protected ModelComponent() : base($"Model {NameM}", $"~{ModelM.Abbreviation}",
-        $"Construct, deconstruct or modify a {NameM.ToLower()}", "Modelling")
+        $"Construct, deconstruct or modify {Semio.Utility.Grammar.GetArticle(NameM)} {NameM.ToLower()}", "Modelling")
     {
     }
 
@@ -1218,7 +1224,7 @@ public abstract class ModelComponent<T, U, V> : Component
         pManager.AddParameter(modelParam, NameM, isOutput ? ModelM.Code : ModelM.Code + "?",
             description, GH_ParamAccess.item);
         pManager.AddBooleanParameter(isOutput ? "Valid" : "Validate", "Vd?",
-            isOutput ? "True if the model is valid. Null if no validation was performed." : "Whether the model should be validated.", GH_ParamAccess.item);
+            isOutput ? $"True if the {NameM.ToLower()} is valid. Null if no validation was performed." : $"Whether the {NameM.ToLower()} should be validated.", GH_ParamAccess.item);
 
         AddModelProps(pManager);
 
@@ -1483,17 +1489,11 @@ public class ConnectionComponent : ModelComponent<ConnectionParam, ConnectionGoo
         pManager.AddNumberParameter("Shift", "Sf?",
             "The optional lateral shift (applied after rotation and tilt in port direction) between the connected and the connecting piece.",
             GH_ParamAccess.item);
-        pManager.AddNumberParameter("Angle", "An?",
-            "The optional clock-wise angle for the radius between the icons of the child and the parent piece in the diagram in degrees.",
-            GH_ParamAccess.item);
-        pManager.AddNumberParameter("Radius", "Rd?",
-            "The optional radius for the offset between the icons of the child and the parent piece in the diagram.",
-            GH_ParamAccess.item);
         pManager.AddNumberParameter("X", "X?",
-            "The optional offset in x direction between the icons of the child and the parent piece in the diagram.",
+            "The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.",
             GH_ParamAccess.item);
         pManager.AddNumberParameter("Y", "Y?",
-            "The optional offset in y direction between the icons of the child and the parent piece in the diagram.",
+            "The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.",
             GH_ParamAccess.item);
     }
 
@@ -1507,6 +1507,8 @@ public class ConnectionComponent : ModelComponent<ConnectionParam, ConnectionGoo
         var tilt = 0.0;
         var gap = 0.0;
         var shift = 0.0;
+        var x = 0.0;
+        var y = 0.0;
 
         if (DA.GetData(2, ref connectedPieceId))
             connectionGoo.Value.Connected.Piece.Id = connectedPieceId;
@@ -1524,6 +1526,10 @@ public class ConnectionComponent : ModelComponent<ConnectionParam, ConnectionGoo
             connectionGoo.Value.Gap = (float)gap;
         if (DA.GetData(9, ref shift))
             connectionGoo.Value.Shift = (float)shift;
+        if (DA.GetData(10, ref x))
+            connectionGoo.Value.X = (float)x;
+        if (DA.GetData(11, ref y))
+            connectionGoo.Value.Y = (float)y;
     }
 
     protected override void SetData(IGH_DataAccess DA, dynamic connectionGoo)
@@ -1536,6 +1542,8 @@ public class ConnectionComponent : ModelComponent<ConnectionParam, ConnectionGoo
         DA.SetData(7, connectionGoo.Value.Tilt);
         DA.SetData(8, connectionGoo.Value.Gap);
         DA.SetData(9, connectionGoo.Value.Shift);
+        DA.SetData(10, connectionGoo.Value.X);
+        DA.SetData(11, connectionGoo.Value.Y);
     }
 }
 

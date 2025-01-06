@@ -74,7 +74,7 @@ public static class Constants
 //🖇️,Co,Con,Connection,A connection between two pieces in a design.
 //🖇️,Co*,Cons,Connections,The optional connections of a design.
 //⌚,CA,CAt,Created At,The time when the {{NAME}} was created.
-//💬,Dc?,Dsc,Description,The optional human description of the {{NAME}}.
+//💬,Dc?,Dsc,Description,The optional human-readable description of the {{NAME}}.
 //📖,Df,Def,Definition,The optional definition [ text | url ] of the quality.
 //✏️,Dg,Dgm,Diagram,The diagram of the design.
 //📁,Di?,Dir,Directory,The optional directory where to find the kit.
@@ -387,6 +387,24 @@ public static class Utility
         }
     }
 
+    public static class Grammar
+    {
+        public static string GetArticle(string word)
+        {
+            if (string.IsNullOrEmpty(word))
+                return string.Empty;
+
+            char firstChar = word.ToLower()[0];
+            if ("aeiou".IndexOf(firstChar) >= 0)
+            {
+                return "an";
+            }
+            else
+            {
+                return "a";
+            }
+        }
+    }
 }
 
 #endregion
@@ -1087,9 +1105,9 @@ public class TypeProps : Model<Type>
     public string Name { get; set; } = "";
 
     /// <summary>
-    ///     💬 The optional human description of the type.
+    ///     💬 The optional human-readable description of the type.
     /// </summary>
-    [Description("💬", "Dc?", "Dsc", "The optional human description of the type.")]
+    [Description("💬", "Dc?", "Dsc", "The optional human-readable description of the type.")]
     public string Description { get; set; } = "";
 
     /// <summary>
@@ -1099,9 +1117,9 @@ public class TypeProps : Model<Type>
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.
+    ///    🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.")]
     public string Image { get; set; } = "";
 
     /// <summary>
@@ -1396,15 +1414,15 @@ public class Connection : Model<Connection>
     public float Shift { get; set; } = 0;
 
     /// <summary>
-    ///    ➡️ The optional offset in x direction between the icons of the child and the parent piece in the diagram.
+    ///    ➡️ The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.
     /// </summary>
-    [NumberProp("➡️", "X?", "X", "The optional offset in x direction between the icons of the child and the parent piece in the diagram.")]
+    [NumberProp("➡️", "X?", "X", "The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.")]
     public float X { get; set; } = 0;
 
     /// <summary>
-    ///   ⬆️ The optional offset in y direction between the icons of the child and the parent piece in the diagram.
+    ///   ⬆️ The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.
     /// </summary>
-    [NumberProp("⬆️", "Y?", "Y", "The optional offset in y direction between the icons of the child and the parent piece in the diagram.")]
+    [NumberProp("⬆️", "Y?", "Y", "The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.")]
     public float Y { get; set; } = 0;
 
 
@@ -1439,9 +1457,9 @@ public class DesignProps : Model<Design>
     public string Name { get; set; } = "";
 
     /// <summary>
-    ///     💬 The optional human description of the design.
+    ///     💬 The optional human-readable description of the design.
     /// </summary>
-    [Description("💬", "Dc?", "Dsc", "The optional human description of the design.")]
+    [Description("💬", "Dc?", "Dsc", "The optional human-readable description of the design.")]
     public string Description { get; set; } = "";
 
     /// <summary>
@@ -1451,9 +1469,9 @@ public class DesignProps : Model<Design>
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.
+    ///    🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.")]
     public string Image { get; set; } = "";
 
     /// <summary>
@@ -1925,9 +1943,9 @@ public class KitProps : Model<Kit>
     public string Name { get; set; } = "";
 
     /// <summary>
-    ///     💬 The optional human description of the kit.
+    ///     💬 The optional human-readable description of the kit.
     /// </summary>
-    [Description("💬", "Dc?", "Dsc", "The optional human description of the kit.")]
+    [Description("💬", "Dc?", "Dsc", "The optional human-readable description of the kit.")]
     public string Description { get; set; } = "";
 
     /// <summary>
@@ -1937,9 +1955,9 @@ public class KitProps : Model<Kit>
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.
+    ///    🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.")]
     public string Image { get; set; } = "";
 
     /// <summary>

@@ -48,7 +48,7 @@ engine.py
 # 🖇️,Co,Con,Connection,A connection between two pieces in a design.
 # 🖇️,Co*,Cons,Connections,The optional connections of a design.
 # ⌚,CA,CAt,Created At,The time when the {{NAME}} was created.
-# 💬,Dc?,Dsc,Description,The optional human description of the {{NAME}}.
+# 💬,Dc?,Dsc,Description,The optional human-readable description of the {{NAME}}.
 # 📖,Df,Def,Definition,The optional definition [ text | url ] of the quality.
 # ✏️,Dg,Dgm,Diagram,The diagram of the design.
 # 📁,Di?,Dir,Directory,The optional directory where to find the kit.
@@ -2004,14 +2004,14 @@ class TypeIconField(RealField, abc.ABC):
 
 
 class TypeImageField(RealField, abc.ABC):
-    """🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels."""
+    """🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels."""
 
     image: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels.",
+        description="🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.",
     )
-    """🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The resolution should be at least 512x512 pixels."""
+    """🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels."""
 
 
 class TypeVariantField(RealField, abc.ABC):
@@ -3239,14 +3239,14 @@ class KitIconField(RealField, abc.ABC):
 
 
 class KitImageField(RealField, abc.ABC):
-    """🖼️ The optional url to the image of the kit."""
+    """🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels."""
 
     image: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🖼️ The optional url to the image of the kit.",
+        description="🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.",
     )
-    """🖼️ The optional url to the image of the kit."""
+    """🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels."""
 
 
 class KitVersionField(RealField, abc.ABC):
