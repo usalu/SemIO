@@ -1218,7 +1218,7 @@ public abstract class ModelComponent<T, U, V> : Component
         pManager.AddParameter(modelParam, NameM, isOutput ? ModelM.Code : ModelM.Code + "?",
             description, GH_ParamAccess.item);
         pManager.AddBooleanParameter(isOutput ? "Valid" : "Validate", "Vd?",
-            isOutput ? "True if the model is valid." : "Whether the model should be validated.", GH_ParamAccess.item);
+            isOutput ? "True if the model is valid. Null if no validation was performed." : "Whether the model should be validated.", GH_ParamAccess.item);
 
         AddModelProps(pManager);
 
@@ -1372,6 +1372,11 @@ public class PortComponent : ModelComponent<PortParam, PortGoo, Port>
 public class QualityComponent : ModelComponent<QualityParam, QualityGoo, Quality>
 {
     public override Guid ComponentGuid => new("51146B05-ACEB-4810-AD75-10AC3E029D39");
+}
+
+public class AuthorComponent : ModelComponent<AuthorParam, AuthorGoo, Author>
+{
+    public override Guid ComponentGuid => new("5143ED92-0A2C-4D0C-84ED-F90CC8450894");
 }
 
 public class TypeComponent : ModelComponent<TypeParam, TypeGoo, Type>

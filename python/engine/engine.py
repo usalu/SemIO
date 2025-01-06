@@ -64,7 +64,7 @@ engine.py
 # 🆔,GI,GID,Globally Unique Identifier,A Globally Unique Identifier (GUID) of the entity.
 # 👪,Gr,Grp,Group,The group of the locator.
 # 🏠,Hp?,Hmp,Homepage,The optional url of the homepage of the kit.
-# 🪙,Ic?,Ico,Icon,The optional url to the icon [ emoji | name | url ] of the {{NAME}}.
+# 🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. {{NAME}}.
 # 🆔,Id,Id,Identifier,The local identifier of the {{NAME}} within the {{PARENT_NAME}}.
 # 🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
 # 🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
@@ -1993,14 +1993,14 @@ class TypeDescriptionField(RealField, abc.ABC):
 
 
 class TypeIconField(RealField, abc.ABC):
-    """🪙 The optional url to the icon [ emoji | name | url ] of the type."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle."""
 
     icon: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🪙 The optional url to the icon [ emoji | name | url ] of the type.",
+        description="🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.",
     )
-    """🪙 The optional url to the icon [ emoji | name | url ] of the type."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle."""
 
 
 class TypeImageField(RealField, abc.ABC):
@@ -2928,14 +2928,14 @@ class DesignDescriptionField(RealField, abc.ABC):
 
 
 class DesignIconField(RealField, abc.ABC):
-    """🪙 The optional url to the icon [ emoji | name | url ] of the design."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the design. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design."""
 
     icon: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🪙 The optional url to the icon [ emoji | name | url ] of the design.",
+        description="🪙 The optional icon [ emoji | logogram | url ] of the design. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.",
     )
-    """🪙 The optional url to the icon [ emoji | name | url ] of the design."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the design. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design."""
 
 
 class DesignImageField(RealField, abc.ABC):
@@ -3228,14 +3228,14 @@ class KitDescriptionField(RealField, abc.ABC):
 
 
 class KitIconField(RealField, abc.ABC):
-    """🪙 The optional url to the icon [ emoji | name | url ] of the kit."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit."""
 
     icon: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🪙 The optional url to the icon [ emoji | name | url ] of the kit.",
+        description="🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit.",
     )
-    """🪙 The optional url to the icon [ emoji | name | url ] of the kit."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit."""
 
 
 class KitImageField(RealField, abc.ABC):

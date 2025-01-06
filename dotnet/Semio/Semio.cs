@@ -91,7 +91,7 @@ public static class Constants
 //🆔,GI,GID,Globally Unique Identifier,A Globally Unique Identifier (GUID) of the entity.
 //👪,Gr,Grp,Group,The group of the locator.
 //🏠,Hp?,Hmp,Homepage,The optional url of the homepage of the kit.
-//🪙,Ic?,Ico,Icon,The optional url to the icon [ emoji | name | url ] of the {{NAME}}.
+//🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. {{NAME}}.
 //🆔,Id,Id,Identifier,The local identifier of the {{NAME}} within the {{PARENT_NAME}}.
 //🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
 //🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
@@ -1093,9 +1093,9 @@ public class TypeProps : Model<Type>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional url to the icon [ emoji | name | url ] of the type.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional url to the icon [ emoji | name | url ] of the type.")]
+    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.")]
     public string Icon { get; set; } = "";
 
     /// <summary>
@@ -1398,7 +1398,7 @@ public class Connection : Model<Connection>
     /// <summary>
     ///    ➡️ The optional offset in x direction between the icons of the child and the parent piece in the diagram.
     /// </summary>
-    [NumberProp("➡️","X?","X", "The optional offset in x direction between the icons of the child and the parent piece in the diagram.")]
+    [NumberProp("➡️", "X?", "X", "The optional offset in x direction between the icons of the child and the parent piece in the diagram.")]
     public float X { get; set; } = 0;
 
     /// <summary>
@@ -1445,9 +1445,9 @@ public class DesignProps : Model<Design>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional url to the icon [ emoji | name | url ] of the design.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the design. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional url to the icon [ emoji | name | url ] of the design.")]
+    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the design. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.")]
     public string Icon { get; set; } = "";
 
     /// <summary>
@@ -1626,8 +1626,8 @@ public class Design : DesignProps
     }
 
     public string Diagram(float pieceWidth = 50, float pieceStroke = 1f, float connectionStroke = 2f)
-    {   
-        
+    {
+
         var svgDoc = new SvgDocument();
 
         var defs = new SvgDefinitionList();
@@ -1763,7 +1763,7 @@ public class Design : DesignProps
 
         foreach (var piece in Pieces)
         {
-            
+
         }
 
         var buildingUse = new SvgUse
@@ -1931,9 +1931,9 @@ public class KitProps : Model<Kit>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional url to the icon [ emoji | name | url ] of the design.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional url to the icon [ emoji | name | url ] of the design.")]
+    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.")]
     public string Icon { get; set; } = "";
 
     /// <summary>

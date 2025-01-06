@@ -25,7 +25,7 @@ Symbol,Code,Abbreviation,Name,Description
 🆔,GI,GId,Globally Unique Identifier,A Globally Unique Identifier (GUID) of the entity.
 👪,Gr,Grp,Group,The group of the locator.
 🏠,Hp?,Hmp,Homepage,The optional url of the homepage of the kit.
-🪙,Ic?,Ico,Icon,The optional url to the icon [ emoji | name | url ] of the {{NAME}}.
+🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. {{NAME}}.
 🆔,Id,Id,Identifier,The local identifier of the {{NAME}} within the {{PARENT_NAME}}.
 🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
 🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
