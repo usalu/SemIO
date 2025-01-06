@@ -576,11 +576,11 @@ namespace Semio.Grasshopper
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap screenpoint_24x24
+        internal static System.Drawing.Bitmap diagrampoint_24x24
         {
             get
             {
-                object obj = ResourceManager.GetObject("screenpoint_24x24", resourceCulture);
+                object obj = ResourceManager.GetObject("diagrampoint_24x24", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -588,11 +588,11 @@ namespace Semio.Grasshopper
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap screenpoint_deserialize_24x24
+        internal static System.Drawing.Bitmap diagrampoint_deserialize_24x24
         {
             get
             {
-                object obj = ResourceManager.GetObject("screenpoint_deserialize_24x24", resourceCulture);
+                object obj = ResourceManager.GetObject("diagrampoint_deserialize_24x24", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -600,11 +600,11 @@ namespace Semio.Grasshopper
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap screenpoint_modify_24x24
+        internal static System.Drawing.Bitmap diagrampoint_modify_24x24
         {
             get
             {
-                object obj = ResourceManager.GetObject("screenpoint_modify_24x24", resourceCulture);
+                object obj = ResourceManager.GetObject("diagrampoint_modify_24x24", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -612,11 +612,11 @@ namespace Semio.Grasshopper
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap screenpoint_serialize_24x24
+        internal static System.Drawing.Bitmap diagrampoint_serialize_24x24
         {
             get
             {
-                object obj = ResourceManager.GetObject("screenpoint_serialize_24x24", resourceCulture);
+                object obj = ResourceManager.GetObject("diagrampoint_serialize_24x24", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
