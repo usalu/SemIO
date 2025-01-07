@@ -1519,7 +1519,7 @@ public class PieceComponent : ModelComponent<PieceParam, PieceGoo, Piece>
         pManager.AddPlaneParameter("Plane", "Pn?",
             "The optional plane of the piece. When pieces are connected only one piece can have a plane.",
             GH_ParamAccess.item);
-        pManager.AddParameter(new DiagramPointParam(), "Diagram Point", "SP",
+        pManager.AddParameter(new DiagramPointParam(), "Diagram Point", "DP",
             "A 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.",
             GH_ParamAccess.item);
     }
@@ -1541,7 +1541,7 @@ public class PieceComponent : ModelComponent<PieceParam, PieceGoo, Piece>
         if (DA.GetData(5, ref plane))
             pieceGoo.Value.Plane = plane.Convert();
         if (DA.GetData(6, ref centerGoo))
-            pieceGoo.Value.DiagramPoint = centerGoo.Value;
+            pieceGoo.Value.Center = centerGoo.Value;
     }
 
     protected override void SetData(IGH_DataAccess DA, dynamic pieceGoo)
@@ -1550,7 +1550,7 @@ public class PieceComponent : ModelComponent<PieceParam, PieceGoo, Piece>
         DA.SetData(3, pieceGoo.Value.Type.Name);
         DA.SetData(4, pieceGoo.Value.Type.Variant);
         DA.SetData(5, (pieceGoo.Value.Plane as Plane)?.Convert());
-        DA.SetData(6, new DiagramPointGoo(pieceGoo.Value.DiagramPoint as DiagramPoint));
+        DA.SetData(6, new DiagramPointGoo(pieceGoo.Value.Center as DiagramPoint));
     }
 }
 

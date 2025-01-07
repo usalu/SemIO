@@ -30,7 +30,7 @@ Symbol,Code,Abbreviation,Name,Description
 🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
 🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
 ↘️,In,Inp,Input,The input for a {{NAME}}.
-🖼️,Im,Img,Image,The optional url to the image of the {{NAME}}. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.
+🖼️,Im,Img,Image,The optional url to the image of the {{NAME}}. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
 🗃️,Kt,Kit,Kit,A kit is a collection of designs that use types.
 ⚖️,Ln?,Lcn,License,The optional license [ spdx id | url ] of the kit.
 🗺️,Lc,Loc,Locator,A locator is metadata for grouping ports.
@@ -74,14 +74,13 @@ Symbol,Code,Abbreviation,Name,Description
 Ⓜ️,Ut,Unt,Unit,The length unit for all distance-related information of the {{PARENT_NAME}}.
 Ⓜ️,Ut,Unt,Unit,The optional unit of the value of the quality.
 🔄,Up,Upd,Update,Update the props of the {{NAME}}. Optionally empty the {{NAME}} before.
-🔀,Vn?,Vnt,Variant,The optional variant of the {{PARENT_NAME}}. No variant means the default variant. 
+🔀,Vn?,Vnt,Variant,The optional variant of the {{NAME}}. No variant means the default variant. 
 ➡️,Vc,Vec,Vector,A 3d-vector (xyz) of floating point numbers.
 🔀,Ve?,Ver,Version,The optional version of the kit. No version means the latest version.
 🥽,Vw?,Vew,View,The optional view of the design. No view means the default view.
 🛂,Vd,Vld,Validate,Check if the {{NAME}} is valid.
 🏷️,Vl,Val,Value,The value of the tag.
 🔢,Vl?,Val,Value,The optional value [ text | url ] of the quality. No value is equivalent to true for the name.
-🔀,Vn?,Vnt,Variant,The optional variant of the {{NAME}}. No variant means the default variant.
 🎚️,X,X,X,The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.
 🎚️,X,X,X,The x-coordinate of the point.
 ➡️,X?,X,X,The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.

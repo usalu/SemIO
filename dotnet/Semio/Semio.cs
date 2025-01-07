@@ -756,7 +756,7 @@ public class Representation : Model<Representation>
     /// <summary>
     ///     🔗 The Unique Resource Locator (URL) to the resource of the representation.
     /// </summary>
-    [Url("🔗", "Ur", "Url", "The Unique Resource Locator (URL) to the resource of the representation.")]
+    [Url("🔗", "Ur", "Url", "The Unique Resource Locator (URL) to the resource of the representation.", PropImportance.REQUIRED)]
     public string Url { get; set; } = "";
 
     /// <summary>
@@ -1120,15 +1120,15 @@ public class TypeProps : Model<Type>
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.
+    ///    🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
     public string Image { get; set; } = "";
 
     /// <summary>
-    ///     🔀 The optional value of the type.
+    ///     🔀 The optional variant of the type. No variant means the default variant. 
     /// </summary>
-    [Name("🔀", "Vn?", "Vnt", "The optional value of the type.", PropImportance.ID, true)]
+    [Name("🔀", "Vn?", "Vnt", "The optional variant of the type. No variant means the default variant. ", PropImportance.ID, true)]
     public string Variant { get; set; } = "";
 
     /// <summary>
@@ -1204,6 +1204,7 @@ public class Type : TypeProps
     public override (bool, List<string>) Validate()
     {
         var (isValid, errors) = base.Validate();
+
         foreach (var port in Ports)
         {
             var (isValidPort, errorsPort) = port.Validate();
@@ -1249,9 +1250,9 @@ public class TypeId : Model<TypeId>
     public string Name { get; set; } = "";
 
     /// <summary>
-    ///     🔀 The optional value of the type.
+    ///     🔀 The optional variant of the type. No variant means the default variant. 
     /// </summary>
-    [Name("🔀", "Vn?", "Vnt", "The optional value of the type.", PropImportance.ID, true)]
+    [Name("🔀", "Vn?", "Vnt", "The optional variant of the type. No variant means the default variant. ", PropImportance.ID, true)]
     public string Variant { get; set; } = "";
 
     public static implicit operator TypeId(Type type)
@@ -1472,9 +1473,9 @@ public class DesignProps : Model<Design>
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.
+    ///    🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
     public string Image { get; set; } = "";
 
     /// <summary>
@@ -1841,6 +1842,7 @@ public class Design : DesignProps
     public override (bool, List<string>) Validate()
     {
         var (isValid, errors) = base.Validate();
+
         foreach (var piece in Pieces)
         {
             var (isValidPiece, errorsPiece) = piece.Validate();
@@ -1848,7 +1850,6 @@ public class Design : DesignProps
             errors.AddRange(errorsPiece.Select(e => "A piece is invalid: " + e));
         }
 
-        var connectionValidator = new ModelValidator<Connection>();
         foreach (var connection in Connections)
         {
             var (isValidConnection, errorsConnection) = connection.Validate();
@@ -1856,7 +1857,6 @@ public class Design : DesignProps
             errors.AddRange(errorsConnection.Select(e => "A connection is invalid: " + e));
         }
 
-        var qualityValidator = new ModelValidator<Quality>();
         foreach (var quality in Qualities)
         {
             var (isValidQuality, errorsQuality) = quality.Validate();
@@ -1864,7 +1864,6 @@ public class Design : DesignProps
             errors.AddRange(errorsQuality.Select(e => "A quality is invalid: " + e));
         }
 
-        var authorValidator = new ModelValidator<Author>();
         foreach (var author in Authors)
         {
             var (isValidAuthor, errorsAuthor) = author.Validate();
@@ -1964,9 +1963,9 @@ public class KitProps : Model<Kit>
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.
+    ///    🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
     public string Image { get; set; } = "";
 
     /// <summary>

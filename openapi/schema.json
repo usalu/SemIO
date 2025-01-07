@@ -505,7 +505,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Image",
-                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.",
                         "default": ""
                     },
                     "variant": {
@@ -591,7 +591,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Image",
-                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.",
                         "default": ""
                     },
                     "variant": {
@@ -744,7 +744,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Image",
-                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.",
                         "default": ""
                     },
                     "preview": {
@@ -838,7 +838,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Image",
-                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.",
                         "default": ""
                     },
                     "preview": {
@@ -1465,7 +1465,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Image",
-                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.",
                         "default": ""
                     },
                     "variant": {
@@ -1544,7 +1544,7 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Image",
-                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.",
                         "default": ""
                     },
                     "variant": {
