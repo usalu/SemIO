@@ -37,6 +37,7 @@ using UnitsNet;
 namespace Semio;
 
 #region TODOs
+// TODO: Develop a validation template for urls.
 // TODO: Replace GetHashcode() with a proper hash function.
 // TODO: Add logging mechanism to all API calls if they fail.
 // TODO: Implement reflexive validation for model properties.
@@ -91,7 +92,7 @@ public static class Constants
 //🆔,GI,GID,Globally Unique Identifier,A Globally Unique Identifier (GUID) of the entity.
 //👪,Gr,Grp,Group,The group of the locator.
 //🏠,Hp?,Hmp,Homepage,The optional url of the homepage of the kit.
-//🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. {{NAME}}.
+//🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. {{NAME}}.
 //🆔,Id,Id,Identifier,The local identifier of the {{NAME}} within the {{PARENT_NAME}}.
 //🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
 //🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
@@ -161,6 +162,8 @@ public static class Constants
 
 public static class Utility
 {
+    public static bool UriIsNotAbsoluteFilePath(string uri) =>
+        !(Uri.IsWellFormedUriString(uri, UriKind.Relative) || uri.StartsWith("http"));
     public static string ParseMimeFromUrl(string url)
     {
         var mimes = new Dictionary<string, string>
@@ -241,7 +244,7 @@ public static class Utility
         return $"{adjective}{animal}{number}";
     }
 
-    public class Units
+    public static class Units
     {
         /// <summary>
         /// Adapted from https://github.com/microsoft/PowerToys/tree/95919508758e71dca88632add8a03c089a822d1c/src/modules/launcher/Plugins/Community.PowerToys.Run.Plugin.UnitConverter
@@ -1111,9 +1114,9 @@ public class TypeProps : Model<Type>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.")]
+    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
     public string Icon { get; set; } = "";
 
     /// <summary>
@@ -1463,9 +1466,9 @@ public class DesignProps : Model<Design>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.")]
+    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
     public string Icon { get; set; } = "";
 
     /// <summary>
@@ -1479,6 +1482,12 @@ public class DesignProps : Model<Design>
     /// </summary>
     [Name("🔀", "Vn?", "Vnt", "The optional variant of the design. No variant means the default variant.", PropImportance.ID, true)]
     public string Variant { get; set; } = "";
+
+    /// <summary>
+    ///    🥽 The optional view of the design. No view means the default view.
+    /// </summary>
+    [Name("🥽", "Vw?", "Vew", "The optional view of the design. No view means the default view.")]
+    public string View { get; set; } = "";
 
     /// <summary>
     ///     Ⓜ️ The length unit for all distance-related information of the design.
@@ -1949,9 +1958,9 @@ public class KitProps : Model<Kit>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.")]
+    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
     public string Icon { get; set; } = "";
 
     /// <summary>
@@ -2012,6 +2021,23 @@ public class Kit : KitProps
     public override (bool, List<string>) Validate()
     {
         var (isValid, errors) = base.Validate();
+        // TODO: Develop a validation template for urls.
+        //if (Icon != "" && Utility.UriIsNotAbsoluteFilePath(Icon))
+        //{
+        //    isValid = false;
+        //    errors.Add("The icon url can't be absolute.");
+        //}
+        //if (Image != "" && Utility.UriIsNotAbsoluteFilePath(Image))
+        //{
+        //    isValid = false;
+        //    errors.Add("The image url can't be absolute.");
+        //}
+        //if (Preview != "" && Utility.UriIsNotAbsoluteFilePath(Preview))
+        //{
+        //    isValid = false;
+        //    errors.Add("The preview url can't be absolute.");
+        //}
+
         foreach (var type in Types)
         {
             var (isValidType, errorsType) = type.Validate();

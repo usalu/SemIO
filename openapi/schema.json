@@ -339,6 +339,52 @@
     },
     "components": {
         "schemas": {
+            "AuthorInput": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "title": "Name",
+                        "description": "\ud83d\udcdb The name of the author."
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 128,
+                        "title": "Email",
+                        "description": "\ud83d\udce7 The email of the author."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "email"
+                ],
+                "title": "AuthorInput",
+                "description": "\ud83d\udc64 The input for an author."
+            },
+            "Author": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "title": "Name",
+                        "description": "\ud83d\udcdb The name of the author."
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 128,
+                        "title": "Email",
+                        "description": "\ud83d\udce7 The email of the author."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "email"
+                ],
+                "title": "Author",
+                "description": "\ud83d\udcd1 The output of an author."
+            },
             "ConnectionInput": {
                 "properties": {
                     "rotation": {
@@ -452,7 +498,14 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.",
+                        "description": "\ud83e\ude99 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. The image must be at least 256x256 pixels and smaller than 1 MB.",
+                        "default": ""
+                    },
+                    "image": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "Image",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
                         "default": ""
                     },
                     "variant": {
@@ -460,6 +513,13 @@
                         "maxLength": 64,
                         "title": "Variant",
                         "description": "\ud83d\udd00 The optional variant of the design. No variant means the default variant.",
+                        "default": ""
+                    },
+                    "view": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "title": "View",
+                        "description": "\ud83e\udd7d The optional view of the design. No view means the default view.",
                         "default": ""
                     },
                     "unit": {
@@ -489,6 +549,13 @@
                         },
                         "type": "array",
                         "title": "Qualities"
+                    },
+                    "authors": {
+                        "items": {
+                            "$ref": "#/components/schemas/AuthorInput"
+                        },
+                        "type": "array",
+                        "title": "Authors"
                     }
                 },
                 "type": "object",
@@ -517,7 +584,14 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.",
+                        "description": "\ud83e\ude99 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. The image must be at least 256x256 pixels and smaller than 1 MB.",
+                        "default": ""
+                    },
+                    "image": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "Image",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
                         "default": ""
                     },
                     "variant": {
@@ -525,6 +599,13 @@
                         "maxLength": 64,
                         "title": "Variant",
                         "description": "\ud83d\udd00 The optional variant of the design. No variant means the default variant.",
+                        "default": ""
+                    },
+                    "view": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "title": "View",
+                        "description": "\ud83e\udd7d The optional view of the design. No view means the default view.",
                         "default": ""
                     },
                     "unit": {
@@ -566,6 +647,13 @@
                         },
                         "type": "array",
                         "title": "Qualities"
+                    },
+                    "authors": {
+                        "items": {
+                            "$ref": "#/components/schemas/Author"
+                        },
+                        "type": "array",
+                        "title": "Authors"
                     }
                 },
                 "type": "object",
@@ -574,6 +662,48 @@
                 ],
                 "title": "Design",
                 "description": "\ud83c\udfd9\ufe0f A design is a collection of pieces that are connected."
+            },
+            "DiagramPointInput": {
+                "properties": {
+                    "x": {
+                        "type": "number",
+                        "title": "X",
+                        "description": "\ud83c\udfc1 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."
+                    },
+                    "y": {
+                        "type": "number",
+                        "title": "Y",
+                        "description": "\ud83c\udfc1 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "x",
+                    "y"
+                ],
+                "title": "DiagramPointInput",
+                "description": "\ud83d\udcfa A 2d-point (xy) of integers in screen coordinate system."
+            },
+            "DiagramPoint": {
+                "properties": {
+                    "x": {
+                        "type": "number",
+                        "title": "X",
+                        "description": "\ud83c\udfc1 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."
+                    },
+                    "y": {
+                        "type": "number",
+                        "title": "Y",
+                        "description": "\ud83c\udfc1 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "x",
+                    "y"
+                ],
+                "title": "DiagramPoint",
+                "description": "\ud83d\udcfa A 2d-point (xy) of integers in screen coordinate system."
             },
             "HTTPValidationError": {
                 "properties": {
@@ -607,7 +737,21 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit.",
+                        "description": "\ud83e\ude99 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. kit.",
+                        "default": ""
+                    },
+                    "image": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "Image",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
+                        "default": ""
+                    },
+                    "preview": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "Preview",
+                        "description": "\ud83d\udd2e The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB.",
                         "default": ""
                     },
                     "version": {
@@ -629,6 +773,13 @@
                         "maxLength": 1024,
                         "title": "Homepage",
                         "description": "\ud83c\udfe0 The optional url of the homepage of the kit.",
+                        "default": ""
+                    },
+                    "license": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "License",
+                        "description": "\u2696\ufe0f The optional license [ spdx id | url ] of the kit.",
                         "default": ""
                     },
                     "types": {
@@ -680,7 +831,21 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit.",
+                        "description": "\ud83e\ude99 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. kit.",
+                        "default": ""
+                    },
+                    "image": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "Image",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
+                        "default": ""
+                    },
+                    "preview": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "Preview",
+                        "description": "\ud83d\udd2e The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB.",
                         "default": ""
                     },
                     "version": {
@@ -702,6 +867,13 @@
                         "maxLength": 1024,
                         "title": "Homepage",
                         "description": "\ud83c\udfe0 The optional url of the homepage of the kit.",
+                        "default": ""
+                    },
+                    "license": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "License",
+                        "description": "\u2696\ufe0f The optional license [ spdx id | url ] of the kit.",
                         "default": ""
                     },
                     "createdAt": {
@@ -1210,48 +1382,6 @@
                 "title": "Representation",
                 "description": "\ud83d\udcbe A representation is a link to a resource that describes a type for a certain level of detail and tags."
             },
-            "DiagramPointInput": {
-                "properties": {
-                    "x": {
-                        "type": "integer",
-                        "title": "X",
-                        "description": "\ud83c\udfc1 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."
-                    },
-                    "y": {
-                        "type": "integer",
-                        "title": "Y",
-                        "description": "\ud83c\udfc1 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "x",
-                    "y"
-                ],
-                "title": "DiagramPointInput",
-                "description": "\ud83d\udcfa A 2d-point (xy) of integers in screen coordinate system."
-            },
-            "DiagramPoint": {
-                "properties": {
-                    "x": {
-                        "type": "integer",
-                        "title": "X",
-                        "description": "\ud83c\udfc1 The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."
-                    },
-                    "y": {
-                        "type": "integer",
-                        "title": "Y",
-                        "description": "\ud83c\udfc1 The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."
-                    }
-                },
-                "type": "object",
-                "required": [
-                    "x",
-                    "y"
-                ],
-                "title": "DiagramPoint",
-                "description": "\ud83d\udcfa A 2d-point (xy) of integers in screen coordinate system."
-            },
             "SideInput": {
                 "properties": {
                     "piece": {
@@ -1328,7 +1458,14 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.",
+                        "description": "\ud83e\ude99 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.",
+                        "default": ""
+                    },
+                    "image": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "Image",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
                         "default": ""
                     },
                     "variant": {
@@ -1365,6 +1502,13 @@
                         },
                         "type": "array",
                         "title": "Qualities"
+                    },
+                    "authors": {
+                        "items": {
+                            "$ref": "#/components/schemas/AuthorInput"
+                        },
+                        "type": "array",
+                        "title": "Authors"
                     }
                 },
                 "type": "object",
@@ -1393,7 +1537,14 @@
                         "type": "string",
                         "maxLength": 1024,
                         "title": "Icon",
-                        "description": "\ud83d\uddbc\ufe0f The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.",
+                        "description": "\ud83e\ude99 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.",
+                        "default": ""
+                    },
+                    "image": {
+                        "type": "string",
+                        "maxLength": 1024,
+                        "title": "Image",
+                        "description": "\ud83d\uddbc\ufe0f The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
                         "default": ""
                     },
                     "variant": {
@@ -1442,6 +1593,13 @@
                         },
                         "type": "array",
                         "title": "Qualities"
+                    },
+                    "authors": {
+                        "items": {
+                            "$ref": "#/components/schemas/Author"
+                        },
+                        "type": "array",
+                        "title": "Authors"
                     }
                 },
                 "type": "object",

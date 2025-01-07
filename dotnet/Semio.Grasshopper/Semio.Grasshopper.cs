@@ -121,7 +121,7 @@ public class SemioCategoryIcon : GH_AssemblyPriority
 //🆔,GI,GID,Globally Unique Identifier,A Globally Unique Identifier (GUID) of the entity.
 //👪,Gr,Grp,Group,The group of the locator.
 //🏠,Hp?,Hmp,Homepage,The optional url of the homepage of the kit.
-//🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. {{NAME}}.
+//🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. {{NAME}}.
 //🆔,Id,Id,Identifier,The local identifier of the {{NAME}} within the {{PARENT_NAME}}.
 //🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
 //🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
@@ -1663,6 +1663,13 @@ public class DesignComponent : ModelComponent<DesignParam, DesignGoo, Design>
 public class KitComponent : ModelComponent<KitParam, KitGoo, Kit>
 {
     public override Guid ComponentGuid => new("987560A8-10D4-43F6-BEBE-D71DC2FD86AF");
+    protected override Kit ProcessModel(Kit kit)
+    {
+        kit.Icon = kit.Icon.Replace('\\', '/');
+        kit.Image = kit.Image.Replace('\\', '/');
+        kit.Preview = kit.Preview.Replace('\\', '/');
+        return kit;
+    }
 }
 
 public class RandomIdsComponent : Component

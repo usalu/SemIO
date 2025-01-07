@@ -64,7 +64,7 @@ engine.py
 # 🆔,GI,GID,Globally Unique Identifier,A Globally Unique Identifier (GUID) of the entity.
 # 👪,Gr,Grp,Group,The group of the locator.
 # 🏠,Hp?,Hmp,Homepage,The optional url of the homepage of the kit.
-# 🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. {{NAME}}.
+# 🪙,Ic?,Ico,Icon,The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. {{NAME}}.
 # 🆔,Id,Id,Identifier,The local identifier of the {{NAME}} within the {{PARENT_NAME}}.
 # 🆔,Id?,Id,Identifier,The optional local identifier of the {{NAME}} within the {{PARENT_NAME}}. No id means the default {{NAME}}.
 # 🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
@@ -1993,14 +1993,14 @@ class TypeDescriptionField(RealField, abc.ABC):
 
 
 class TypeIconField(RealField, abc.ABC):
-    """🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB."""
 
     icon: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle.",
+        description="🪙 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.",
     )
-    """🪙 The optional icon [ emoji | logogram | url ] of the type. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB."""
 
 
 class TypeImageField(RealField, abc.ABC):
@@ -2928,14 +2928,14 @@ class DesignDescriptionField(RealField, abc.ABC):
 
 
 class DesignIconField(RealField, abc.ABC):
-    """🪙 The optional icon [ emoji | logogram | url ] of the design. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. The image must be at least 256x256 pixels and smaller than 1 MB."""
 
     icon: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🪙 The optional icon [ emoji | logogram | url ] of the design. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design.",
+        description="🪙 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. The image must be at least 256x256 pixels and smaller than 1 MB.",
     )
-    """🪙 The optional icon [ emoji | logogram | url ] of the design. The url has to point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. design."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. The image must be at least 256x256 pixels and smaller than 1 MB."""
 
 
 class DesignImageField(RealField, abc.ABC):
@@ -2958,6 +2958,17 @@ class DesignVariantField(RealField, abc.ABC):
         description="🔀 The optional variant of the design. No variant means the default variant.",
     )
     """🔀 The optional variant of the design. No variant means the default variant."""
+
+
+class DesignViewField(RealField, abc.ABC):
+    """🥽 The optional view of the design. No view means the default view."""
+
+    view: str = sqlmodel.Field(
+        default="",
+        max_length=NAME_LENGTH_LIMIT,
+        description="🥽 The optional view of the design. No view means the default view.",
+    )
+    """🥽 The optional view of the design. No view means the default view."""
 
 
 class DesignUnitField(RealField, abc.ABC):
@@ -2997,6 +3008,7 @@ class DesignId(DesignNameField, DesignVariantField, Id):
 
 class DesignProps(
     DesignUnitField,
+    DesignViewField,
     DesignVariantField,
     DesignImageField,
     DesignIconField,
@@ -3009,6 +3021,7 @@ class DesignProps(
 
 class DesignInput(
     DesignUnitField,
+    DesignViewField,
     DesignVariantField,
     DesignImageField,
     DesignIconField,
@@ -3026,6 +3039,7 @@ class DesignInput(
 
 class DesignContext(
     DesignUnitField,
+    DesignViewField,
     DesignVariantField,
     DesignDescriptionField,
     DesignNameField,
@@ -3042,6 +3056,7 @@ class DesignOutput(
     DesignLastUpdateAtField,
     DesignCreatedAtField,
     DesignUnitField,
+    DesignViewField,
     DesignVariantField,
     DesignImageField,
     DesignIconField,
@@ -3070,6 +3085,7 @@ class Design(
     DesignLastUpdateAtField,
     DesignCreatedAtField,
     DesignUnitField,
+    DesignViewField,
     DesignVariantField,
     DesignImageField,
     DesignIconField,
@@ -3228,14 +3244,14 @@ class KitDescriptionField(RealField, abc.ABC):
 
 
 class KitIconField(RealField, abc.ABC):
-    """🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. kit."""
 
     icon: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit.",
+        description="🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. kit.",
     )
-    """🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. kit."""
+    """🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. kit."""
 
 
 class KitImageField(RealField, abc.ABC):
@@ -3547,32 +3563,32 @@ class OperationBuilder(lark.Transformer):
             "typeVariant": (decode(children[1].value) if len(children) == 2 else ""),
         }
 
-    def representation(self, children):
-        type = children[0]
-        code = {
-            "typeName": type["typeName"],
-            "typeVariant": type["typeVariant"],
-        }
-        if len(children) == 1:
-            code["kind"] = "representations"
-        else:
-            code["kind"] = "representation"
-            code["representationUrl"] = decode(children[1].value)
+    # def representation(self, children):
+    #     type = children[0]
+    #     code = {
+    #         "typeName": type["typeName"],
+    #         "typeVariant": type["typeVariant"],
+    #     }
+    #     if len(children) == 1:
+    #         code["kind"] = "representations"
+    #     else:
+    #         code["kind"] = "representation"
+    #         code["representationUrl"] = decode(children[1].value)
 
-        return code
+    #     return code
 
-    def port(self, children):
-        type = children[0]
-        code = {
-            "typeName": type["typeName"],
-            "typeVariant": type["typeVariant"],
-        }
-        if len(children) == 1:
-            code["kind"] = "ports"
-        else:
-            code["kind"] = "port"
-            code["portUrl"] = decode(children[1].value)
-        return code
+    # def port(self, children):
+    #     type = children[0]
+    #     code = {
+    #         "typeName": type["typeName"],
+    #         "typeVariant": type["typeVariant"],
+    #     }
+    #     if len(children) == 1:
+    #         code["kind"] = "ports"
+    #     else:
+    #         code["kind"] = "port"
+    #         code["portUrl"] = decode(children[1].value)
+    #     return code
 
 
 class StoreKind(enum.Enum):
@@ -4101,6 +4117,10 @@ GRAPHQLTYPES = {
     "list[Quality]": graphene.NonNull(
         graphene.List(graphene.NonNull(lambda: QualityNode))
     ),
+    "Author": graphene.NonNull(lambda: AuthorNode),
+    "list[Author]": graphene.NonNull(
+        graphene.List(graphene.NonNull(lambda: AuthorNode))
+    ),
     "Type": graphene.NonNull(lambda: TypeNode),
     "TypeId": graphene.NonNull(lambda: TypeNode),
     "list[Type]": graphene.NonNull(graphene.List(graphene.NonNull(lambda: TypeNode))),
@@ -4314,6 +4334,16 @@ class QualityNode(TableEntityNode):
 class QualityInputNode(InputNode):
     class Meta:
         model = QualityInput
+
+
+class AuthorNode(TableEntityNode):
+    class Meta:
+        model = Author
+
+
+class AuthorInputNode(InputNode):
+    class Meta:
+        model = AuthorInput
 
 
 class TypeNode(TableEntityNode):

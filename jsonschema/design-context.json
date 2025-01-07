@@ -279,6 +279,13 @@
             "title": "Variant",
             "type": "string"
         },
+        "view": {
+            "default": "",
+            "description": "\ud83e\udd7d The optional view of the design. No view means the default view.",
+            "maxLength": 64,
+            "title": "View",
+            "type": "string"
+        },
         "unit": {
             "default": "",
             "description": "\ud83d\udccf The unit of the design.",
