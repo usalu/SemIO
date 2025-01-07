@@ -1117,9 +1117,9 @@ public class TypeProps : Model<Type>
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.
+    ///    🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.")]
     public string Image { get; set; } = "";
 
     /// <summary>
@@ -1469,9 +1469,9 @@ public class DesignProps : Model<Design>
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.
+    ///    🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.")]
     public string Image { get; set; } = "";
 
     /// <summary>
@@ -1955,11 +1955,16 @@ public class KitProps : Model<Kit>
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.
+    ///    🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.")]
+    [Url("🖼️", "Im?", "Img", "The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.")]
     public string Image { get; set; } = "";
 
+    /// <summary>
+    ///    🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB.
+    /// </summary>
+    [Url("🔮", "Pv?", "Prv", "The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB.")]
+    public string Preview { get; set; } = "";
     /// <summary>
     ///     🔀 The optional version of the kit. No version means the latest version.
     /// </summary>

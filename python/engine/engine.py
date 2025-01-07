@@ -2004,14 +2004,14 @@ class TypeIconField(RealField, abc.ABC):
 
 
 class TypeImageField(RealField, abc.ABC):
-    """🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels."""
+    """🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB."""
 
     image: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.",
+        description="🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
     )
-    """🖼️ The optional url to the icon of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels."""
+    """🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB."""
 
 
 class TypeVariantField(RealField, abc.ABC):
@@ -2939,14 +2939,14 @@ class DesignIconField(RealField, abc.ABC):
 
 
 class DesignImageField(RealField, abc.ABC):
-    """🖼️ The optional url to the image of the design."""
+    """🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB."""
 
     image: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🖼️ The optional url to the image of the design.",
+        description="🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
     )
-    """🖼️ The optional url to the image of the design."""
+    """🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB."""
 
 
 class DesignVariantField(RealField, abc.ABC):
@@ -3239,14 +3239,25 @@ class KitIconField(RealField, abc.ABC):
 
 
 class KitImageField(RealField, abc.ABC):
-    """🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels."""
+    """🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB."""
 
     image: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels.",
+        description="🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB.",
     )
-    """🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image resolution should be at least 512x512 pixels."""
+    """🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 512x512 pixels and smaller than 3 MB."""
+
+
+class KitPreviewField(RealField, abc.ABC):
+    """🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB."""
+
+    preview: str = sqlmodel.Field(
+        default="",
+        max_length=URL_LENGTH_LIMIT,
+        description="🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB.",
+    )
+    """🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB."""
 
 
 class KitVersionField(RealField, abc.ABC):
@@ -3322,6 +3333,7 @@ class KitProps(
     KitHomepage,
     KitRemoteField,
     KitVersionField,
+    KitPreviewField,
     KitImageField,
     KitIconField,
     KitDescriptionField,
@@ -3337,6 +3349,7 @@ class KitInput(
     KitHomepage,
     KitRemoteField,
     KitVersionField,
+    KitPreviewField,
     KitImageField,
     KitIconField,
     KitDescriptionField,
@@ -3362,6 +3375,7 @@ class KitOutput(
     KitHomepage,
     KitRemoteField,
     KitVersionField,
+    KitPreviewField,
     KitImageField,
     KitIconField,
     KitDescriptionField,
@@ -3388,6 +3402,7 @@ class Kit(
     KitHomepage,
     KitRemoteField,
     KitVersionField,
+    KitPreviewField,
     KitImageField,
     KitIconField,
     KitDescriptionField,

@@ -165,7 +165,7 @@ That's it!
 
 ![Design Variants](https://raw.githubusercontent.com/usalu/metabolism/r25.01-1/docs/design-variants.png)
 
-You can fetch the kit directly from within Grasshopper, take a look at the [source](https://github.com/usalu/metabolism/archive/refs/tags/r25.01-1.zip) or the [documentation](https://github.com/usalu/metabolism/tree/r25.01-1) 👀
+You can fetch the kit directly from within Grasshopper if you copy this [uri](https://github.com/usalu/metabolism/archive/refs/tags/r25.01-1.zip), take a look at the [source](https://github.com/usalu/metabolism/archive/refs/tags/r25.01-1.zip) or the [documentation](https://github.com/usalu/metabolism/tree/r25.01-1) 👀
 
 # 🧑‍💻 Developers
 
