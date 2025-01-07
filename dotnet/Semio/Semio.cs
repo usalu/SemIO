@@ -2104,6 +2104,10 @@ public interface IApi
 
     [Delete("/api/kits/{encodedKitUri}/designs/{encodedDesignNameAndVariant}")]
     Task<ApiResponse<bool>> RemoveDesign(string encodedKitUri, string encodedDesignNameAndVariant);
+
+    [Get("/api/assistant/predictDesign")]
+    Task<ApiResponse<Design>> PredictDesign([Body] string description, [Body] Type[] types, [Body] Design? design = null);
+
 }
 
 public static class Api
@@ -2192,6 +2196,15 @@ public static class Api
         var response = GetApi()
             .RemoveDesign(Utility.Encode(kitUrl), EncodeNameAndVariant(id.Name, id.Variant)).Result;
         HandleErrors(response);
+    }
+
+    public static Design PredictDesign(string description, Type[] types, Design? design = null)
+    {
+        var response = GetApi().PredictDesign(description, types, design).Result;
+        if (response.IsSuccessStatusCode)
+            return response.Content;
+        HandleErrors(response);
+        return null; // This line will never be reached, but is required to satisfy the compiler.
     }
 }
 

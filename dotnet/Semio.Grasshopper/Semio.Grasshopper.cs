@@ -1731,12 +1731,14 @@ public class RandomIdsComponent : Component
 
 #region Persistence
 
+
+
 #region Engine
 
 public abstract class EngineComponent : Component
 {
-    protected EngineComponent(string name, string nickname, string description)
-        : base(name, nickname, description, "Persistence")
+    protected EngineComponent(string name, string nickname, string description, string subcategory = "Persistence")
+        : base(name, nickname, description, subcategory)
     {
     }
 
@@ -1967,63 +1969,6 @@ public class DeleteKitComponent : EngineComponent
     }
 }
 
-public class ClearCacheComponent : Component
-{
-    public ClearCacheComponent() : base("Clear Cache", "-Ca", "Clear the cache of all the remote kits.", "Persistence")
-    {
-    }
-
-    public override Guid ComponentGuid => new("500BB2EA-56DE-4C38-9C5D-61B8EA0A8948");
-
-    protected override Bitmap Icon => Resources.cache_clear_24x24;
-
-    public override GH_Exposure Exposure => GH_Exposure.tertiary;
-
-    protected override void RegisterInputParams(GH_InputParamManager pManager)
-    {
-        pManager.AddBooleanParameter("Run", "R", "True to clear the cache.", GH_ParamAccess.item, false);
-    }
-
-    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
-    {
-        pManager.AddBooleanParameter("Success", "Sc", "True if the cache was successfully cleared.",
-            GH_ParamAccess.item);
-    }
-
-    protected override void SolveInstance(IGH_DataAccess DA)
-    {
-        var run = false;
-        DA.GetData(0, ref run);
-        DA.SetData(0, false);
-        if (!run) return;
-
-        try
-        {
-            // find process semio-engine.exe and kill it
-            var processes = Process.GetProcessesByName("semio-engine");
-            if (processes.Length > 0)
-                foreach (var process in processes)
-                {
-                    process.Kill();
-                    process.WaitForExit();
-                }
-        }
-        catch (Exception e)
-        {
-        }
-
-        var userPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var cachePath = Path.Combine(userPath, ".semio", "cache");
-        if (Directory.Exists(cachePath))
-        {
-            Directory.Delete(cachePath, true);
-            Directory.CreateDirectory(cachePath);
-        }
-
-        DA.SetData(0, true);
-    }
-}
-
 #region Putting
 
 public abstract class PutComponent<T, U, V> : EngineComponent where T : ModelParam<U, V>, new()
@@ -2184,7 +2129,108 @@ public class RemoveDesignComponent : RemoveComponent<DesignParam, DesignGoo, Des
 
 #endregion
 
+public abstract class AssistantComponent : EngineComponent
+{
+    public AssistantComponent(string name, string nickname, string description) : base(name, nickname, description, "Assistant")
+    {
+    }
+}
+public class PredictDesignComponent : AssistantComponent
+{
+    public PredictDesignComponent() : base("Predict Design", "%Dsn", "Predict a design.")
+    {
+    }
+    protected override string RunDescription => "True to predict the design.";
+    protected override string SuccessDescription => "True if the design was successfully predicted. False otherwise.";
+
+    public override Guid ComponentGuid => new("1EAD6636-2D8C-47CC-894A-E4FE2465AAA7");
+
+    protected override Bitmap Icon => Resources.design_predict_24x24;
+
+    protected override void RegisterCustomInputParams(GH_InputParamManager pManager)
+    {
+        pManager.AddTextParameter("Description", "Dc", "The description of the design or how to change the design.", GH_ParamAccess.item);
+        pManager.AddParameter(new DesignParam(), "Design", "Dn?", "The optional design to use a base.", GH_ParamAccess.item);
+        pManager.AddParameter(new TypeParam(), "Types", "Ty+", "The types to use in the design.", GH_ParamAccess.list);
+    }
+
+    protected override void RegisterCustomOutputParams(GH_OutputParamManager pManager)
+    {
+        pManager.AddParameter(new DesignParam(), "Design", "Dsn", "Predicted design.", GH_ParamAccess.item);
+    }
+
+
+    protected override dynamic? Run(string url, dynamic? input = null)
+    {
+        var design = Api.PredictDesign(url, input);
+        return design;
+    }
+
+    protected override void SetOutput(IGH_DataAccess DA, dynamic response)
+    {
+        DA.SetData(1, new DesignGoo(response));
+    }
+}
+
 #endregion
+
+public class ClearCacheComponent : Component
+{
+    public ClearCacheComponent() : base("Clear Cache", "-Ca", "Clear the cache of all the remote kits.", "Persistence")
+    {
+    }
+
+    public override Guid ComponentGuid => new("500BB2EA-56DE-4C38-9C5D-61B8EA0A8948");
+
+    protected override Bitmap Icon => Resources.cache_clear_24x24;
+
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
+
+    protected override void RegisterInputParams(GH_InputParamManager pManager)
+    {
+        pManager.AddBooleanParameter("Run", "R", "True to clear the cache.", GH_ParamAccess.item, false);
+    }
+
+    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+    {
+        pManager.AddBooleanParameter("Success", "Sc", "True if the cache was successfully cleared.",
+            GH_ParamAccess.item);
+    }
+
+    protected override void SolveInstance(IGH_DataAccess DA)
+    {
+        var run = false;
+        DA.GetData(0, ref run);
+        DA.SetData(0, false);
+        if (!run) return;
+
+        try
+        {
+            // find process semio-engine.exe and kill it
+            var processes = Process.GetProcessesByName("semio-engine");
+            if (processes.Length > 0)
+                foreach (var process in processes)
+                {
+                    process.Kill();
+                    process.WaitForExit();
+                }
+        }
+        catch (Exception e)
+        {
+        }
+
+        var userPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var cachePath = Path.Combine(userPath, ".semio", "cache");
+        if (Directory.Exists(cachePath))
+        {
+            Directory.Delete(cachePath, true);
+            Directory.CreateDirectory(cachePath);
+        }
+
+        DA.SetData(0, true);
+    }
+}
+
 
 #endregion
 
