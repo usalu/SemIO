@@ -156,10 +156,7 @@ import graphene
 import graphene_pydantic
 import graphene_sqlalchemy
 import lark
-
-# import networkx
-# import numpy
-# import pytransform3d
+import jinja2
 import pydantic
 import requests
 import sqlalchemy
@@ -2606,11 +2603,33 @@ class ConnectionShiftField(RealField, abc.ABC):
     """↔️ The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece.."""
 
 
+class ConnectionXField(RealField, abc.ABC):
+    """➡️ The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon."""
+
+    x: float = sqlmodel.Field(
+        default=0,
+        description="➡️ The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.",
+    )
+    """➡️ The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon."""
+
+
+class ConnectionYField(RealField, abc.ABC):
+    """⬆️ The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon."""
+
+    y: float = sqlmodel.Field(
+        default=0,
+        description="⬆️ The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.",
+    )
+    """⬆️ The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon."""
+
+
 class ConnectionId(ConnectionConnectedField, ConnectionConnectingField, Id):
     """🪪 The props to identify the connection."""
 
 
 class ConnectionProps(
+    ConnectionYField,
+    ConnectionXField,
     ConnectionShiftField,
     ConnectionGapField,
     ConnectionTiltField,
@@ -2621,6 +2640,8 @@ class ConnectionProps(
 
 
 class ConnectionInput(
+    ConnectionYField,
+    ConnectionXField,
     ConnectionShiftField,
     ConnectionGapField,
     ConnectionTiltField,
@@ -2640,6 +2661,8 @@ class ConnectionInput(
 
 
 class ConnectionContext(
+    ConnectionYField,
+    ConnectionXField,
     ConnectionShiftField,
     ConnectionGapField,
     ConnectionTiltField,
@@ -2659,6 +2682,8 @@ class ConnectionContext(
 
 
 class ConnectionOutput(
+    ConnectionYField,
+    ConnectionXField,
     ConnectionShiftField,
     ConnectionGapField,
     ConnectionTiltField,
@@ -2678,6 +2703,8 @@ class ConnectionOutput(
 
 
 class ConnectionPrediction(
+    ConnectionYField,
+    ConnectionXField,
     ConnectionShiftField,
     ConnectionGapField,
     ConnectionTiltField,
@@ -2697,6 +2724,8 @@ class ConnectionPrediction(
 
 
 class Connection(
+    ConnectionYField,
+    ConnectionXField,
     ConnectionShiftField,
     ConnectionGapField,
     ConnectionTiltField,
@@ -4093,6 +4122,75 @@ def delete(code: str) -> typing.Any:
     return store.delete(operation)
 
 
+# Assistant #
+
+
+def encodeForPrompt(context: str):
+    return context.replace(";", ",").replace("\n", " ")
+
+
+def encodeContext(context: TypeContext):
+    context.description = encodeForPrompt(context.description)
+    return context
+
+
+systemPrompt = """
+You are a kit-of-parts design assistant.
+Rules:
+Every piece must have a type that exists. The type name and type variant must match.
+A type variant can be the empty string "" which means it is the default variant.
+Two pieces are different when they have a different type name or type variant.
+Two types are different when they have a different name or different variant.
+Every connecting and connected piece must be part of the pieces of the design. The ids must match.
+The port of connecting and connected pieces must exist in the type of the piece. The ids must match.
+A port id can be the empty string "" which means it is the default port.
+The port of connecting and connected pieces should match.
+Every piece in the design is connected to at least one other piece.
+One piece is the root piece of the design. The connections must form a tree.
+Ids should be human readable and don't have to be globally unique.
+The diagram is only a nice 2D representation of the design and does not change the design.
+"""
+
+designGenerationPromptTemplate = jinja2.Template(
+    """Your task is to help to puzzle together a design.
+
+TYPE{NAME;VARIANT?;DESCRIPTION?;PORTS?}
+PORT{ID?;LOCATORS?}
+LOCATOR{GROUP;SUBGROUP?}
+
+Available types:
+{% for type in types %}
+{% raw %}{{% endraw -%}
+{{ type.name }};{{ type.variant }};{{ type.description }};
+{%- for port in type.ports %}
+{%- raw %}{{% endraw -%}{{ port.id }};
+{%- for locator in port.locators %}
+{%- raw %}{{% endraw -%}
+{{ locator.group }};{{ locator.subgroup }}}
+{%- endfor -%}
+{%- raw %}}{% endraw -%}
+{%- endfor -%}
+{%- raw %}}{% endraw -%}
+{% endfor %}
+
+The generated design should match this description:
+{{ description }}
+"""
+)
+
+
+def predictDesign(
+    description: str, types: list[TypeContext], design: DesignContext | None = None
+) -> DesignPrediction:
+    """🔮 Predict a design based on a description, the types that should be used and an optional base design."""
+    prompt = designGenerationPromptTemplate.render(
+        description=description, types=[encodeContext(t) for t in types]
+    )
+    with open("temp/prompt.txt", "w") as file:
+        file.write(prompt)
+    return DesignPrediction()
+
+
 # Graphql #
 
 
@@ -4595,6 +4693,24 @@ async def delete_design(
     try:
         delete(request.url.path.removeprefix("/api/kits/"))
         return None
+    except ClientError as e:
+        statusCode = 400
+        error = e
+    except Exception as e:
+        statusCode = 500
+        error = e
+    return fastapi.Response(content=str(error), status_code=statusCode)
+
+
+@rest.get("/assistant/predictDesign")
+async def predict_design(
+    request: fastapi.Request,
+    description: str = fastapi.Body(...),
+    types: list[TypeContext] = fastapi.Body(...),
+    design: DesignContext | None = None,
+) -> KitOutput:
+    try:
+        return predictDesign(description, types, design)
     except ClientError as e:
         statusCode = 400
         error = e

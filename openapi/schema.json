@@ -335,6 +335,55 @@
                     }
                 }
             }
+        },
+        "/assistant/predict}": {
+            "get": {
+                "summary": "Predict Design",
+                "operationId": "predict_design_assistant_predict__get",
+                "parameters": [
+                    {
+                        "name": "description",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Description"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_predict_design_assistant_predict__get"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Kit"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -385,6 +434,32 @@
                 "title": "Author",
                 "description": "\ud83d\udcd1 The output of an author."
             },
+            "Body_predict_design_assistant_predict__get": {
+                "properties": {
+                    "types": {
+                        "items": {
+                            "$ref": "#/components/schemas/TypeInput"
+                        },
+                        "type": "array",
+                        "title": "Types"
+                    },
+                    "design": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/DesignInput"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "types"
+                ],
+                "title": "Body_predict_design_assistant_predict__get"
+            },
             "ConnectionInput": {
                 "properties": {
                     "rotation": {
@@ -413,6 +488,18 @@
                         "type": "number",
                         "title": "Shift",
                         "description": "\u2194\ufe0f The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece..",
+                        "default": 0
+                    },
+                    "x": {
+                        "type": "number",
+                        "title": "X",
+                        "description": "\u27a1\ufe0f The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.",
+                        "default": 0
+                    },
+                    "y": {
+                        "type": "number",
+                        "title": "Y",
+                        "description": "\u2b06\ufe0f The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.",
                         "default": 0
                     },
                     "connected": {
@@ -460,6 +547,18 @@
                         "type": "number",
                         "title": "Shift",
                         "description": "\u2194\ufe0f The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece..",
+                        "default": 0
+                    },
+                    "x": {
+                        "type": "number",
+                        "title": "X",
+                        "description": "\u27a1\ufe0f The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.",
+                        "default": 0
+                    },
+                    "y": {
+                        "type": "number",
+                        "title": "Y",
+                        "description": "\u2b06\ufe0f The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.",
                         "default": 0
                     },
                     "connected": {

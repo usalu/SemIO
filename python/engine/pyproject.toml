@@ -13,6 +13,7 @@ fastapi = { extras = ["standard"], version = "^0.115.5" }
 graphene = "^3.4.1"
 graphene-pydantic = "^0.6.1"
 graphene-sqlalchemy = { version = "^3.0.0rc1", allow-prereleases = true }
+jinja2 = "^3.1.5"
 lark = "^1.2.2"
 networkx = "^3.4.1"
 numpy = "^2.1.3"

@@ -148,6 +148,8 @@ CREATE TABLE connection (
 	tilt FLOAT NOT NULL, 
 	gap FLOAT NOT NULL, 
 	shift FLOAT NOT NULL, 
+	x FLOAT NOT NULL, 
+	y FLOAT NOT NULL, 
 	"connectedPieceId" INTEGER NOT NULL, 
 	"connectedPortId" INTEGER NOT NULL, 
 	"connectingPieceId" INTEGER NOT NULL, 

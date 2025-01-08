@@ -58,6 +58,7 @@ public static class Constants
     public const int EnginePort = 2501;
     public const string EngineAddress = "http://127.0.0.1:2501";
     public const float Tolerance = 1e-5f;
+    public const string Email = "mail@semio-tech.com";
 }
 
 #endregion
@@ -2080,6 +2081,13 @@ public class ClientException : ApiException
     }
 }
 
+public class PredictDesignBody
+{
+    public string Description { get; set; }
+    public Type[] Types { get; set; }
+    public Design? Design { get; set; }
+}
+
 public interface IApi
 {
     [Get("/api/kits/{encodedKitUri}")]
@@ -2106,7 +2114,7 @@ public interface IApi
     Task<ApiResponse<bool>> RemoveDesign(string encodedKitUri, string encodedDesignNameAndVariant);
 
     [Get("/api/assistant/predictDesign")]
-    Task<ApiResponse<Design>> PredictDesign([Body] string description, [Body] Type[] types, [Body] Design? design = null);
+    Task<ApiResponse<Design>> PredictDesign([Body] PredictDesignBody body);
 
 }
 
@@ -2198,14 +2206,17 @@ public static class Api
         HandleErrors(response);
     }
 
-    public static Design PredictDesign(string description, Type[] types, Design? design = null)
+
+
+    public static Design PredictDesign(string description, Type[] types, Design design)
     {
-        var response = GetApi().PredictDesign(description, types, design).Result;
+        var response = GetApi().PredictDesign(new PredictDesignBody() { Description = description, Types = types, Design = design }).Result;
         if (response.IsSuccessStatusCode)
             return response.Content;
         HandleErrors(response);
         return null; // This line will never be reached, but is required to satisfy the compiler.
     }
+
 }
 
 #endregion

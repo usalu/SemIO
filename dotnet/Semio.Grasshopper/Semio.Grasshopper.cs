@@ -26,6 +26,7 @@ using System.Drawing;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using ExCSS;
 using GH_IO.Serialization;
 using Grasshopper;
 using Grasshopper.Kernel;
@@ -76,7 +77,7 @@ public class Semio_GrasshopperInfo : GH_AssemblyInfo
     public override Guid Id => new("FE587CBF-5F7D-4091-AA6D-D9D30CF80B64");
     public override string Version => Constants.Version;
     public override string AuthorName => "Ueli Saluz";
-    public override string AuthorContact => "semio-community@posteo.org";
+    public override string AuthorContact => "ueli@semio-tech.org";
 }
 
 public class SemioCategoryIcon : GH_AssemblyPriority
@@ -1672,6 +1673,8 @@ public class KitComponent : ModelComponent<KitParam, KitGoo, Kit>
     }
 }
 
+#endregion
+
 public class RandomIdsComponent : Component
 {
     public RandomIdsComponent()
@@ -1727,12 +1730,6 @@ public class RandomIdsComponent : Component
     }
 }
 
-#endregion
-
-#region Persistence
-
-
-
 #region Engine
 
 public abstract class EngineComponent : Component
@@ -1753,12 +1750,6 @@ public abstract class EngineComponent : Component
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         RegisterCustomInputParams(pManager);
-        var amountCustomParams = pManager.ParamCount;
-        pManager.AddTextParameter("Uri", "Ur?",
-            "Optional Unique Resource Identifier (URI) of the kit. This can be an absolute path to a local kit or a url to a remote kit.\n" +
-            "If none is provided, it will try to see if the Grasshopper script is executed inside a local kit.",
-            GH_ParamAccess.item);
-        pManager[amountCustomParams].Optional = true;
         pManager.AddBooleanParameter("Run", "R", RunDescription, GH_ParamAccess.item, false);
     }
 
@@ -1777,7 +1768,7 @@ public abstract class EngineComponent : Component
         return null;
     }
 
-    protected abstract dynamic? Run(string url, dynamic? input = null);
+    protected abstract dynamic? Run(dynamic? input = null);
 
     protected virtual void SetOutput(IGH_DataAccess DA, dynamic response)
     {
@@ -1785,13 +1776,7 @@ public abstract class EngineComponent : Component
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        var url = "";
         var run = false;
-
-        if (!DA.GetData(Params.Input.Count - 2, ref url))
-            url = OnPingDocument().IsFilePathDefined
-                ? Path.GetDirectoryName(OnPingDocument().FilePath)
-                : Directory.GetCurrentDirectory();
 
         DA.GetData(Params.Input.Count - 1, ref run);
         if (!run) return;
@@ -1799,7 +1784,7 @@ public abstract class EngineComponent : Component
         var input = GetInput(DA);
         try
         {
-            var response = Run(url, input);
+            var response = Run(input);
             SetOutput(DA, response);
             DA.SetData(0, true);
         }
@@ -1814,7 +1799,7 @@ public abstract class EngineComponent : Component
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
                 "The engine didn't like it ¯\\_(ツ)_/¯\n" +
                 "If you want, you can report this under: https://github.com/usalu/semio/issues\n" +
-                "Or write me an email: semio-community@posteo.org\n\n" +
+                $"Or write me an email: {Semio.Constants.Email}\n\n" +
                 "ServerError: " + e.Message + "\n" +
                 "Semio.Release: " + Semio.Constants.Release + "\n" +
                 "Semio.Grasshopper: " + Constants.Version + "\n" +
@@ -1857,7 +1842,52 @@ public abstract class EngineComponent : Component
     }
 }
 
-public class LoadKitComponent : EngineComponent
+#region Persistence
+
+public abstract class PersistenceComponent : EngineComponent
+{
+    protected PersistenceComponent(string name, string nickname, string description, string subcategory = "Persistence")
+    : base(name, nickname, description, subcategory)
+    {
+    }
+    protected override void RegisterCustomInputParams(GH_InputParamManager pManager)
+    {
+        var amountCustomParams = pManager.ParamCount;
+        pManager.AddTextParameter("Uri", "Ur?",
+            "Optional Unique Resource Identifier (URI) of the kit. This can be an absolute path to a local kit or a url to a remote kit.\n" +
+            "If none is provided, it will try to see if the Grasshopper script is executed inside a local kit.",
+            GH_ParamAccess.item);
+        pManager[amountCustomParams].Optional = true;
+    }
+
+    protected virtual dynamic? GetPersistentInput(IGH_DataAccess DA)
+    {
+        return null;
+    }
+
+    protected override dynamic? GetInput(IGH_DataAccess DA)
+    {
+        var url = "";
+
+        if (!DA.GetData(Params.Input.Count - 2, ref url))
+            url = OnPingDocument().IsFilePathDefined
+                ? Path.GetDirectoryName(OnPingDocument().FilePath)
+                : Directory.GetCurrentDirectory();
+        dynamic? input = GetPersistentInput(DA);
+
+        return new {Url=url, Input= input};
+    }
+
+    protected abstract dynamic? RunOnKit(string url, dynamic? input);
+
+    protected override dynamic? Run(dynamic? input = null)
+    {
+        RunOnKit(input.Url, input.Input);
+        return null;
+    }
+
+}
+public class LoadKitComponent : PersistenceComponent
 {
     public LoadKitComponent() : base("Load Kit", "/Kit", "Load a kit.")
     {
@@ -1880,9 +1910,9 @@ public class LoadKitComponent : EngineComponent
             GH_ParamAccess.item);
     }
 
-    protected override dynamic? Run(string url, dynamic? input = null)
+    protected override dynamic? RunOnKit(string uri, dynamic? input)
     {
-        var kit = Api.GetKit(url);
+        var kit = Api.GetKit(uri);
         return kit;
     }
 
@@ -1914,7 +1944,7 @@ public class LoadKitComponent : EngineComponent
     }
 }
 
-public class CreateKitComponent : EngineComponent
+public class CreateKitComponent : PersistenceComponent
 {
     public CreateKitComponent() : base("Create Kit", "+Kit", "Create a kit.")
     {
@@ -1941,14 +1971,14 @@ public class CreateKitComponent : EngineComponent
         return kitGoo.Value;
     }
 
-    protected override dynamic? Run(string url, dynamic? input = null)
+    protected override dynamic? RunOnKit(string uri, dynamic? input = null)
     {
-        Api.CreateKit(url, input);
+        Api.CreateKit(uri, input);
         return null;
     }
 }
 
-public class DeleteKitComponent : EngineComponent
+public class DeleteKitComponent : PersistenceComponent
 {
     public DeleteKitComponent() : base("Delete Kit", "-Kit", "Delete a kit.")
     {
@@ -1962,16 +1992,16 @@ public class DeleteKitComponent : EngineComponent
 
     public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
-    protected override dynamic? Run(string url, dynamic? input = null)
+    protected override dynamic? RunOnKit(string uri, dynamic? input = null)
     {
-        Api.DeleteKit(url);
+        Api.DeleteKit(uri);
         return null;
     }
 }
 
 #region Putting
 
-public abstract class PutComponent<T, U, V> : EngineComponent where T : ModelParam<U, V>, new()
+public abstract class PutComponent<T, U, V> : PersistenceComponent where T : ModelParam<U, V>, new()
     where U : ModelGoo<V>, new()
     where V : Model<V>, new()
 
@@ -2018,9 +2048,9 @@ public class PutTypeComponent : PutComponent<TypeParam, TypeGoo, Type>
 {
     public override Guid ComponentGuid => new("BC46DC07-C0BE-433F-9E2F-60CCBAA39148");
 
-    protected override dynamic? Run(string url, dynamic? input = null)
+    protected override dynamic? RunOnKit(string uri, dynamic? input = null)
     {
-        Api.PutType(url, input);
+        Api.PutType(uri, input);
         return null;
     }
 }
@@ -2029,9 +2059,9 @@ public class PutDesignComponent : PutComponent<DesignParam, DesignGoo, Design>
 {
     public override Guid ComponentGuid => new("8B7AA946-0CB1-4CA8-A712-610B60425368");
 
-    protected override dynamic? Run(string url, dynamic? input = null)
+    protected override dynamic? RunOnKit(string uri, dynamic? input = null)
     {
-        Api.PutDesign(url, input);
+        Api.PutDesign(uri, input);
         return null;
     }
 }
@@ -2040,7 +2070,7 @@ public class PutDesignComponent : PutComponent<DesignParam, DesignGoo, Design>
 
 #region Removing
 
-public abstract class RemoveComponent<T, U, V> : EngineComponent where T : ModelParam<U, V>, new()
+public abstract class RemoveComponent<T, U, V> : PersistenceComponent where T : ModelParam<U, V>, new()
     where U : ModelGoo<V>, new()
     where V : Model<V>, new()
 {
@@ -2104,9 +2134,9 @@ public class RemoveTypeComponent : RemoveComponent<TypeParam, TypeGoo, Type>
         return new TypeId { Name = name, Variant = variant };
     }
 
-    protected override dynamic? Run(string url, dynamic? input = null)
+    protected override dynamic? RunOnKit(string uri, dynamic? input = null)
     {
-        Api.RemoveType(url, input);
+        Api.RemoveType(uri, input);
         return null;
     }
 }
@@ -2120,55 +2150,10 @@ public class RemoveDesignComponent : RemoveComponent<DesignParam, DesignGoo, Des
         return new DesignId { Name = name, Variant = variant };
     }
 
-    protected override dynamic? Run(string url, dynamic? input = null)
+    protected override dynamic? RunOnKit(string uri, dynamic? input = null)
     {
-        Api.RemoveDesign(url, input);
+        Api.RemoveDesign(uri, input);
         return null;
-    }
-}
-
-#endregion
-
-public abstract class AssistantComponent : EngineComponent
-{
-    public AssistantComponent(string name, string nickname, string description) : base(name, nickname, description, "Assistant")
-    {
-    }
-}
-public class PredictDesignComponent : AssistantComponent
-{
-    public PredictDesignComponent() : base("Predict Design", "%Dsn", "Predict a design.")
-    {
-    }
-    protected override string RunDescription => "True to predict the design.";
-    protected override string SuccessDescription => "True if the design was successfully predicted. False otherwise.";
-
-    public override Guid ComponentGuid => new("1EAD6636-2D8C-47CC-894A-E4FE2465AAA7");
-
-    protected override Bitmap Icon => Resources.design_predict_24x24;
-
-    protected override void RegisterCustomInputParams(GH_InputParamManager pManager)
-    {
-        pManager.AddTextParameter("Description", "Dc", "The description of the design or how to change the design.", GH_ParamAccess.item);
-        pManager.AddParameter(new DesignParam(), "Design", "Dn?", "The optional design to use a base.", GH_ParamAccess.item);
-        pManager.AddParameter(new TypeParam(), "Types", "Ty+", "The types to use in the design.", GH_ParamAccess.list);
-    }
-
-    protected override void RegisterCustomOutputParams(GH_OutputParamManager pManager)
-    {
-        pManager.AddParameter(new DesignParam(), "Design", "Dsn", "Predicted design.", GH_ParamAccess.item);
-    }
-
-
-    protected override dynamic? Run(string url, dynamic? input = null)
-    {
-        var design = Api.PredictDesign(url, input);
-        return design;
-    }
-
-    protected override void SetOutput(IGH_DataAccess DA, dynamic response)
-    {
-        DA.SetData(1, new DesignGoo(response));
     }
 }
 
@@ -2231,6 +2216,71 @@ public class ClearCacheComponent : Component
     }
 }
 
+#endregion
+
+#region Assistant
+public abstract class AssistantComponent : EngineComponent
+{
+    public AssistantComponent(string name, string nickname, string description) : base(name, nickname, description, "Assistant")
+    {
+    }
+}
+public class PredictDesignComponent : AssistantComponent
+{
+    public PredictDesignComponent() : base("Predict Design", "%Dsn", "Predict a design.")
+    {
+    }
+    protected override string RunDescription => "True to predict the design.";
+    protected override string SuccessDescription => "True if the design was successfully predicted. False otherwise.";
+
+    public override Guid ComponentGuid => new("1EAD6636-2D8C-47CC-894A-E4FE2465AAA7");
+
+    protected override Bitmap Icon => Resources.design_predict_24x24;
+
+    protected override void RegisterCustomInputParams(GH_InputParamManager pManager)
+    {
+        var pCount = pManager.ParamCount;
+        pManager.AddTextParameter("Description", "Dc", "The description of the design or an instruction how to change the base design.", GH_ParamAccess.item);
+        pManager.AddParameter(new TypeParam(), "Types", "Ty+", "The types to use in the design.", GH_ParamAccess.list);
+        pManager.AddParameter(new DesignParam(), "Design", "Dn?", "The optional design to use a base.", GH_ParamAccess.item);
+        pManager[pCount + 2].Optional = true;
+    }
+
+    protected override void RegisterCustomOutputParams(GH_OutputParamManager pManager)
+    {
+        pManager.AddParameter(new DesignParam(), "Design", "Dsn", "Predicted design.", GH_ParamAccess.item);
+    }
+
+    protected override dynamic? GetInput(IGH_DataAccess DA)
+    {
+        var description = "";
+        var types = new List<TypeGoo>();
+        var designGoo = new DesignGoo();
+
+        DA.GetData(0, ref description);
+        DA.GetDataList(1, types);
+        Design? design;
+        if (DA.GetData(2, ref designGoo))
+            design = designGoo.Value;
+        else
+            design = null;
+
+        return new { Description = description, Types = types.Select(t => t.Value).ToArray(), Design = design };
+    }
+
+    protected override dynamic? Run(dynamic? input = null)
+    {
+        var design = Api.PredictDesign(input.Description, input.Types, input.Design);
+        return design;
+    }
+
+    protected override void SetOutput(IGH_DataAccess DA, dynamic response)
+    {
+        DA.SetData(1, new DesignGoo(response));
+    }
+}
+
+#endregion
 
 #endregion
 
