@@ -4129,27 +4129,34 @@ def encodeForPrompt(context: str):
     return context.replace(";", ",").replace("\n", " ")
 
 
-def encodeContext(context: TypeContext):
-    context.description = encodeForPrompt(context.description)
+def replaceDefault(context: str, default: str):
+    if context == "":
+        return context.replace("", default)
     return context
 
 
-systemPrompt = """
-You are a kit-of-parts design assistant.
+def encodeType(type: TypeContext):
+    type.variant = replaceDefault(type.variant, "default")
+    type.description = encodeForPrompt(type.description)
+    for port in type.ports:
+        port.id_ = replaceDefault(port.id_, "default")
+        for locator in port.locators:
+            locator.subgroup = replaceDefault(locator.subgroup, "true")
+    return type
+
+
+systemPrompt = """You are a kit-of-parts design assistant.
 Rules:
 Every piece must have a type that exists. The type name and type variant must match.
-A type variant can be the empty string "" which means it is the default variant.
 Two pieces are different when they have a different type name or type variant.
 Two types are different when they have a different name or different variant.
 Every connecting and connected piece must be part of the pieces of the design. The ids must match.
 The port of connecting and connected pieces must exist in the type of the piece. The ids must match.
-A port id can be the empty string "" which means it is the default port.
 The port of connecting and connected pieces should match.
 Every piece in the design is connected to at least one other piece.
 One piece is the root piece of the design. The connections must form a tree.
 Ids should be human readable and don't have to be globally unique.
-The diagram is only a nice 2D representation of the design and does not change the design.
-"""
+The diagram is only a nice 2D representation of the design and does not change the design."""
 
 designGenerationPromptTemplate = jinja2.Template(
     """Your task is to help to puzzle together a design.
@@ -4163,7 +4170,7 @@ Available types:
 {% raw %}{{% endraw -%}
 {{ type.name }};{{ type.variant }};{{ type.description }};
 {%- for port in type.ports %}
-{%- raw %}{{% endraw -%}{{ port.id }};
+{%- raw %}{{% endraw -%}{{ port.id_ }};
 {%- for locator in port.locators %}
 {%- raw %}{{% endraw -%}
 {{ locator.group }};{{ locator.subgroup }}}
@@ -4174,9 +4181,11 @@ Available types:
 {% endfor %}
 
 The generated design should match this description:
-{{ description }}
-"""
+{{ description }}"""
 )
+
+with open("temp/system-prompt.txt", "w") as file:
+    file.write(systemPrompt)
 
 
 def predictDesign(
@@ -4184,7 +4193,7 @@ def predictDesign(
 ) -> DesignPrediction:
     """🔮 Predict a design based on a description, the types that should be used and an optional base design."""
     prompt = designGenerationPromptTemplate.render(
-        description=description, types=[encodeContext(t) for t in types]
+        description=description, types=[encodeType(t) for t in types]
     )
     with open("temp/prompt.txt", "w") as file:
         file.write(prompt)
