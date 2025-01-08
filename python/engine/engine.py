@@ -150,6 +150,7 @@ import shutil
 import stat
 import signal
 
+import dotenv
 import fastapi
 import fastapi.openapi
 import graphene
@@ -157,6 +158,7 @@ import graphene_pydantic
 import graphene_sqlalchemy
 import lark
 import jinja2
+import openai
 import pydantic
 import requests
 import sqlalchemy
@@ -218,6 +220,7 @@ ENCODED_NAME_AND_VARIANT_PATH = typing.Annotated[
     str, fastapi.Path(pattern=ENCODING_REGEX + "," + ENCODING_ALPHABET_REGEX + "*")
 ]
 MAX_REQUEST_BODY_SIZE = 50 * 1024 * 1024  # 50MB
+dotenv.load_dotenv()
 ENVS = {key: value for key, value in os.environ.items() if key.startswith("SEMIO_")}
 
 
@@ -289,6 +292,11 @@ def changeKeys(c: dict | list, func: callable) -> None:
         for v in c:
             if isinstance(v, dict) or isinstance(v, list):
                 changeKeys(v, func)
+
+
+def normalizeAngle(angle: float) -> float:
+    """🔃 Normalize an angle to be greater or equal to 0 and smaller than 360 degrees."""
+    return (angle % 360 + 360) % 360
 
 
 # Exceptions #
@@ -4136,27 +4144,115 @@ def replaceDefault(context: str, default: str):
 
 
 def encodeType(type: TypeContext):
-    type.variant = replaceDefault(type.variant, "default")
-    type.description = encodeForPrompt(type.description)
-    for port in type.ports:
-        port.id_ = replaceDefault(port.id_, "default")
+    typeClone = type.model_copy(deep=True)
+    typeClone.variant = replaceDefault(typeClone.variant, "DEFAULT")
+    typeClone.description = encodeForPrompt(typeClone.description)
+    for port in typeClone.ports:
+        port.id_ = replaceDefault(port.id_, "DEFAULT")
         for locator in port.locators:
-            locator.subgroup = replaceDefault(locator.subgroup, "true")
-    return type
+            locator.subgroup = replaceDefault(locator.subgroup, "TRUE")
+    return typeClone
 
+
+def decodeDesign(design: dict):
+    decodedDesign = {
+        "pieces": [
+            {
+                "id_": p["id"] if p["id"] != "DEFAULT" else "",
+                "type": {
+                    "name": p["typeName"],
+                    "variant": (
+                        p["typeVariant"] if p["typeVariant"] != "DEFAULT" else ""
+                    ),
+                },
+            }
+            for p in design["pieces"]
+        ],
+        "connections": [
+            {
+                "connected": {
+                    "piece": {
+                        "id_": (
+                            c["connectedPieceId"]
+                            if c["connectedPieceId"] != "DEFAULT"
+                            else ""
+                        ),
+                    },
+                    "port": {
+                        "id_": (
+                            c["connectedPieceTypePortId"]
+                            if c["connectedPieceTypePortId"] != "DEFAULT"
+                            else ""
+                        ),
+                    },
+                },
+                "connecting": {
+                    "piece": {
+                        "id_": (
+                            c["connectingPieceId"]
+                            if c["connectingPieceId"] != "DEFAULT"
+                            else ""
+                        ),
+                    },
+                    "port": {
+                        "id_": (
+                            c["connectingPieceTypePortId"]
+                            if c["connectingPieceTypePortId"] != "DEFAULT"
+                            else ""
+                        ),
+                    },
+                },
+                "rotation": normalizeAngle(c["rotation"]),
+                "tilt": normalizeAngle(c["tilt"]),
+                "gap": c["gap"],
+                "shift": c["shift"],
+                "x": c["diagramX"],
+                "y": c["diagramY"],
+            }
+            for c in design["connections"]
+        ],
+    }
+    return DesignPrediction.parse(decodedDesign)
+
+
+def healDesign(design: DesignPrediction, types: list[TypeContext]):
+    """🩺 Heal a design by replacing missing type variants with the first variant."""
+    designClone = design.model_copy(deep=True)
+    typeD = {}
+    for type in types:
+        if type.name not in typeD:
+            typeD[type.name] = {}
+        typeD[type.name][type.variant] = type
+    for piece in designClone.pieces:
+        if not (piece.type.variant in typeD[piece.type.name]):
+            piece.type.variant = list(typeD[piece.type.name].keys())[0]
+    return designClone
+
+
+# with open("temp/007/predicted-design.json", "w") as f:
+#     with open("temp/007/predicted-design-raw.json", "r") as d:
+#         design = json.load(d)
+#         decodedDesign = decodeDesign(design)
+#         json.dump(decodedDesign.model_dump(), f, indent=4)
+
+
+openaiClient = openai.Client()
 
 systemPrompt = """You are a kit-of-parts design assistant.
 Rules:
-Every piece must have a type that exists. The type name and type variant must match.
+Every piece MUST have a type that exists. The type name and type variant MUST match.
 Two pieces are different when they have a different type name or type variant.
 Two types are different when they have a different name or different variant.
-Every connecting and connected piece must be part of the pieces of the design. The ids must match.
-The port of connecting and connected pieces must exist in the type of the piece. The ids must match.
-The port of connecting and connected pieces should match.
-Every piece in the design is connected to at least one other piece.
-One piece is the root piece of the design. The connections must form a tree.
-Ids should be human readable and don't have to be globally unique.
-The diagram is only a nice 2D representation of the design and does not change the design."""
+Every connecting and connected piece MUST be part of the pieces of the design. The ids MUST match.
+The port of connecting and connected pieces MUST exist in the type of the piece. The ids MUST match.
+The port of connecting and connected pieces SHOULD match.
+Every piece in the design MUST be connected to at least one other piece.
+One piece is the root piece of the design. The connections MUST form a tree.
+Ids SHOULD be abreviated and don't have to be globally unique.
+Rotation, tilt, gap, shift SHOULD NOT be added unless specifically instructed.
+The diagram is only a nice 2D representation of the design and does not change the design.
+When a piece is [on, next to, above, below, ...] another piece, there SHOULD be a connecting between the pieces.
+When a piece fits to a port of another piece, there SHOULD be a connecting between the pieces."""
 
 designGenerationPromptTemplate = jinja2.Template(
     """Your task is to help to puzzle together a design.
@@ -4184,9 +4280,6 @@ The generated design should match this description:
 {{ description }}"""
 )
 
-with open("temp/system-prompt.txt", "w") as file:
-    file.write(systemPrompt)
-
 
 def predictDesign(
     description: str, types: list[TypeContext], design: DesignContext | None = None
@@ -4195,9 +4288,98 @@ def predictDesign(
     prompt = designGenerationPromptTemplate.render(
         description=description, types=[encodeType(t) for t in types]
     )
-    with open("temp/prompt.txt", "w") as file:
+    designResponseFormat = json.load(
+        open("../../jsonschema/design-prediction-openai.json", "r")
+    )
+    try:
+        response = openaiClient.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": systemPrompt,
+                        }
+                    ],
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt,
+                        }
+                    ],
+                },
+            ],
+            response_format={
+                "type": "json_schema",
+                "json_schema": designResponseFormat,
+            },
+            temperature=1,
+            max_completion_tokens=16383,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0,
+        )
+    except Error as e:
+        pass
+
+    iteration = 11
+
+    # create iteration folder
+    os.makedirs(f"temp/00{iteration}", exist_ok=True)
+
+    with open(f"temp/00{iteration}/schema.json", "w") as file:
+        file.write(json.dumps(designResponseFormat, indent=4))
+    with open(f"temp/00{iteration}/prompt.txt", "w") as file:
         file.write(prompt)
-    return DesignPrediction()
+    with open(f"temp/00{iteration}/system-prompt.txt", "w") as file:
+        file.write(systemPrompt)
+    with open(f"temp/00{iteration}/response.json", "w") as file:
+        responseDump = {
+            "id": response.id,
+            "created": response.created,
+            "model": response.model,
+            "object": response.object,
+            "system_fingerprint": response.system_fingerprint,
+            "usage": {
+                "completion_tokens": response.usage.completion_tokens,
+                "prompt_tokens": response.usage.prompt_tokens,
+                "total_tokens": response.usage.total_tokens,
+            },
+            "_request_id": response._request_id,
+            "choices": [
+                {
+                    "finish_reason": c.finish_reason,
+                    "message": {
+                        "content": c.message.content,
+                        "refusal": c.message.refusal,
+                        "role": c.message.role,
+                    },
+                }
+                for c in response.choices
+            ],
+        }
+        json.dump(responseDump, file, indent=4)
+    with open(f"temp/00{iteration}/predicted-design-raw.json", "w") as file:
+        json.dump(json.loads(response.choices[0].message.content), file, indent=4)
+
+    result = response.choices[0]
+    if result.finish_reason == "stop" and result.message.refusal is None:
+        design = decodeDesign(json.loads(result.message.content))
+
+        with open(f"temp/00{iteration}/predicted-design.json", "w") as file:
+            json.dump(design.model_dump(), file, indent=4)
+
+        # piece healing of variants that do not exist
+        healedDesign = healDesign(design, types)
+        with open(f"temp/00{iteration}/predicted-design-healed.json", "w") as file:
+            json.dump(design.model_dump(), file, indent=4)
+
+        return design
 
 
 # Graphql #
@@ -4717,7 +4899,7 @@ async def predict_design(
     description: str = fastapi.Body(...),
     types: list[TypeContext] = fastapi.Body(...),
     design: DesignContext | None = None,
-) -> KitOutput:
+) -> DesignPrediction:
     try:
         return predictDesign(description, types, design)
     except ClientError as e:
