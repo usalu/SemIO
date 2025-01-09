@@ -4349,15 +4349,15 @@ def predictDesign(
     iteration = 12
 
     # create iteration folder
-    os.makedirs(f"temp/0{iteration}", exist_ok=True)
+    os.makedirs(f"log/0{iteration}", exist_ok=True)
 
-    with open(f"temp/0{iteration}/schema.json", "w") as file:
+    with open(f"log/0{iteration}/schema.json", "w") as file:
         file.write(json.dumps(designResponseFormat, indent=4))
-    with open(f"temp/0{iteration}/prompt.txt", "w") as file:
+    with open(f"log/0{iteration}/prompt.txt", "w") as file:
         file.write(prompt)
-    with open(f"temp/0{iteration}/system-prompt.txt", "w") as file:
+    with open(f"log/0{iteration}/system-prompt.txt", "w") as file:
         file.write(systemPrompt)
-    with open(f"temp/0{iteration}/response.json", "w") as file:
+    with open(f"log/0{iteration}/response.json", "w") as file:
         responseDump = {
             "id": response.id,
             "created": response.created,
@@ -4383,19 +4383,19 @@ def predictDesign(
             ],
         }
         json.dump(responseDump, file, indent=4)
-    with open(f"temp/0{iteration}/predicted-design-raw.json", "w") as file:
+    with open(f"log/0{iteration}/predicted-design-raw.json", "w") as file:
         json.dump(json.loads(response.choices[0].message.content), file, indent=4)
 
     result = response.choices[0]
     if result.finish_reason == "stop" and result.message.refusal is None:
         design = decodeDesign(json.loads(result.message.content))
 
-        with open(f"temp/0{iteration}/predicted-design.json", "w") as file:
+        with open(f"log/0{iteration}/predicted-design.json", "w") as file:
             json.dump(design.model_dump(), file, indent=4)
 
         # piece healing of variants that do not exist
         healedDesign = healDesign(design, types)
-        with open(f"temp/0{iteration}/predicted-design-healed.json", "w") as file:
+        with open(f"log/0{iteration}/predicted-design-healed.json", "w") as file:
             json.dump(healedDesign.model_dump(), file, indent=4)
 
         return healedDesign
