@@ -988,6 +988,12 @@ public class Port : Model<Port>
     public string Id { get; set; } = "";
 
     /// <summary>
+    ///    💬 The optional human-readable description of the port.
+    /// </summary>
+    [Description("💬", "Dc", "Dsc", "The optional human-readable description of the port.")]
+    public string Description { get; set; } = "";
+
+    /// <summary>
     ///     ❌ The connection point of the port that is attracted to another connection point.
     /// </summary>
     [ModelProp("✖️", "Pt", "Pnt", "The connection point of the port that is attracted to another connection point.")]

@@ -1526,6 +1526,17 @@ class PortIdField(MaskedField, abc.ABC):
     """🆔 The id of the port."""
 
 
+class PortDescriptionField(MaskedField, abc.ABC):
+    """💬 The optional human-readable description of the port."""
+
+    description: str = sqlmodel.Field(
+        default="",
+        max_length=DESCRIPTION_LENGTH_LIMIT,
+        description="💬 The optional human-readable description of the port.",
+    )
+    """💬 The optional human-readable description of the port."""
+
+
 class PortPointField(MaskedField, abc.ABC):
     """✖️ The connection point of the port that is attracted to another connection point."""
 
@@ -1559,12 +1570,17 @@ class PortId(PortIdField, Id):
 
 
 class PortProps(
-    PortLocatorsField, PortDirectionField, PortPointField, PortIdField, Props
+    PortLocatorsField,
+    PortDirectionField,
+    PortPointField,
+    PortDescriptionField,
+    PortIdField,
+    Props,
 ):
     """🎫 The props of a port."""
 
 
-class PortInput(PortIdField, Input):
+class PortInput(PortDescriptionField, PortIdField, Input):
     """🔌 A port is a connection point (with a direction) of a type."""
 
     point: PointInput = sqlmodel.Field(
@@ -1582,7 +1598,7 @@ class PortInput(PortIdField, Input):
     """🗺️ The locators of the port."""
 
 
-class PortContext(PortIdField, Context):
+class PortContext(PortDescriptionField, PortIdField, Context):
     """🔌 A port is a connection point (with a direction) of a type."""
 
     locators: list[LocatorContext] = sqlmodel.Field(
@@ -1592,7 +1608,9 @@ class PortContext(PortIdField, Context):
     """🗺️ The locators of the port."""
 
 
-class PortOutput(PortDirectionField, PortPointField, PortIdField, Output):
+class PortOutput(
+    PortDirectionField, PortPointField, PortDescriptionField, PortIdField, Output
+):
     """🔌 A port is a connection point (with a direction) of a type."""
 
     locators: list[LocatorOutput] = sqlmodel.Field(
@@ -1602,7 +1620,7 @@ class PortOutput(PortDirectionField, PortPointField, PortIdField, Output):
     """🗺️ The locators of the port."""
 
 
-class Port(TableEntity, table=True):
+class Port(PortDescriptionField, TableEntity, table=True):
     """🔌 A port is a connection point (with a direction) of a type."""
 
     PLURAL = "ports"
@@ -1987,14 +2005,14 @@ class TypeNameField(RealField, abc.ABC):
 
 
 class TypeDescriptionField(RealField, abc.ABC):
-    """💬 The description of the type."""
+    """💬 The optional human-readable description of the type."""
 
     description: str = sqlmodel.Field(
         default="",
         max_length=DESCRIPTION_LENGTH_LIMIT,
-        description="💬 The description of the type.",
+        description="💬 The optional human-readable description of the type.",
     )
-    """💬 The description of the type."""
+    """💬 The optional human-readable description of the type."""
 
 
 class TypeIconField(RealField, abc.ABC):
@@ -2954,14 +2972,14 @@ class DesignNameField(RealField, abc.ABC):
 
 
 class DesignDescriptionField(RealField, abc.ABC):
-    """💬 The description of the design."""
+    """💬 The optional human-readable description of the design."""
 
     description: str = sqlmodel.Field(
         default="",
         max_length=DESCRIPTION_LENGTH_LIMIT,
-        description="💬 The description of the design.",
+        description="💬 The optional human-readable description of the design.",
     )
-    """💬 The description of the design."""
+    """💬 The optional human-readable description of the design."""
 
 
 class DesignIconField(RealField, abc.ABC):
@@ -3110,6 +3128,7 @@ class DesignOutput(
 
 
 class DesignPrediction(
+    DesignDescriptionField,
     Prediction,
 ):
     """🏙️ A design is a collection of pieces that are connected."""
@@ -3270,14 +3289,14 @@ class KitNameField(RealField, abc.ABC):
 
 
 class KitDescriptionField(RealField, abc.ABC):
-    """💬 The description of the kit."""
+    """💬 The optional human-readable description of the kit."""
 
     description: str = sqlmodel.Field(
         default="",
         max_length=DESCRIPTION_LENGTH_LIMIT,
-        description="💬 The description of the kit.",
+        description="💬 The optional human-readable description of the kit.",
     )
-    """💬 The description of the kit."""
+    """💬 The optional human-readable description of the kit."""
 
 
 class KitIconField(RealField, abc.ABC):
@@ -4318,27 +4337,27 @@ def predictDesign(
                 "type": "json_schema",
                 "json_schema": designResponseFormat,
             },
-            temperature=1,
-            max_completion_tokens=16383,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
+            # temperature=1,
+            # max_completion_tokens=16383,
+            # top_p=1,
+            # frequency_penalty=0,
+            # presence_penalty=0,
         )
     except Error as e:
         pass
 
-    iteration = 11
+    iteration = 12
 
     # create iteration folder
-    os.makedirs(f"temp/00{iteration}", exist_ok=True)
+    os.makedirs(f"temp/0{iteration}", exist_ok=True)
 
-    with open(f"temp/00{iteration}/schema.json", "w") as file:
+    with open(f"temp/0{iteration}/schema.json", "w") as file:
         file.write(json.dumps(designResponseFormat, indent=4))
-    with open(f"temp/00{iteration}/prompt.txt", "w") as file:
+    with open(f"temp/0{iteration}/prompt.txt", "w") as file:
         file.write(prompt)
-    with open(f"temp/00{iteration}/system-prompt.txt", "w") as file:
+    with open(f"temp/0{iteration}/system-prompt.txt", "w") as file:
         file.write(systemPrompt)
-    with open(f"temp/00{iteration}/response.json", "w") as file:
+    with open(f"temp/0{iteration}/response.json", "w") as file:
         responseDump = {
             "id": response.id,
             "created": response.created,
@@ -4364,22 +4383,22 @@ def predictDesign(
             ],
         }
         json.dump(responseDump, file, indent=4)
-    with open(f"temp/00{iteration}/predicted-design-raw.json", "w") as file:
+    with open(f"temp/0{iteration}/predicted-design-raw.json", "w") as file:
         json.dump(json.loads(response.choices[0].message.content), file, indent=4)
 
     result = response.choices[0]
     if result.finish_reason == "stop" and result.message.refusal is None:
         design = decodeDesign(json.loads(result.message.content))
 
-        with open(f"temp/00{iteration}/predicted-design.json", "w") as file:
+        with open(f"temp/0{iteration}/predicted-design.json", "w") as file:
             json.dump(design.model_dump(), file, indent=4)
 
         # piece healing of variants that do not exist
         healedDesign = healDesign(design, types)
-        with open(f"temp/00{iteration}/predicted-design-healed.json", "w") as file:
-            json.dump(design.model_dump(), file, indent=4)
+        with open(f"temp/0{iteration}/predicted-design-healed.json", "w") as file:
+            json.dump(healedDesign.model_dump(), file, indent=4)
 
-        return design
+        return healedDesign
 
 
 # Graphql #
