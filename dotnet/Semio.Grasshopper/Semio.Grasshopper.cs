@@ -917,7 +917,7 @@ public class DecodeTextComponent : ScriptingComponent
 public class SerializeComponent: ScriptingComponent
 
 {
-    protected SerializeComponent() : base($"Serialize1", "Se1",
+    public SerializeComponent() : base($"Serialize", "}",
         $"Serialize a {Semio.Constants.Name} param.")
     {
     }
@@ -941,14 +941,14 @@ public class SerializeComponent: ScriptingComponent
     {
         var goo = new GH_ObjectWrapper();
         DA.GetData(0, ref goo);
-        var text = goo.Value.Serialize(true);
+        var text = ((dynamic)goo.Value).Value.Serialize(true);
         DA.SetData(0, text);
     }
 }
 public class DeserializeComponent : ScriptingComponent
 
 {
-    protected DeserializeComponent() : base($"Deserialize1", "De1",
+    public DeserializeComponent() : base($"Deserialize", "{",
         $"Deserialize a {Semio.Constants.Name} param.")
     {
     }
