@@ -1689,7 +1689,7 @@ public class Design : DesignProps
         return flattenedDiagram;
     }
 
-    public string Diagram(float pieceWidth = 50, float pieceStroke = 1f, float connectionStroke = 2f)
+    public string Diagram(float pieceWidth = 50, float pieceStroke = 1f, float connectionStroke = 2f, string kitDirectory = "")
     {
 
         var svgDoc = new SvgDocument();
@@ -1735,10 +1735,6 @@ public class Design : DesignProps
         };
         defs.Children.Add(pieceMask);
 
-        // var building = SvgDocument.Open("building.svg");
-        // building.Width = 50-2*pieceStroke;
-        // building.Height = 50-2*pieceStroke;
-        // building.CustomAttributes.Add("pieceMask", "url(#pieceMask)");
         var building = new SvgImage()
         {
             ID = "building",
