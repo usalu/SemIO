@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # engine.py
-# Copyright (C) 2024 Ueli Saluz
+# 2020-2025 Ueli Saluz
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

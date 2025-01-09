@@ -1,7 +1,7 @@
 ﻿#region License
 
 //Semio.Grasshopper.cs
-//Copyright (C) 2024 Ueli Saluz
+//2020-2025 Ueli Saluz
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU Affero General Public License as
@@ -41,6 +41,7 @@ namespace Semio.Grasshopper;
 
 #region TODOs
 
+// TODO: GetProps and SetProps (includes children) is not consistent with the prop naming in python (does not include children).
 // TODO: Add toplevel scanning for kits wherever a directory is given
 // Maybe extension function for components. The repeated code looks something like this:
 // if (!DA.GetData(_, ref path))
@@ -69,7 +70,7 @@ public static class Constants
 
 public class Semio_GrasshopperInfo : GH_AssemblyInfo
 {
-    public override string Name => Constants.Name;
+    public override string Name => Semio.Constants.Name;
     public override Bitmap Icon => Resources.semio_24x24;
     public override Bitmap AssemblyIcon => Resources.semio_24x24;
     public override string Description => "semio within 🦗.";
@@ -1246,7 +1247,7 @@ public class ConvertUnitComponent : Component
 
 #region Modelling
 
-public abstract class ModelComponent<T, U, V> : Component
+public abstract class ModelComponent<T, U, V> : Component, IGH_VariableParameterComponent
     where T : ModelParam<U, V> where U : ModelGoo<V> where V : Model<V>, new()
 {
     public static readonly string NameM;
@@ -1337,6 +1338,10 @@ public abstract class ModelComponent<T, U, V> : Component
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
+        if (RunCount == 1 && !AreParametersValid())
+            TryUpdatingComponent();
+        
+
         dynamic modelGoo = Activator.CreateInstance(GooM);
         var validate = false;
         if (DA.GetData(0, ref modelGoo))
@@ -1441,6 +1446,59 @@ public abstract class ModelComponent<T, U, V> : Component
     protected virtual V ProcessModel(V model)
     {
         return model;
+    }
+
+    public bool IsParameterValid(int index)
+    {
+        if (index < 2) return true;
+        var property = PropertyM[index-2];
+        var input = Params.Input[index];
+        var output = Params.Output[index];
+        if (input.Name != property.Name || output.Name != property.Name)
+            return false;
+        return true;
+    }
+    public bool AreParametersValid()
+    {
+        var areValid = true;
+        for (int i = 0; i < PropertyParamM.Length; i++)
+            areValid &= IsParameterValid(i+2);
+        return areValid;
+    }
+
+    public void TryUpdatingComponent()
+    {
+
+        //Params.RegisterInputParam(new T());
+        //Params.RegisterOutputParam()
+    }
+
+    public bool CanInsertParameter(GH_ParameterSide side, int index)
+    {
+        if (index < 2) return false;
+        return !IsParameterValid(index-1);
+    }
+
+    public bool CanRemoveParameter(GH_ParameterSide side, int index)
+    {
+        return index>1;
+    }
+
+    public IGH_Param CreateParameter(GH_ParameterSide side, int index)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool DestroyParameter(GH_ParameterSide side, int index)
+    {
+        Params.UnregisterInputParameter(Params.Input[index]);
+        Params.UnregisterOutputParameter(Params.Output[index]);
+        return true;
+    }
+
+    public void VariableParameterMaintenance()
+    {
+        
     }
 }
 

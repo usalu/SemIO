@@ -1,6 +1,6 @@
 #region License
 //Semio.cs
-//Copyright (C) 2024 Ueli Saluz
+//2020-2025 Ueli Saluz
 
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU Affero General Public License as
@@ -1019,7 +1019,7 @@ public class Port : Model<Port>
     /// <summary>
     ///    💬 The optional human-readable description of the port.
     /// </summary>
-    [Description("💬", "Dc", "Dsc", "The optional human-readable description of the port.")]
+    [Description("💬", "Dc?", "Dsc", "The optional human-readable description of the port.")]
     public string Description { get; set; } = "";
 
     /// <summary>
