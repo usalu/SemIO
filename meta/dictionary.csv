@@ -33,8 +33,8 @@ Symbol,Code,Abbreviation,Name,Description
 🖼️,Im,Img,Image,The optional url to the image of the {{NAME}}. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
 🗃️,Kt,Kit,Kit,A kit is a collection of designs that use types.
 ⚖️,Ln?,Lcn,License,The optional license [ spdx id | url ] of the kit.
-🗺️,Lc,Loc,Locator,A locator is metadata for grouping ports.
-🗺️,Lc*,Locs,Locators,The optional locators of the port.
+🗺️,Lc,Loc,Locator,A locator is machine-readable metadata for grouping ports and provides a mechanism to easily switch between ports based on individual locators.
+🗺️,Lc*,Locs,Locators,The optional machine-readable locators of the port. Every port should have a unique set of locators.
 🔍,Ld?,Lod,Level of Detail,The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod.
 📛,Na,Nam,Name,The name of the {{NAME}}.
 ✉️,Mm,Mim,Mime,The Multipurpose Internet Mail Extensions (MIME) type of the content of the resource of the representation.
@@ -55,7 +55,7 @@ Symbol,Code,Abbreviation,Name,Description
 ✖️,Pt,Pnt,Point,The connection point of the port that is attracted to another connection point.
 🔮,Pv,Prv,Preview,The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB.
 📏,Ql,Qal,Quality,A quality is a named value with a unit and a definition.
-📏,Ql*,Qals,Qualities,The optional qualities of the {{NAME}}.
+📏,Ql*,Qals,Qualities,The optional machine-readable qualities of the  {{NAME}}.
 🍾,Rl,Rel,Release,The release of the engine that created this database.
 ☁️,Rm?,Rmt,Remote,The optional Unique Resource Locator (URL) where to fetch the kit remotely.
 💾,Rp,Rep,Representation,A representation is a link to a resource that describes a type for a certain level of detail and tags.

@@ -83,6 +83,13 @@
                     "title": "Id ",
                     "type": "string"
                 },
+                "description": {
+                    "default": "",
+                    "description": "\ud83d\udcac The optional human-readable description of the port.",
+                    "maxLength": 4096,
+                    "title": "Description",
+                    "type": "string"
+                },
                 "point": {
                     "$ref": "#/$defs/Point",
                     "description": "\u2716\ufe0f The connection point of the port that is attracted to another connection point."
@@ -220,7 +227,7 @@
         },
         "description": {
             "default": "",
-            "description": "\ud83d\udcac The description of the type.",
+            "description": "\ud83d\udcac The optional human-readable description of the type.",
             "maxLength": 4096,
             "title": "Description",
             "type": "string"

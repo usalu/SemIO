@@ -59,8 +59,7 @@ namespace Semio.Grasshopper;
 
 public static class Constants
 {
-    public const string Name = "semio";
-    public const string Category = Name;
+    public const string Category = Semio.Constants.Name;
     public const string Version = "4.1.0";
 }
 
@@ -128,8 +127,8 @@ public class SemioCategoryIcon : GH_AssemblyPriority
 //🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
 //↘️,In,Inp,Input,The input for a {{NAME}}.
 //🗃️,Kt,Kit,Kit,A kit is a collection of designs that use types.
-//🗺️,Lc,Loc,Locator,A locator is metadata for grouping ports.
-//🗺️,Lc*,Locs,Locators,The optional locators of the port.
+//🗺️,Lc,Loc,Locator,A locator is machine-readable metadata for grouping ports and provides a mechanism to easily switch between ports based on individual locators.
+//🗺️,Lc*,Locs,Locators,The optional machine-readable locators of the port. Every port should have a unique set of locators.
 //🔍,Ld?,Lod,Level of Detail,The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod.
 //📛,Na,Nam,Name,The name of the {{NAME}}.
 //✉️,Mm,Mim,Mime,The Multipurpose Internet Mail Extensions (MIME) type of the content of the resource of the representation.
@@ -149,7 +148,7 @@ public class SemioCategoryIcon : GH_AssemblyPriority
 //✖️,Pt,Pnt,Point,A 3d-point (xyz) of floating point numbers.
 //✖️,Pt,Pnt,Point,The connection point of the port that is attracted to another connection point.
 //📏,Ql,Qal,Quality,A quality is a named value with a unit and a definition.
-//📏,Ql*,Qals,Qualities,The optional qualities of the {{NAME}}.
+//📏,Ql*,Qals,Qualities,The optional machine-readable qualities of the  {{NAME}}.
 //🍾,Rl,Rel,Release,The release of the engine that created this database.
 //☁️,Rm?,Rmt,Remote,The optional Unique Resource Locator (URL) where to fetch the kit remotely.
 //💾,Rp,Rep,Representation,A representation is a link to a resource that describes a type for a certain level of detail and tags.
@@ -1875,7 +1874,7 @@ public abstract class PersistenceComponent : EngineComponent
                 : Directory.GetCurrentDirectory();
         dynamic? input = GetPersistentInput(DA);
 
-        return new {Url=url, Input= input};
+        return new { Url = url, Input = input };
     }
 
     protected abstract dynamic? RunOnKit(string url, dynamic? input);

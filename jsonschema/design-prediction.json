@@ -151,6 +151,13 @@
     },
     "description": "\ud83c\udfd9\ufe0f A design is a collection of pieces that are connected.",
     "properties": {
+        "description": {
+            "default": "",
+            "description": "\ud83d\udcac The optional human-readable description of the design.",
+            "maxLength": 4096,
+            "title": "Description",
+            "type": "string"
+        },
         "pieces": {
             "items": {
                 "$ref": "#/$defs/Piece"

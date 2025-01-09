@@ -279,7 +279,7 @@
         },
         "description": {
             "default": "",
-            "description": "\ud83d\udcac The description of the design.",
+            "description": "\ud83d\udcac The optional human-readable description of the design.",
             "maxLength": 4096,
             "title": "Description",
             "type": "string"

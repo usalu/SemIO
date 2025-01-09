@@ -50,6 +50,8 @@ namespace Semio;
 
 public static class Constants
 {
+    public const string Name = "semio";
+    public const string Email = "mail@semio-tech.com";
     public const int NameLengthLimit = 64;
     public const int IdLengthLimit = 128;
     public const int UrlLengthLimit = 2048;
@@ -58,7 +60,6 @@ public static class Constants
     public const int EnginePort = 2501;
     public const string EngineAddress = "http://127.0.0.1:2501";
     public const float Tolerance = 1e-5f;
-    public const string Email = "mail@semio-tech.com";
 }
 
 #endregion
@@ -99,8 +100,8 @@ public static class Constants
 //🪪,Id,Id,Identifier,The props to identify the {{NAME}} within the parent {{PARENT_NAME}}.
 //↘️,In,Inp,Input,The input for a {{NAME}}.
 //🗃️,Kt,Kit,Kit,A kit is a collection of designs that use types.
-//🗺️,Lc,Loc,Locator,A locator is metadata for grouping ports.
-//🗺️,Lc*,Locs,Locators,The optional locators of the port.
+//🗺️,Lc,Loc,Locator,A locator is machine-readable metadata for grouping ports and provides a mechanism to easily switch between ports based on individual locators.
+//🗺️,Lc*,Locs,Locators,The optional machine-readable locators of the port. Every port should have a unique set of locators.
 //🔍,Ld?,Lod,Level of Detail,The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod.
 //📛,Na,Nam,Name,The name of the {{NAME}}.
 //✉️,Mm,Mim,Mime,The Multipurpose Internet Mail Extensions (MIME) type of the content of the resource of the representation.
@@ -120,7 +121,7 @@ public static class Constants
 //✖️,Pt,Pnt,Point,A 3d-point (xyz) of floating point numbers.
 //✖️,Pt,Pnt,Point,The connection point of the port that is attracted to another connection point.
 //📏,Ql,Qal,Quality,A quality is a named value with a unit and a definition.
-//📏,Ql*,Qals,Qualities,The optional qualities of the {{NAME}}.
+//📏,Ql*,Qals,Qualities,The optional machine-readable qualities of the  {{NAME}}.
 //🍾,Rl,Rel,Release,The release of the engine that created this database.
 //☁️,Rm?,Rmt,Remote,The optional Unique Resource Locator (URL) where to fetch the kit remotely.
 //💾,Rp,Rep,Representation,A representation is a link to a resource that describes a type for a certain level of detail and tags.
@@ -709,6 +710,34 @@ public class ModelValidator<T> : AbstractValidator<T> where T : Model<T>
                     return
                         $"The {property.Name.ToLower()} must be at most {textAttribute.LengthLimit} characters long. The provided text ({preview}) has {value?.Length} characters.";
                 });
+
+            // All non-description text
+            if (property.GetCustomAttribute<DescriptionAttribute>() == null)
+            {
+                RuleFor(model => property.GetValue(model) as string)
+                    .Matches(@"^\S.*\S$")
+                    .WithMessage($"The {property.Name.ToLower()} must not start or end with whitespaces.")
+                    .Matches(@"^[^\r\n]+$")
+                    .WithMessage($"The {property.Name.ToLower()} must not contain newlines.");
+            }
+
+            if (property.GetCustomAttribute<NameAttribute>() != null)
+            {
+            }
+            else if (property.GetCustomAttribute<IdAttribute>() != null)
+            {
+
+            }
+            else if (property.GetCustomAttribute<EmailAttribute>() != null)
+            {
+                RuleFor(model => property.GetValue(model) as string)
+                    .EmailAddress().WithMessage($"The {property.Name.ToLower()} is not a valid email address.");
+            }
+            else if (property.GetCustomAttribute<UrlAttribute>() != null)
+            {
+
+            }
+
         }
         else if (property.PropertyType == typeof(List<string>))
         {
@@ -817,9 +846,9 @@ public class Representation : Model<Representation>
 }
 
 /// <summary>
-///     🗺️ A locator is metadata for grouping ports.
+///     🗺️ A locator is machine-readable metadata for grouping ports and provides a mechanism to easily switch between ports based on individual locators.
 /// </summary>
-[Model("🗺️", "Lc", "Loc", "A locator is metadata for grouping ports.")]
+[Model("🗺️", "Lc", "Loc", "A locator is machine-readable metadata for grouping ports and provides a mechanism to easily switch between ports based on individual locators.")]
 public class Locator : Model<Locator>
 {
     /// <summary>
@@ -1007,9 +1036,9 @@ public class Port : Model<Port>
     public Vector? Direction { get; set; } = null;
 
     /// <summary>
-    ///     🗺️ The optional locators of the port.
+    ///     🗺️ The optional machine-readable locators of the port. Every port should have a unique set of locators.
     /// </summary>
-    [ModelProp("🗺️", "Lc*", "Locs", "The optional locators of the port.", PropImportance.OPTIONAL)]
+    [ModelProp("🗺️", "Lc*", "Locs", "The optional machine-readable locators of the port. Every port should have a unique set of locators.", PropImportance.OPTIONAL)]
     public List<Locator> Locators { get; set; } = new();
 
     // TODO: Implement reflexive validation for model properties.
@@ -1196,9 +1225,9 @@ public class Type : TypeProps
     public List<Port> Ports { get; set; } = new();
 
     /// <summary>
-    ///     📏 The optional qualities of the type.
+    ///     📏 The optional machine-readable qualities of the  type.
     /// </summary>
-    [ModelProp("📏", "Ql*", "Qals", "The optional qualities of the type.", PropImportance.OPTIONAL)]
+    [ModelProp("📏", "Ql*", "Qals", "The optional machine-readable qualities of the  type.", PropImportance.OPTIONAL)]
     public List<Quality> Qualities { get; set; } = new();
 
     /// <summary>
@@ -1524,9 +1553,9 @@ public class Design : DesignProps
     public List<Connection> Connections { get; set; } = new();
 
     /// <summary>
-    ///     📏 The optional qualities of the design.
+    ///     📏 The optional machine-readable qualities of the  design.
     /// </summary>
-    [ModelProp("📏", "Ql*", "Qals", "The optional qualities of the design.", PropImportance.OPTIONAL)]
+    [ModelProp("📏", "Ql*", "Qals", "The optional machine-readable qualities of the  design.", PropImportance.OPTIONAL)]
     public List<Quality> Qualities { get; set; } = new();
 
     /// <summary>

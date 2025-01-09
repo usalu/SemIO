@@ -87,6 +87,7 @@ CREATE TABLE representation (
 	FOREIGN KEY("typeId") REFERENCES type (id)
 );
 CREATE TABLE port (
+	description VARCHAR(4096) NOT NULL, 
 	id INTEGER NOT NULL, 
 	"localId" VARCHAR(128), 
 	"pointX" FLOAT NOT NULL, 

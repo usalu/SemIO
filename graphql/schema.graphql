@@ -138,6 +138,7 @@ type PortNodeEdge {
 }
 
 type Port implements Node {
+  description: String!
   id_: String
   type: Type
   locators: [Locator!]
@@ -369,7 +370,7 @@ input KitInputNode {
   """📛 The name of the kit."""
   name: String!
 
-  """💬 The description of the kit."""
+  """💬 The optional human-readable description of the kit."""
   description: String = ""
 
   """
@@ -414,7 +415,7 @@ input TypeInputNode {
   """📛 The name of the type."""
   name: String!
 
-  """💬 The description of the type."""
+  """💬 The optional human-readable description of the type."""
   description: String = ""
 
   """
@@ -465,6 +466,9 @@ input RepresentationInputNode {
 input PortInputNode {
   """🆔 The id of the port."""
   id_: String = ""
+
+  """💬 The optional human-readable description of the port."""
+  description: String = ""
 
   """
   ✖️ The connection point of the port that is attracted to another connection point.
@@ -538,7 +542,7 @@ input DesignInputNode {
   """📛 The name of the design."""
   name: String!
 
-  """💬 The description of the design."""
+  """💬 The optional human-readable description of the design."""
   description: String = ""
 
   """
