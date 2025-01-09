@@ -193,6 +193,18 @@ namespace Semio.Grasshopper
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap deserialize_24x24
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("deserialize_24x24", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap design_24x24
         {
             get
@@ -690,6 +702,18 @@ namespace Semio.Grasshopper
             get
             {
                 object obj = ResourceManager.GetObject("semio_24x24", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap serialize_24x24
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("serialize_24x24", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

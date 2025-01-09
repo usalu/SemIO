@@ -914,217 +914,69 @@ public class DecodeTextComponent : ScriptingComponent
     }
 }
 
-#region Serialize
-
-public abstract class SerializeComponent<T, U, V> : ScriptingComponent
-    where T : ModelParam<U, V>, new() where U : ModelGoo<V>, new() where V : Model<V>, new()
+public class SerializeComponent: ScriptingComponent
 
 {
-    public static readonly string NameM;
-    public static readonly ModelAttribute ModelM;
-
-    static SerializeComponent()
-    {
-        // force compiler to run static constructor of the the meta classes first.
-        var dummyMetaGrasshopper = Meta.Goo;
-
-        NameM = typeof(V).Name;
-        ModelM = Semio.Meta.Model[NameM];
-    }
-
-    protected SerializeComponent() : base($"Serialize {NameM}", $">{ModelM.Abbreviation}",
-        $"Serialize a {NameM.ToLower()}.")
+    protected SerializeComponent() : base($"Serialize1", "Se1",
+        $"Serialize a {Semio.Constants.Name} param.")
     {
     }
 
-    protected override Bitmap Icon => (Bitmap)Resources.ResourceManager.GetObject($"{NameM.ToLower()}_serialize_24x24");
+    public override Guid ComponentGuid => new("C4D2FED2-2E2F-46EB-B12C-C3DD6A4A53B2");
+
+    protected override Bitmap Icon => Resources.serialize_24x24;
     public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddParameter(new T(), NameM, ModelM.Code,
-            $"The {typeof(T).Name} to serialize.", GH_ParamAccess.item);
+        pManager.AddGenericParameter("Input","In", $"The {Semio.Constants.Name} input param to serialize.", GH_ParamAccess.item);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddTextParameter("Text", "Tx", "Text of serialized " + NameM + ".", GH_ParamAccess.item);
+        pManager.AddTextParameter("Text", "Tx", "Text of serialized input", GH_ParamAccess.item);
     }
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        var goo = new U();
+        var goo = new GH_ObjectWrapper();
         DA.GetData(0, ref goo);
         var text = goo.Value.Serialize(true);
         DA.SetData(0, text);
     }
 }
-
-public class
-    SerializeRepresentationComponent : SerializeComponent<RepresentationParam, RepresentationGoo, Representation>
-{
-    public override Guid ComponentGuid => new("AC6E381C-23EE-4A81-BE0F-3523AEE32046");
-}
-
-public class SerializeLocatorComponent : SerializeComponent<LocatorParam, LocatorGoo, Locator>
-{
-    public override Guid ComponentGuid => new("7AFC411B-57D4-4B36-982C-495E14E7520E");
-}
-
-public class SerializePortComponent : SerializeComponent<PortParam, PortGoo, Port>
-{
-    public override Guid ComponentGuid => new("1A29F6ED-464D-490F-B072-3412B467F1B5");
-}
-
-public class SerializeQualityComponent : SerializeComponent<QualityParam, QualityGoo, Quality>
-{
-    public override Guid ComponentGuid => new("C651F24C-BFF8-4821-8974-8588BCA75250");
-}
-
-public class SerializeAuthorComponent : SerializeComponent<AuthorParam, AuthorGoo, Author>
-{
-    public override Guid ComponentGuid => new("99130A53-4FC1-4E64-9A46-2ACEC4634878");
-}
-
-public class SerializeTypeComponent : SerializeComponent<TypeParam, TypeGoo, Type>
-{
-    public override Guid ComponentGuid => new("BD184BB8-8124-4604-835C-E7B7C199673A");
-}
-
-public class SerializeDiagramPointComponent : SerializeComponent<DiagramPointParam, DiagramPointGoo, DiagramPoint>
-{
-    public override Guid ComponentGuid => new("EDD83721-D2BD-4CF1-929F-FBB07F0A6A99");
-}
-
-public class SerializePieceComponent : SerializeComponent<PieceParam, PieceGoo, Piece>
-{
-    public override Guid ComponentGuid => new("A4EDA838-2246-4617-8298-9585ECFE00D9");
-}
-
-public class SerializeConnectionComponent : SerializeComponent<ConnectionParam, ConnectionGoo, Connection>
-{
-    public override Guid ComponentGuid => new("93FBA84E-79A1-4E32-BE61-A925F476DD60");
-}
-
-public class SerializeDesignComponent : SerializeComponent<DesignParam, DesignGoo, Design>
-{
-    public override Guid ComponentGuid => new("D755D6F1-27C4-441A-8856-6BA20E87DB58");
-}
-
-public class SerializeKitComponent : SerializeComponent<KitParam, KitGoo, Kit>
-{
-    public override Guid ComponentGuid => new("78202ACE-A876-45AF-BA72-D1FC00FE4165");
-}
-
-#endregion
-
-#region Deserialize
-
-public abstract class DeserializeComponent<T, U, V> : ScriptingComponent
-    where T : ModelParam<U, V>, new() where U : ModelGoo<V>, new() where V : Model<V>, new()
+public class DeserializeComponent : ScriptingComponent
 
 {
-    public static readonly string NameM;
-    public static readonly ModelAttribute ModelM;
-
-    static DeserializeComponent()
-    {
-        // force compiler to run static constructor of the the meta classes first.
-        var dummyMetaGrasshopper = Meta.Goo;
-
-        NameM = typeof(V).Name;
-        ModelM = Semio.Meta.Model[NameM];
-    }
-
-    protected DeserializeComponent() : base($"Deserialize {NameM}", $"<{ModelM.Abbreviation}",
-        $"Deserialize a {NameM.ToLower()}.")
+    protected DeserializeComponent() : base($"Deserialize1", "De1",
+        $"Deserialize a {Semio.Constants.Name} param.")
     {
     }
+    public override Guid ComponentGuid => new("D57D3B02-E489-4C9E-B7AA-58E987B64FEB");
 
-    protected override Bitmap Icon =>
-        (Bitmap)Resources.ResourceManager.GetObject($"{NameM.ToLower()}_deserialize_24x24");
+    protected override Bitmap Icon => Resources.deserialize_24x24;
 
-    public override GH_Exposure Exposure => GH_Exposure.tertiary;
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddTextParameter("Text", "Tx", $"Text of serialized {NameM}.", GH_ParamAccess.item);
+        pManager.AddTextParameter("Text", "Tx", "Text of serialized input.", GH_ParamAccess.item);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddParameter(new T(), NameM, ModelM.Code,
-            $"Deserialized {NameM}.", GH_ParamAccess.item);
+        pManager.AddGenericParameter("Output", "Out", $"The {Semio.Constants.Name} output param.", GH_ParamAccess.item);
     }
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
         var text = "";
         DA.GetData(0, ref text);
-        var value = text.Deserialize<V>();
-        var goo = new U();
-        goo.Value = value;
+        var goo = text.Deserialize<GH_ObjectWrapper>();
         DA.SetData(0, goo);
     }
-}
 
-public class
-    DeserializeRepresentationComponent : DeserializeComponent<RepresentationParam, RepresentationGoo, Representation>
-{
-    public override Guid ComponentGuid => new("B8ADAF54-3A91-402D-9542-A288D935015F");
 }
-
-public class DeserializeLocatorComponent : DeserializeComponent<LocatorParam, LocatorGoo, Locator>
-{
-    public override Guid ComponentGuid => new("F3501014-D011-4421-9750-861B6479C83C");
-}
-
-public class DeserializePortComponent : DeserializeComponent<PortParam, PortGoo, Port>
-{
-    public override Guid ComponentGuid => new("3CEB0315-5A51-4072-97A7-D8B1B63FEF31");
-}
-
-public class DeserializeQualityComponent : DeserializeComponent<QualityParam, QualityGoo, Quality>
-{
-    public override Guid ComponentGuid => new("AECB1169-EB65-470F-966E-D491EB46A625");
-}
-
-public class DeserializeAuthorComponent : DeserializeComponent<AuthorParam, AuthorGoo, Author>
-{
-    public override Guid ComponentGuid => new("DDC0A2EC-4BAD-4FFE-B3A6-F9644C8B0072");
-}
-
-public class DeserializeTypeComponent : DeserializeComponent<TypeParam, TypeGoo, Type>
-{
-    public override Guid ComponentGuid => new("F21A80E0-2A62-4BFD-BC2B-A04363732F84");
-}
-
-public class DeserializeDiagramPointComponent : DeserializeComponent<DiagramPointParam, DiagramPointGoo, DiagramPoint>
-{
-    public override Guid ComponentGuid => new("7FBEECE1-ECAC-4AC1-8DAF-C659A9B6238C");
-}
-
-public class DeserializePieceComponent : DeserializeComponent<PieceParam, PieceGoo, Piece>
-{
-    public override Guid ComponentGuid => new("1FB7F2FB-DCE2-4666-91B5-54DF6B6D9FA4");
-}
-
-public class DeserializeConnectionComponent : DeserializeComponent<ConnectionParam, ConnectionGoo, Connection>
-{
-    public override Guid ComponentGuid => new("41C33A9F-15AC-4CD0-8A9D-4A75CE599282");
-}
-
-public class DeserializeDesignComponent : DeserializeComponent<DesignParam, DesignGoo, Design>
-{
-    public override Guid ComponentGuid => new("464D4D72-CFF1-4391-8C31-9E37EB9434C6");
-}
-
-public class DeserializeKitComponent : DeserializeComponent<KitParam, KitGoo, Kit>
-{
-    public override Guid ComponentGuid => new("79AF9C1D-2B96-4D03-BDD9-C6514DA63E70");
-}
-
-#endregion
 
 #endregion
 
