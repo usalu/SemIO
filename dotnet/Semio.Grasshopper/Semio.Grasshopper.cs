@@ -40,7 +40,7 @@ using Rhino.Geometry;
 namespace Semio.Grasshopper;
 
 #region TODOs
-
+// TODO: Think of modelling components that are resilient to future schema changes.
 // TODO: GetProps and SetProps (includes children) is not consistent with the prop naming in python (does not include children).
 // TODO: Add toplevel scanning for kits wherever a directory is given
 // Maybe extension function for components. The repeated code looks something like this:
@@ -1743,24 +1743,24 @@ public abstract class EngineComponent : Component
 
     protected virtual string SuccessDescription => "True if the operation was successful.";
 
-    protected virtual void RegisterCustomInputParams(GH_InputParamManager pManager)
+    protected virtual void RegisterEngineInputParams(GH_InputParamManager pManager)
     {
     }
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        RegisterCustomInputParams(pManager);
+        RegisterEngineInputParams(pManager);
         pManager.AddBooleanParameter("Run", "R", RunDescription, GH_ParamAccess.item, false);
     }
 
-    protected virtual void RegisterCustomOutputParams(GH_OutputParamManager pManager)
+    protected virtual void RegisterEngineOutputParams(GH_OutputParamManager pManager)
     {
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddBooleanParameter("Success", "Sc", SuccessDescription, GH_ParamAccess.item);
-        RegisterCustomOutputParams(pManager);
+        RegisterEngineOutputParams(pManager);
     }
 
     protected virtual dynamic? GetInput(IGH_DataAccess DA)
@@ -1850,14 +1850,27 @@ public abstract class PersistenceComponent : EngineComponent
     : base(name, nickname, description, subcategory)
     {
     }
-    protected override void RegisterCustomInputParams(GH_InputParamManager pManager)
+    protected virtual void RegisterPersitenceInputParams(GH_InputParamManager pManager)
     {
+    }
+    protected override void RegisterEngineInputParams(GH_InputParamManager pManager)
+    {
+        RegisterPersitenceInputParams(pManager);
         var amountCustomParams = pManager.ParamCount;
         pManager.AddTextParameter("Uri", "Ur?",
             "Optional Unique Resource Identifier (URI) of the kit. This can be an absolute path to a local kit or a url to a remote kit.\n" +
             "If none is provided, it will try to see if the Grasshopper script is executed inside a local kit.",
             GH_ParamAccess.item);
         pManager[amountCustomParams].Optional = true;
+    }
+
+    protected virtual void RegisterPersitenceOutputParams(GH_OutputParamManager pManager)
+    {
+    }
+
+    protected override void RegisterEngineOutputParams(GH_OutputParamManager pManager)
+    {
+        RegisterPersitenceOutputParams(pManager);
     }
 
     protected virtual dynamic? GetPersistentInput(IGH_DataAccess DA)
@@ -1902,7 +1915,7 @@ public class LoadKitComponent : PersistenceComponent
 
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
-    protected override void RegisterCustomOutputParams(GH_OutputParamManager pManager)
+    protected override void RegisterPersitenceOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddParameter(new KitParam());
         pManager.AddTextParameter("Local Directory", "Di",
@@ -1959,7 +1972,7 @@ public class CreateKitComponent : PersistenceComponent
 
     public override GH_Exposure Exposure => GH_Exposure.secondary;
 
-    protected override void RegisterCustomInputParams(GH_InputParamManager pManager)
+    protected override void RegisterPersitenceInputParams(GH_InputParamManager pManager)
     {
         pManager.AddParameter(new KitParam());
     }
@@ -2031,7 +2044,7 @@ public abstract class PutComponent<T, U, V> : PersistenceComponent where T : Mod
 
     public override GH_Exposure Exposure => GH_Exposure.secondary;
 
-    protected override void RegisterCustomInputParams(GH_InputParamManager pManager)
+    protected override void RegisterPersitenceInputParams(GH_InputParamManager pManager)
     {
         pManager.AddParameter(new T());
     }
@@ -2100,7 +2113,7 @@ public abstract class RemoveComponent<T, U, V> : PersistenceComponent where T : 
 
     public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
-    protected override void RegisterCustomInputParams(GH_InputParamManager pManager)
+    protected override void RegisterPersitenceInputParams(GH_InputParamManager pManager)
     {
         pManager.AddTextParameter($"{NameM} Name", "Na", $"Name of the {NameM.ToLower()} to remove.",
             GH_ParamAccess.item);
@@ -2224,6 +2237,7 @@ public abstract class AssistantComponent : EngineComponent
     public AssistantComponent(string name, string nickname, string description) : base(name, nickname, description, "Assistant")
     {
     }
+
 }
 public class PredictDesignComponent : AssistantComponent
 {
@@ -2237,7 +2251,7 @@ public class PredictDesignComponent : AssistantComponent
 
     protected override Bitmap Icon => Resources.design_predict_24x24;
 
-    protected override void RegisterCustomInputParams(GH_InputParamManager pManager)
+    protected override void RegisterEngineInputParams(GH_InputParamManager pManager)
     {
         var pCount = pManager.ParamCount;
         pManager.AddTextParameter("Description", "Dc", "The description of the design or an instruction how to change the base design.", GH_ParamAccess.item);
@@ -2246,7 +2260,7 @@ public class PredictDesignComponent : AssistantComponent
         pManager[pCount + 2].Optional = true;
     }
 
-    protected override void RegisterCustomOutputParams(GH_OutputParamManager pManager)
+    protected override void RegisterEngineOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddParameter(new DesignParam(), "Design", "Dsn", "Predicted design.", GH_ParamAccess.item);
     }
