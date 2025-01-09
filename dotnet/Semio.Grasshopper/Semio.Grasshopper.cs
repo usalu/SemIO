@@ -1247,7 +1247,7 @@ public class ConvertUnitComponent : Component
 
 #region Modelling
 
-public abstract class ModelComponent<T, U, V> : Component, IGH_VariableParameterComponent
+public abstract class ModelComponent<T, U, V> : Component
     where T : ModelParam<U, V> where U : ModelGoo<V> where V : Model<V>, new()
 {
     public static readonly string NameM;
@@ -1338,10 +1338,6 @@ public abstract class ModelComponent<T, U, V> : Component, IGH_VariableParameter
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        if (RunCount == 1 && !AreParametersValid())
-            TryUpdatingComponent();
-        
-
         dynamic modelGoo = Activator.CreateInstance(GooM);
         var validate = false;
         if (DA.GetData(0, ref modelGoo))
@@ -1446,59 +1442,6 @@ public abstract class ModelComponent<T, U, V> : Component, IGH_VariableParameter
     protected virtual V ProcessModel(V model)
     {
         return model;
-    }
-
-    public bool IsParameterValid(int index)
-    {
-        if (index < 2) return true;
-        var property = PropertyM[index-2];
-        var input = Params.Input[index];
-        var output = Params.Output[index];
-        if (input.Name != property.Name || output.Name != property.Name)
-            return false;
-        return true;
-    }
-    public bool AreParametersValid()
-    {
-        var areValid = true;
-        for (int i = 0; i < PropertyParamM.Length; i++)
-            areValid &= IsParameterValid(i+2);
-        return areValid;
-    }
-
-    public void TryUpdatingComponent()
-    {
-
-        //Params.RegisterInputParam(new T());
-        //Params.RegisterOutputParam()
-    }
-
-    public bool CanInsertParameter(GH_ParameterSide side, int index)
-    {
-        if (index < 2) return false;
-        return !IsParameterValid(index-1);
-    }
-
-    public bool CanRemoveParameter(GH_ParameterSide side, int index)
-    {
-        return index>1;
-    }
-
-    public IGH_Param CreateParameter(GH_ParameterSide side, int index)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool DestroyParameter(GH_ParameterSide side, int index)
-    {
-        Params.UnregisterInputParameter(Params.Input[index]);
-        Params.UnregisterOutputParameter(Params.Output[index]);
-        return true;
-    }
-
-    public void VariableParameterMaintenance()
-    {
-        
     }
 }
 
