@@ -22,9 +22,9 @@ engine.py
 """
 
 
-# TODOs
+# TODOs #
 
-
+# TODO: Try closest embedding instead of smallest Levenshtein distance.
 # TODO: Implement Author parse logic.
 # TODO: Automatic derive from Id model.
 # TODO: Automatic emptying.
@@ -166,6 +166,7 @@ import sqlalchemy.exc
 import sqlmodel
 import starlette
 import starlette_graphene3
+import thefuzz
 import uvicorn
 
 
@@ -1233,9 +1234,9 @@ class Plane(Table, table=True):
     @property
     def origin(self) -> Point:
         return Point(
-            self.originX,
-            self.originY,
-            self.originZ,
+            x=self.originX,
+            y=self.originY,
+            z=self.originZ,
         )
 
     @origin.setter
@@ -1247,9 +1248,9 @@ class Plane(Table, table=True):
     @property
     def xAxis(self) -> Vector:
         return Vector(
-            self.xAxisX,
-            self.xAxisY,
-            self.xAxisZ,
+            x=self.xAxisX,
+            y=self.xAxisY,
+            z=self.xAxisZ,
         )
 
     @xAxis.setter
@@ -1261,9 +1262,9 @@ class Plane(Table, table=True):
     @property
     def yAxis(self) -> Vector:
         return Vector(
-            self.yAxisX,
-            self.yAxisY,
-            self.yAxisZ,
+            x=self.yAxisX,
+            y=self.yAxisY,
+            z=self.yAxisZ,
         )
 
     @yAxis.setter
@@ -1691,7 +1692,7 @@ class Port(PortDescriptionField, TableEntity, table=True):
     @property
     def point(self) -> Point:
         """↗️ Get the masked point of the port."""
-        return Point(self.pointX, self.pointY, self.pointZ)
+        return Point(x=self.pointX, y=self.pointY, z=self.pointZ)
 
     @point.setter
     def point(self, point: Point):
@@ -1703,7 +1704,7 @@ class Port(PortDescriptionField, TableEntity, table=True):
     @property
     def direction(self) -> Vector:
         """↗️ Get the masked direction of the port."""
-        return Vector(self.directionX, self.directionY, self.directionZ)
+        return Vector(x=self.directionX, y=self.directionY, z=self.directionZ)
 
     @direction.setter
     def direction(self, direction: Vector):
@@ -1964,7 +1965,6 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         ),
         default=None,
         exclude=True,
-        primary_key=True,
     )
     """🔑 The optional foreign primary key of the parent type of the author in the database."""
     type: typing.Optional["Type"] = sqlmodel.Relationship(back_populates="authors")
@@ -1978,7 +1978,6 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         ),
         default=None,
         exclude=True,
-        primary_key=True,
     )
     """🔑 The optional foreign primary key of the parent design of the author in the database."""
     design: typing.Optional["Design"] = sqlmodel.Relationship(back_populates="authors")
@@ -1991,6 +1990,18 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         ),
         sqlalchemy.UniqueConstraint("email", "typeId", "designId"),
     )
+
+    def parent(self) -> "Type":
+        """👪 The parent type or design of the author or otherwise `NoTypeOrDesignAssigned` is raised."""
+        if self.type is not None:
+            return self.type
+        if self.design is not None:
+            return self.design
+        raise NoTypeOrDesignAssigned()
+
+    def idMembers(self) -> RecursiveAnyList:
+        """🪪 The members that form the id of the author within its parent type."""
+        return self.email
 
 
 ### Types ###
@@ -2214,11 +2225,7 @@ class Type(
 
     # TODO: Automatic nested parsing (https://github.com/fastapi/sqlmodel/issues/293)
     @classmethod
-    def parse(
-        cls: "Type",
-        input: str | dict | TypeInput | typing.Any | None,
-        authors: list[Author] | None = None,
-    ) -> "Type":
+    def parse(cls: "Type", input: str | dict | TypeInput | typing.Any | None) -> "Type":
         """🧪 Parse the input to a type."""
         if input is None:
             return cls()
@@ -2229,9 +2236,6 @@ class Type(
         )
         props = TypeProps.model_validate(obj)
         entity = cls(**props.model_dump())
-        authorsDict = (
-            {(a.name, a.email): a for a in authors} if authors is not None else {}
-        )
         try:
             representations = [Representation.parse(r) for r in obj["representations"]]
             entity.representations = representations
@@ -2248,7 +2252,7 @@ class Type(
         except KeyError:
             pass
         try:
-            authors = [authorsDict[(a["name"], a["email"])] for a in obj["authors"]]
+            authors = [Author.parse(a) for a in obj["authors"]]
             entity.authors = authors
         except KeyError:
             pass
@@ -2460,7 +2464,7 @@ class Piece(TableEntity, table=True):
     @property
     def center(self) -> DiagramPoint:
         """↗️ Get the masked screen point of the piece."""
-        return DiagramPoint(self.centerX, self.centerY)
+        return DiagramPoint(x=self.centerX, y=self.centerY)
 
     @center.setter
     def center(self, center: DiagramPoint):
@@ -3210,7 +3214,6 @@ class Design(
         cls: "Design",
         input: str | dict | DesignInput | typing.Any | None,
         types: list[Type],
-        authors: list[Author] | None = None,
     ) -> "Design":
         """🧪 Parse the input to a design."""
         if input is None:
@@ -3245,8 +3248,7 @@ class Design(
         except KeyError:
             pass
         try:
-            authorsDict = {(a.name, a.email): a for a in authors}
-            authors = [authorsDict[(a["name"], a["email"])] for a in obj["authors"]]
+            authors = [Author.parse(a) for a in obj["authors"]]
             entity.authors = authors
         except KeyError:
             pass
@@ -3515,10 +3517,6 @@ class Kit(
         back_populates="kit", cascade_delete=True
     )
     """🏙️ The designs of the kit."""
-    authors: list[Author] = sqlmodel.Relationship(
-        back_populates="kit", cascade_delete=True
-    )
-    """🧑‍🤝‍🧑 The authors of the kit."""
 
     __table_args__ = (sqlalchemy.UniqueConstraint("uri"),)
 
@@ -3535,22 +3533,13 @@ class Kit(
         )
         props = KitProps.model_validate(obj)
         entity = cls(**props.model_dump())
-        authors = []
         try:
-            authors += [Author.parse(a) for a in obj["types"]["authors"]]
-        except KeyError:
-            pass
-        try:
-            authors += [Author.parse(a) for a in obj["designs"]["authors"]]
-        except KeyError:
-            pass
-        try:
-            types = [Type.parse(t, authors) for t in obj["types"]]
+            types = [Type.parse(t) for t in obj["types"]]
             entity.types = types
         except KeyError:
             pass
         try:
-            designs = [Design.parse(d, types, authors) for d in obj["designs"]]
+            designs = [Design.parse(d, types) for d in obj["designs"]]
             entity.designs = designs
         except KeyError:
             pass
@@ -3817,12 +3806,6 @@ class DatabaseStore(Store, abc.ABC):
         kit = self.session.query(Kit).filter(Kit.uri == kitUri).one_or_none()
         match kind:
             case "design":
-                authors = [
-                    u.Author
-                    for u in self.session.query(Author, Kit)
-                    .filter(Kit.uri == kitUri)
-                    .all()
-                ]
                 types = [
                     u.Type
                     for u in self.session.query(Type, Kit)
@@ -3842,12 +3825,12 @@ class DatabaseStore(Store, abc.ABC):
                     if existingDesignUnion is not None:
                         existingDesign = existingDesignUnion.Design
                         self.session.delete(existingDesign)
-                        design = Design.parse(input, types, authors)
+                        design = Design.parse(input, types)
                         design.kit = kit
                         self.session.add(design)
                         self.session.commit()
                     else:
-                        design = Design.parse(input, types, authors)
+                        design = Design.parse(input, types)
                         design.kit = kit
                         self.session.add(design)
                         self.session.commit()
@@ -3855,13 +3838,7 @@ class DatabaseStore(Store, abc.ABC):
                     self.session.rollback()
                     raise e
             case "type":
-                authors = [
-                    u.Author
-                    for u in self.session.query(Author, Kit)
-                    .filter(Kit.uri == kitUri)
-                    .all()
-                ]
-                type = Type.parse(input, authors)
+                type = Type.parse(input)
                 type.kit = kit
                 existingTypeUnion = (
                     self.session.query(Type, Kit)
@@ -3943,9 +3920,11 @@ class DatabaseStore(Store, abc.ABC):
                             self.session.add(quality)
                         self.session.flush()
 
-                        for author in list(existingType.authors):
-                            if author.types == []:
-                                self.session.delete(author)
+                        existingType.authors = []
+                        for author in list(type.authors):
+                            author.type = existingType
+                            self.session.add(author)
+                        self.session.flush()
 
                         self.session.commit()
                     else:
@@ -4279,13 +4258,73 @@ def healDesign(design: DesignPrediction, types: list[TypeContext]):
     """🩺 Heal a design by replacing missing type variants with the first variant."""
     designClone = design.model_copy(deep=True)
     typeD = {}
+    portD = {}
+    pieceD = {}
     for type in types:
         if type.name not in typeD:
             typeD[type.name] = {}
+            portD[type.name] = {}
         typeD[type.name][type.variant] = type
+        if type.variant not in portD[type.name]:
+            portD[type.name][type.variant] = {}
+        for port in type.ports:
+            portD[type.name][type.variant][port.id_] = port
+    # TODO: Try closest embedding instead of smallest Levenshtein distance.
     for piece in designClone.pieces:
+        pieceD[piece.id_] = piece
+        if piece.type.name not in typeD:
+            piece.type.name = thefuzz.process.extractOne(piece.type.name, typeD.keys())[
+                0
+            ]
         if not (piece.type.variant in typeD[piece.type.name]):
-            piece.type.variant = list(typeD[piece.type.name].keys())[0]
+            piece.type.variant = thefuzz.process.extractOne(
+                piece.type.variant, typeD[piece.type.name].keys()
+            )[0]
+    for connection in designClone.connections:
+        if connection.connected.piece.id_ not in pieceD:
+            connection.connected.piece.id_ = thefuzz.process.extractOne(
+                connection.connected.piece.id_, pieceD.keys()
+            )[0]
+        if connection.connecting.piece.id_ not in pieceD:
+            connection.connecting.piece.id_ = thefuzz.process.extractOne(
+                connection.connecting.piece.id_, pieceD.keys()
+            )[0]
+        connectedType = typeD[pieceD[connection.connected.piece.id_].type.name][
+            pieceD[connection.connected.piece.id_].type.variant
+        ]
+        connectingType = typeD[pieceD[connection.connecting.piece.id_].type.name][
+            pieceD[connection.connecting.piece.id_].type.variant
+        ]
+        if (
+            connection.connected.port.id_
+            not in portD[connectedType.name][connectedType.variant]
+        ):
+            connection.connected.port.id_ = thefuzz.process.extractOne(
+                connection.connected.port.id_,
+                portD[connectedType.name][connectedType.variant].keys(),
+            )[0]
+        if (
+            connection.connecting.port.id_
+            not in portD[connectingType.name][connectingType.variant]
+        ):
+            connection.connecting.port.id_ = thefuzz.process.extractOne(
+                connection.connecting.port.id_,
+                portD[connectingType.name][connectingType.variant].keys(),
+            )[0]
+    # remove invalid connections
+    designClone.connections = [
+        c for c in designClone.connections if c.connected.piece.id_ != c.connecting
+    ]
+    # remove pieces with no connections
+    designClone.pieces = [
+        p
+        for p in designClone.pieces
+        if any(
+            c
+            for c in designClone.connections
+            if c.connected.piece.id_ == p.id_ or c.connecting.piece.id_ == p.id_
+        )
+    ]
     return designClone
 
 
