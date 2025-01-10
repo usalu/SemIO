@@ -1955,7 +1955,6 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         default=None,
         exclude=True,
     )
-    """🔑 The primary key of the author in the database."""
     typePk: typing.Optional[int] = sqlmodel.Field(
         # alias="typeId",  # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
         sa_column=sqlmodel.Column(
@@ -1965,6 +1964,7 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         ),
         default=None,
         exclude=True,
+        primary_key=True,
     )
     """🔑 The optional foreign primary key of the parent type of the author in the database."""
     type: typing.Optional["Type"] = sqlmodel.Relationship(back_populates="authors")
@@ -1978,9 +1978,12 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         ),
         default=None,
         exclude=True,
+        primary_key=True,
     )
     """🔑 The optional foreign primary key of the parent design of the author in the database."""
     design: typing.Optional["Design"] = sqlmodel.Relationship(back_populates="authors")
+    """👪 The optional parent design of the author."""
+
     __tableargs__ = (
         sqlalchemy.CheckConstraint(
             "typeId IS NOT NULL AND designId IS NULL OR typeId IS NULL AND designId IS NOT NULL",
@@ -1988,7 +1991,6 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         ),
         sqlalchemy.UniqueConstraint("email", "typeId", "designId"),
     )
-    """🔑 The optional parent design of the author."""
 
 
 ### Types ###
@@ -2212,7 +2214,11 @@ class Type(
 
     # TODO: Automatic nested parsing (https://github.com/fastapi/sqlmodel/issues/293)
     @classmethod
-    def parse(cls: "Type", input: str | dict | TypeInput | typing.Any | None) -> "Type":
+    def parse(
+        cls: "Type",
+        input: str | dict | TypeInput | typing.Any | None,
+        authors: list[Author] | None = None,
+    ) -> "Type":
         """🧪 Parse the input to a type."""
         if input is None:
             return cls()
@@ -2223,6 +2229,9 @@ class Type(
         )
         props = TypeProps.model_validate(obj)
         entity = cls(**props.model_dump())
+        authorsDict = (
+            {(a.name, a.email): a for a in authors} if authors is not None else {}
+        )
         try:
             representations = [Representation.parse(r) for r in obj["representations"]]
             entity.representations = representations
@@ -2239,7 +2248,7 @@ class Type(
         except KeyError:
             pass
         try:
-            authors = [Author.parse(a) for a in obj["authors"]]
+            authors = [authorsDict[(a["name"], a["email"])] for a in obj["authors"]]
             entity.authors = authors
         except KeyError:
             pass
@@ -3201,6 +3210,7 @@ class Design(
         cls: "Design",
         input: str | dict | DesignInput | typing.Any | None,
         types: list[Type],
+        authors: list[Author] | None = None,
     ) -> "Design":
         """🧪 Parse the input to a design."""
         if input is None:
@@ -3235,7 +3245,8 @@ class Design(
         except KeyError:
             pass
         try:
-            authors = [Author.parse(a) for a in obj["authors"]]
+            authorsDict = {(a.name, a.email): a for a in authors}
+            authors = [authorsDict[(a["name"], a["email"])] for a in obj["authors"]]
             entity.authors = authors
         except KeyError:
             pass
@@ -3322,14 +3333,14 @@ class KitImageField(RealField, abc.ABC):
 
 
 class KitPreviewField(RealField, abc.ABC):
-    """🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB."""
+    """🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB."""
 
     preview: str = sqlmodel.Field(
         default="",
         max_length=URL_LENGTH_LIMIT,
-        description="🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB.",
+        description="🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB.",
     )
-    """🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB."""
+    """🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB."""
 
 
 class KitVersionField(RealField, abc.ABC):
@@ -3504,6 +3515,10 @@ class Kit(
         back_populates="kit", cascade_delete=True
     )
     """🏙️ The designs of the kit."""
+    authors: list[Author] = sqlmodel.Relationship(
+        back_populates="kit", cascade_delete=True
+    )
+    """🧑‍🤝‍🧑 The authors of the kit."""
 
     __table_args__ = (sqlalchemy.UniqueConstraint("uri"),)
 
@@ -3520,13 +3535,22 @@ class Kit(
         )
         props = KitProps.model_validate(obj)
         entity = cls(**props.model_dump())
+        authors = []
         try:
-            types = [Type.parse(t) for t in obj["types"]]
+            authors += [Author.parse(a) for a in obj["types"]["authors"]]
+        except KeyError:
+            pass
+        try:
+            authors += [Author.parse(a) for a in obj["designs"]["authors"]]
+        except KeyError:
+            pass
+        try:
+            types = [Type.parse(t, authors) for t in obj["types"]]
             entity.types = types
         except KeyError:
             pass
         try:
-            designs = [Design.parse(d, types) for d in obj["designs"]]
+            designs = [Design.parse(d, types, authors) for d in obj["designs"]]
             entity.designs = designs
         except KeyError:
             pass
@@ -3793,6 +3817,12 @@ class DatabaseStore(Store, abc.ABC):
         kit = self.session.query(Kit).filter(Kit.uri == kitUri).one_or_none()
         match kind:
             case "design":
+                authors = [
+                    u.Author
+                    for u in self.session.query(Author, Kit)
+                    .filter(Kit.uri == kitUri)
+                    .all()
+                ]
                 types = [
                     u.Type
                     for u in self.session.query(Type, Kit)
@@ -3812,12 +3842,12 @@ class DatabaseStore(Store, abc.ABC):
                     if existingDesignUnion is not None:
                         existingDesign = existingDesignUnion.Design
                         self.session.delete(existingDesign)
-                        design = Design.parse(input, types)
+                        design = Design.parse(input, types, authors)
                         design.kit = kit
                         self.session.add(design)
                         self.session.commit()
                     else:
-                        design = Design.parse(input, types)
+                        design = Design.parse(input, types, authors)
                         design.kit = kit
                         self.session.add(design)
                         self.session.commit()
@@ -3825,7 +3855,13 @@ class DatabaseStore(Store, abc.ABC):
                     self.session.rollback()
                     raise e
             case "type":
-                type = Type.parse(input)
+                authors = [
+                    u.Author
+                    for u in self.session.query(Author, Kit)
+                    .filter(Kit.uri == kitUri)
+                    .all()
+                ]
+                type = Type.parse(input, authors)
                 type.kit = kit
                 existingTypeUnion = (
                     self.session.query(Type, Kit)
@@ -3861,6 +3897,7 @@ class DatabaseStore(Store, abc.ABC):
 
                         # update
                         existingType.icon = type.icon
+                        existingType.image = type.image
                         existingType.description = type.description
                         existingType.unit = type.unit
                         existingType.lastUpdateAt = datetime.datetime.now()
@@ -3905,6 +3942,10 @@ class DatabaseStore(Store, abc.ABC):
                             quality.type = existingType
                             self.session.add(quality)
                         self.session.flush()
+
+                        for author in list(existingType.authors):
+                            if author.types == []:
+                                self.session.delete(author)
 
                         self.session.commit()
                     else:
@@ -4346,7 +4387,7 @@ def predictDesign(
     except Error as e:
         pass
 
-    iteration = 12
+    iteration = 13
 
     # create iteration folder
     os.makedirs(f"log/0{iteration}", exist_ok=True)

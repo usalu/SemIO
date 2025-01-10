@@ -2001,9 +2001,9 @@ public class KitProps : Model<Kit>
     public string Image { get; set; } = "";
 
     /// <summary>
-    ///    🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB.
+    ///    🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB.
     /// </summary>
-    [Url("🔮", "Pv?", "Prv", "The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 16x9 rectangle. The image must be at least 1920x1080 pixels and smaller than 20 MB.")]
+    [Url("🔮", "Pv?", "Prv", "The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB.")]
     public string Preview { get; set; } = "";
     /// <summary>
     ///     🔀 The optional version of the kit. No version means the latest version.

@@ -41,6 +41,7 @@ namespace Semio.Grasshopper;
 
 #region TODOs
 // TODO: Think of modelling components that are resilient to future schema changes.
+// TODO: Refactor EngineComponent with GetInput and GetPersitanceInput etc. Very confusing. Probably no abstracting is better.
 // TODO: GetProps and SetProps (includes children) is not consistent with the prop naming in python (does not include children).
 // TODO: Add toplevel scanning for kits wherever a directory is given
 // Maybe extension function for components. The repeated code looks something like this:
@@ -1880,23 +1881,23 @@ public abstract class PersistenceComponent : EngineComponent
 
     protected override dynamic? GetInput(IGH_DataAccess DA)
     {
-        var url = "";
+        var uri = "";
 
-        if (!DA.GetData(Params.Input.Count - 2, ref url))
-            url = OnPingDocument().IsFilePathDefined
+        if (!DA.GetData(Params.Input.Count - 2, ref uri))
+            uri = OnPingDocument().IsFilePathDefined
                 ? Path.GetDirectoryName(OnPingDocument().FilePath)
                 : Directory.GetCurrentDirectory();
         dynamic? input = GetPersistentInput(DA);
 
-        return new { Url = url, Input = input };
+        return new { Uri = uri, Input = input };
     }
 
     protected abstract dynamic? RunOnKit(string url, dynamic? input);
 
     protected override dynamic? Run(dynamic? input = null)
     {
-        RunOnKit(input.Url, input.Input);
-        return null;
+        var output = RunOnKit(input.Uri, input.Input);
+        return output;
     }
 
 }
@@ -1977,7 +1978,7 @@ public class CreateKitComponent : PersistenceComponent
         pManager.AddParameter(new KitParam());
     }
 
-    protected override dynamic GetInput(IGH_DataAccess DA)
+    protected override dynamic GetPersistentInput(IGH_DataAccess DA)
     {
         var kitGoo = new KitGoo();
         DA.GetData(0, ref kitGoo);
@@ -2049,7 +2050,7 @@ public abstract class PutComponent<T, U, V> : PersistenceComponent where T : Mod
         pManager.AddParameter(new T());
     }
 
-    protected override dynamic GetInput(IGH_DataAccess DA)
+    protected override dynamic GetPersistentInput(IGH_DataAccess DA)
     {
         var goo = new U();
         DA.GetData(0, ref goo);
@@ -2123,7 +2124,7 @@ public abstract class RemoveComponent<T, U, V> : PersistenceComponent where T : 
         pManager[pManager.ParamCount - 1].Optional = true;
     }
 
-    protected override dynamic GetInput(IGH_DataAccess DA)
+    protected override dynamic GetPersistentInput(IGH_DataAccess DA)
     {
         var name = "";
         var variant = "";
