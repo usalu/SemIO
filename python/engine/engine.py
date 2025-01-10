@@ -25,7 +25,6 @@ engine.py
 # TODOs #
 
 # TODO: Try closest embedding instead of smallest Levenshtein distance.
-# TODO: Implement Author parse logic.
 # TODO: Automatic derive from Id model.
 # TODO: Automatic emptying.
 # TODO: Automatic updating based on props.
@@ -1926,6 +1925,16 @@ class AuthorEmailField(RealField, abc.ABC):
     """📧 The email of the author."""
 
 
+class AuthorRankField(RealField, abc.ABC):
+    """🔢 The rank of the author."""
+
+    rank: int = sqlmodel.Field(
+        default=0,
+        description="🔢 The rank of the author.",
+    )
+    """🔢 The rank of the author."""
+
+
 class AuthorId(AuthorEmailField, Id):
     """🪪 The props to identify the author."""
 
@@ -1942,7 +1951,9 @@ class AuthorOutput(AuthorEmailField, AuthorNameField, Output):
     """📑 The output of an author."""
 
 
-class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
+class Author(
+    AuthorRankField, AuthorEmailField, AuthorNameField, TableEntity, table=True
+):
     """👤 The information about the author."""
 
     PLURAL = "authors"
@@ -1967,7 +1978,7 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         exclude=True,
     )
     """🔑 The optional foreign primary key of the parent type of the author in the database."""
-    type: typing.Optional["Type"] = sqlmodel.Relationship(back_populates="authors")
+    type: typing.Optional["Type"] = sqlmodel.Relationship(back_populates="authors_")
     """👪 The optional parent type of the author."""
     designPk: typing.Optional[int] = sqlmodel.Field(
         # alias="designId",  # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
@@ -1980,7 +1991,7 @@ class Author(AuthorEmailField, AuthorNameField, TableEntity, table=True):
         exclude=True,
     )
     """🔑 The optional foreign primary key of the parent design of the author in the database."""
-    design: typing.Optional["Design"] = sqlmodel.Relationship(back_populates="authors")
+    design: typing.Optional["Design"] = sqlmodel.Relationship(back_populates="authors_")
     """👪 The optional parent design of the author."""
 
     __tableargs__ = (
@@ -2192,7 +2203,7 @@ class Type(
         back_populates="type", cascade_delete=True
     )
     """📏 The qualities of the type."""
-    authors: list[Author] = sqlmodel.Relationship(
+    authors_: list[Author] = sqlmodel.Relationship(
         back_populates="type", cascade_delete=True
     )
     """👤 The authors of the type."""
@@ -2216,6 +2227,18 @@ class Type(
             "name", "variant", "kitId", name="Unique name and variant"
         ),
     )
+
+    @property
+    def authors(self) -> list[Author]:
+        """👤 Get the authors of the type."""
+        return sorted(self.authors_, key=lambda a: a.rank)
+
+    @authors.setter
+    def authors(self, authors: list[Author]):
+        """👤 Set the authors of the type."""
+        self.authors_ = authors
+        for i, author in enumerate(self.authors_):
+            author.rank = i
 
     def parent(self) -> "Kit":
         """👪 The parent kit of the type or otherwise `NoKitAssigned` is raised."""
@@ -2253,6 +2276,8 @@ class Type(
             pass
         try:
             authors = [Author.parse(a) for a in obj["authors"]]
+            for i, author in enumerate(authors):
+                author.rank = i
             entity.authors = authors
         except KeyError:
             pass
@@ -3185,7 +3210,7 @@ class Design(
     qualities: list[Quality] = sqlmodel.Relationship(
         back_populates="design", cascade_delete=True
     )
-    authors: list[Author] = sqlmodel.Relationship(
+    authors_: list[Author] = sqlmodel.Relationship(
         back_populates="design", cascade_delete=True
     )
     kitPk: typing.Optional[int] = sqlmodel.Field(
@@ -3201,6 +3226,16 @@ class Design(
     kit: typing.Optional["Kit"] = sqlmodel.Relationship(back_populates="designs")
 
     __table_args__ = (sqlalchemy.UniqueConstraint("name", "variant", "kitId"),)
+
+    @property
+    def authors(self) -> list[Author]:
+        return sorted(self.authors_, key=lambda a: a.rank)
+
+    @authors.setter
+    def authors(self, authors: list[Author]):
+        self.authors_ = authors
+        for i, author in enumerate(authors):
+            author.rank = i
 
     def parent(self) -> "Kit":
         """👪 The parent kit of the design or otherwise `NoKitAssigned` is raised."""
@@ -3857,7 +3892,7 @@ class DatabaseStore(Store, abc.ABC):
                         existingPorts = {p.id_: p for p in existingType.ports}
                         usedPorts = {}
                         for port in list(existingType.ports):
-                            for connection in port.connections():
+                            for connection in port.connections:
                                 if connection.connectedPiece.type == existingType:
                                     usedPorts[connection.connectedPort.id_] = (
                                         connection.connectedPort
@@ -4507,6 +4542,9 @@ GRAPHQLTYPES = {
     ),
     "Author": graphene.NonNull(lambda: AuthorNode),
     "list[Author]": graphene.NonNull(
+        graphene.List(graphene.NonNull(lambda: AuthorNode))
+    ),
+    "list[__main__.Author]": graphene.NonNull(
         graphene.List(graphene.NonNull(lambda: AuthorNode))
     ),
     "Type": graphene.NonNull(lambda: TypeNode),

@@ -1495,7 +1495,8 @@ public class TypeComponent : ModelComponent<TypeParam, TypeGoo, Type>
             {
                 type.Unit = "m";
             }
-
+        type.Icon = type.Icon.Replace('\\', '/');
+        type.Image = type.Image.Replace('\\', '/');
         return type;
     }
 }
@@ -1657,6 +1658,8 @@ public class DesignComponent : ModelComponent<DesignParam, DesignGoo, Design>
             {
                 design.Unit = "m";
             }
+        design.Icon = design.Icon.Replace('\\', '/');
+        design.Image = design.Image.Replace('\\', '/');
 
         return design;
     }
