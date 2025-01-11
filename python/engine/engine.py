@@ -178,17 +178,18 @@ RecursiveAnyList = typing.Any | list["RecursiveAnyList"]
 
 # Constants #
 
-
-RELEASE = "r24.12-2"
+NAME = "semio"
+EMAIL = "mail@semio-tech.com"
+RELEASE = "r25.01-1"
 VERSION = "4.1.0"
 HOST = "127.0.0.1"
 PORT = 2501
+ADDRESS = "http://127.0.0.1:2501"
 NAME_LENGTH_LIMIT = 64
 ID_LENGTH_LIMIT = 128
-URL_LENGTH_LIMIT = 1024
-URI_LENGTH_LIMIT = 4 * URL_LENGTH_LIMIT
-MAX_TAGS = 16
-MAX_HIERARCHY = 16
+URL_LENGTH_LIMIT = 2048
+URI_LENGTH_LIMIT = 4096
+TAGS_MAX = 16
 DESCRIPTION_LENGTH_LIMIT = 4096
 ENCODING_ALPHABET_REGEX = r"[a-zA-Z0-9\-._~%]"
 ENCODING_REGEX = ENCODING_ALPHABET_REGEX + "+"
@@ -752,7 +753,7 @@ class Representation(
     )
     """🔑 The primary key of the representation in the database."""
     encodedTags: str = sqlmodel.Field(
-        max_length=(NAME_LENGTH_LIMIT + 1) * MAX_TAGS - 1,
+        max_length=(NAME_LENGTH_LIMIT + 1) * TAGS_MAX - 1,
         default="",
         exclude=True,
     )

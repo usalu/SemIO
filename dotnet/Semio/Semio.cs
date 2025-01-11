@@ -52,13 +52,16 @@ public static class Constants
 {
     public const string Name = "semio";
     public const string Email = "mail@semio-tech.com";
+    public const string Release = "r25.01-1";
+    public const string EngineHost = "http://127.0.0.1";
+    public const int EnginePort = 2501;
+    public static readonly string EngineAddress = EngineHost + ":" + EnginePort;
     public const int NameLengthLimit = 64;
     public const int IdLengthLimit = 128;
-    public const int UrlLengthLimit = 2048;
+    public const int UrlLengthLimit = 1024;
+    public const int UriLengthLimit = 4 * UrlLengthLimit;
+    public const int TagsMax = 16;
     public const int DescriptionLengthLimit = 4096;
-    public const string Release = "r25.01-1";
-    public const int EnginePort = 2501;
-    public const string EngineAddress = "http://127.0.0.1:2501";
     public const float Tolerance = 1e-5f;
 }
 
