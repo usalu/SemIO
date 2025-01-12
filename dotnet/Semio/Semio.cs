@@ -55,11 +55,11 @@ public static class Constants
     public const string Release = "r25.01-1";
     public const string EngineHost = "http://127.0.0.1";
     public const int EnginePort = 2501;
-    public static readonly string EngineAddress = EngineHost + ":" + EnginePort;
+    public const string EngineAddress = "http://127.0.0.1:2501";
     public const int NameLengthLimit = 64;
     public const int IdLengthLimit = 128;
-    public const int UrlLengthLimit = 1024;
-    public const int UriLengthLimit = 4 * UrlLengthLimit;
+    public const int UrlLengthLimit = 2048;
+    public const int UriLengthLimit = 4096;
     public const int TagsMax = 16;
     public const int DescriptionLengthLimit = 4096;
     public const float Tolerance = 1e-5f;
@@ -878,6 +878,12 @@ public class DiagramPoint : Model<DiagramPoint>
 
     [NumberProp("🎚️", "Y", "Y", "The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.", PropImportance.REQUIRED)]
     public float Y { get; set; } = 0;
+
+    public DiagramPoint Normalize()
+    {
+        var length = (float)Math.Sqrt(X * X + Y * Y);
+        return new DiagramPoint { X = X / length, Y = Y / length };
+    }
 }
 
 /// <summary>
@@ -1626,13 +1632,15 @@ public class Design : DesignProps
             var onRoot = new Action<Piece>(piece => { if (piece.Center == null) piece.Center = new DiagramPoint(); });
             var onConnection = new Action<Piece, Piece, Connection>((parent, child, connection) =>
             {
-                // TODO: Implement
-                var x = parent.Center.X;
-                var y = parent.Center.Y;
+                var direction = new DiagramPoint
+                {
+                    X = connection.X,
+                    Y = connection.Y
+                }.Normalize();
                 var childDiagramPoint = new DiagramPoint
                 {
-                    X = x,
-                    Y = y
+                    X = parent.Center.X +connection.X+direction.X,
+                    Y = parent.Center.Y + connection.Y + direction.Y
                 };
                 child.Center = childDiagramPoint;
             });
