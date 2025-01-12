@@ -884,6 +884,17 @@ public class DiagramPoint : Model<DiagramPoint>
         var length = (float)Math.Sqrt(X * X + Y * Y);
         return new DiagramPoint { X = X / length, Y = Y / length };
     }
+
+    public override (bool, List<string>) Validate()
+    {
+        var (isValid, errors) = base.Validate();
+        if (Math.Abs(X) < Constants.Tolerance && Math.Abs(Y) < Constants.Tolerance)
+        {
+            isValid = false;
+            errors.Add("The point must not be the zero vector.");
+        }
+        return (isValid, errors);
+    }
 }
 
 /// <summary>
@@ -1493,6 +1504,12 @@ public class Connection : Model<Connection>
             errors.Add("The connected and connecting pieces must be different.");
         }
 
+        if (Math.Abs(X) < Constants.Tolerance && Math.Abs(Y) < Constants.Tolerance)
+        {
+            isValid = false;
+            errors.Add("The offset (x,y) must not be the zero vector.");
+        }
+
         return (isValid, errors);
     }
 }
@@ -1623,38 +1640,10 @@ public class Design : DesignProps
         }
     }
 
-    Design FlattenDiagram()
-    {
-        // TODO: Turn inplace and leave clone to the user of the function.
-        var clone = DeepClone();
-        if (clone.Pieces.Count > 1 && clone.Connections.Count > 0)
-        {
-            var onRoot = new Action<Piece>(piece => { if (piece.Center == null) piece.Center = new DiagramPoint(); });
-            var onConnection = new Action<Piece, Piece, Connection>((parent, child, connection) =>
-            {
-                var direction = new DiagramPoint
-                {
-                    X = connection.X,
-                    Y = connection.Y
-                }.Normalize();
-                var childDiagramPoint = new DiagramPoint
-                {
-                    X = parent.Center.X +connection.X+direction.X,
-                    Y = parent.Center.Y + connection.Y + direction.Y
-                };
-                child.Center = childDiagramPoint;
-            });
-            Bfs(onRoot, onConnection);
-        }
-        return clone;
-    }
-
-    Design FlattenConnections(Type[] types,
+    public Design Flatten(Type[] types,
         Func<Plane, Point, Vector, Point, Vector, float, float, float, float, Plane> computeChildPlane)
     {
-        // TODO: Turn inplace and leave clone to the user of the function.
-        var clone = DeepClone();
-        if (clone.Pieces.Count > 1 && clone.Connections.Count > 0)
+        if (Pieces.Count > 1 && Connections.Count > 0)
         {
             var ports = new Dictionary<string, Dictionary<string, Dictionary<string, Port>>>();
             foreach (var type in types)
@@ -1667,7 +1656,11 @@ public class Design : DesignProps
                     ports[type.Name][type.Variant][port.Id] = port;
             }
 
-            var onRoot = new Action<Piece>(piece => { if (piece.Plane == null) piece.Plane = new Plane(); });
+            var onRoot = new Action<Piece>(piece =>
+            {
+                if (piece.Plane == null) piece.Plane = new Plane();
+                if (piece.Center == null) piece.Center = new DiagramPoint();
+            });
             var onConnection = new Action<Piece, Piece, Connection>((parent, child, connection) =>
             {
                 var isParentConnected = connection.Connected.Piece.Id == parent.Id;
@@ -1682,22 +1675,25 @@ public class Design : DesignProps
                     childPort.Point,
                     childPort.Direction, connection.Rotation, connection.Tilt, connection.Gap, connection.Shift);
                 child.Plane = childPlane;
+
+                var direction = new DiagramPoint
+                {
+                    X = connection.X,
+                    Y = connection.Y
+                }.Normalize();
+                var childDiagramPoint = new DiagramPoint
+                {
+                    X = parent.Center.X + connection.X + direction.X,
+                    Y = parent.Center.Y + connection.Y + direction.Y
+                };
+                child.Center = childDiagramPoint;
             });
             Bfs(onRoot, onConnection);
         }
 
-        clone.Connections = new List<Connection>();
+        Connections = new List<Connection>();
 
-        return clone;
-    }
-
-    public Design Flatten(Type[] types,
-        Func<Plane, Point, Vector, Point, Vector, float, float, float, float, Plane> computeChildPlane)
-    {
-        // TODO: Turn inplace and leave clone to the user of the function.
-        var flattenedConnections = FlattenConnections(types, computeChildPlane);
-        var flattenedDiagram = flattenedConnections.FlattenDiagram();
-        return flattenedDiagram;
+        return this;
     }
 
     public string Diagram(float pieceWidth = 50, float pieceStroke = 1f, float connectionStroke = 2f, string kitDirectory = "")
