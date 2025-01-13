@@ -4370,8 +4370,10 @@ def healDesign(design: DesignPrediction, types: list[TypeContext]):
 #         decodedDesign = decodeDesign(design)
 #         json.dump(decodedDesign.model_dump(), f, indent=4)
 
-
-openaiClient = openai.Client()
+try:
+    openaiClient = openai.Client()
+except Error as e:
+    pass
 
 systemPrompt = """You are a kit-of-parts design assistant.
 Rules:
