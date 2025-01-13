@@ -21,7 +21,10 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Drawing;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
+using System.Xml;
+using System.Xml.Linq;
 using FluentValidation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -30,8 +33,12 @@ using QuikGraph.Algorithms;
 using QuikGraph.Algorithms.Search;
 using Refit;
 using Svg;
+using Svg.FilterEffects;
 using Svg.Transforms;
 using UnitsNet;
+using Formatting = Newtonsoft.Json.Formatting;
+using SvgImage = Svg.SvgImage;
+
 #endregion
 
 namespace Semio;
@@ -63,6 +70,20 @@ public static class Constants
     public const int TagsMax = 16;
     public const int DescriptionLengthLimit = 4096;
     public const float Tolerance = 1e-5f;
+}
+public enum ImageExtensions
+{
+    png,
+    jpg,
+    jpeg,
+    svg,
+}
+
+public enum IconKind
+{
+    Logogram,
+    Filepath,
+    RemoteUrl
 }
 
 #endregion
@@ -169,6 +190,7 @@ public static class Utility
 {
     public static bool UriIsNotAbsoluteFilePath(string uri) =>
         !(Uri.IsWellFormedUriString(uri, UriKind.Relative) || uri.StartsWith("http"));
+
     public static string ParseMimeFromUrl(string url)
     {
         var mimes = new Dictionary<string, string>
@@ -196,6 +218,46 @@ public static class Utility
         {
             return "application/octet-stream";
         }
+    }
+
+    public static IconKind ParseIconKind(string icon)
+    {
+        if (icon.StartsWith("http"))
+            return IconKind.RemoteUrl;
+        try
+        {
+            var uri = new Uri(icon, UriKind.Relative);
+            var ext = Path.GetExtension(icon);
+            if (Enum.IsDefined(typeof(ImageExtensions), ext.ToLower()[1..]))
+                return IconKind.Filepath;
+        }
+        catch (Exception)
+        {
+        }
+        return IconKind.Logogram;
+    }
+
+    public static string DatastringFromUrl(string url)
+    {
+        string mime;
+        byte[] content;
+        if (url.StartsWith("http"))
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                HttpResponseMessage response = client.GetAsync(url).Result;
+                response.EnsureSuccessStatusCode();
+                mime = response.Content.Headers.ContentType.MediaType;
+                content = response.Content.ReadAsByteArrayAsync().Result;
+            }
+        }
+        else
+        {
+            var osAwareUrl = url.Replace("/", Path.DirectorySeparatorChar.ToString());
+            content = File.ReadAllBytes(osAwareUrl);
+            mime = ParseMimeFromUrl(osAwareUrl);
+        }
+        return $"data:{mime};base64,{Convert.ToBase64String(content)}";
     }
 
     public static string ReadAndEncode(string filename)
@@ -1291,6 +1353,24 @@ public class Type : TypeProps
 
         return (isValid, errors);
     }
+
+    public static Dictionary<string, Dictionary<string, Type>> EnumerableToDict(IEnumerable<Type> types)
+    {
+        var typesDict = new Dictionary<string, Dictionary<string, Type>>();
+        foreach (var type in types)
+        {
+            if (!typesDict.ContainsKey(type.Name))
+            {
+                typesDict[type.Name] = new Dictionary<string, Type>();
+            }
+            typesDict[type.Name][type.Variant] = type;
+        }
+        return typesDict;
+    }
+    public string ToIdString()
+    {
+        return $"{Name}##{Variant}";
+    }
 }
 
 /// <summary>
@@ -1696,184 +1776,237 @@ public class Design : DesignProps
         return this;
     }
 
-    public string Diagram(float pieceWidth = 50, float pieceStroke = 1f, float connectionStroke = 2f, string kitDirectory = "")
+    public Piece Piece(string id)
     {
+        return Pieces.Find(piece => piece.Id == id);
+    }
 
-        var svgDoc = new SvgDocument();
+    Design FlatToSvgCoordinates(float iconWidth, float iconWidthMax, float margin)
+    {
+        // scale to iconWidth and change coordinate system
+        foreach (var piece in Pieces)
+        {
+            piece.Center.X = piece.Center.X * iconWidth;
+            piece.Center.Y = -(piece.Center.Y * iconWidth);
+        }
+        foreach (var connection in Connections)
+        {
+            connection.X = connection.X * iconWidth;
+            connection.Y = -(connection.Y * iconWidth);
+        }
+
+        // recenter
+        var maxIconOffset = iconWidthMax - iconWidth;
+        var minX = Pieces.Min(piece => piece.Center.X) - (margin + maxIconOffset);
+        var minY = Pieces.Min(piece => piece.Center.Y) - (margin + maxIconOffset);
+        var minXSign = Math.Sign(minX);
+        var minYSign = Math.Sign(minY);
+        var offsetX = minXSign == 0 ? 0 : -minX;
+        var offsetY = minYSign == 0 ? 0 : -minY;
+        foreach (var piece in Pieces)
+        {
+            piece.Center.X += offsetX;
+            piece.Center.Y += offsetY;
+        }
+        return this;
+    }
+
+    public string Diagram(IEnumerable<Type> types, float iconWidth = 48, float iconStroke = 1f, float connectionStroke = 2f, float margin = 0, string kitDirectory = "")
+    {
+        var typesDict = Type.EnumerableToDict(types);
+
+        var usedTypes = new List<Type>();
+        foreach (var type in types)
+            if (Pieces.Exists(piece => piece.Type.Name == type.Name && piece.Type.Variant == type.Variant))
+                usedTypes.Add(type);
+
+        // TODO: flatten the diagram
+        var flatCloneInSvgCoordinates = DeepClone().FlatToSvgCoordinates(iconWidth, iconWidth + 2 * iconStroke, margin);
+
+        var svgDoc = new SvgDocument()
+        {
+            Width = flatCloneInSvgCoordinates.Pieces.Max(piece => piece.Center.X) + margin * 2 + iconWidth +
+                    2 * iconStroke,
+            Height = flatCloneInSvgCoordinates.Pieces.Max(piece => piece.Center.Y) + margin * 2 + iconWidth +
+                     2 * iconStroke,
+            
+        };
 
         var defs = new SvgDefinitionList();
 
-        var pieceCircle = new SvgCircle
+        var iconCircle = new SvgCircle
         {
-            ID = "piece",
-            CenterX = pieceWidth / 2,
-            CenterY = pieceWidth / 2,
-            Radius = pieceWidth / 2 - pieceStroke / 2,
+            ID = "icon",
+            CenterX = iconWidth / 2,
+            CenterY = iconWidth / 2,
+            Radius = iconWidth / 2 - iconStroke / 2,
             Fill = new SvgColourServer(Color.White),
             Stroke = new SvgColourServer(Color.Black),
-            StrokeWidth = pieceStroke,
+            StrokeWidth = iconStroke,
         };
-        defs.Children.Add(pieceCircle);
+        defs.Children.Add(iconCircle);
 
         var root = new SvgCircle
         {
             ID = "root",
-            CenterX = pieceWidth / 2,
-            CenterY = pieceWidth / 2,
-            Radius = pieceWidth / 2 + pieceStroke,
+            CenterX = iconWidth / 2,
+            CenterY = iconWidth / 2,
+            Radius = iconWidth / 2 + iconStroke,
             Fill = new SvgColourServer(Color.White),
             Stroke = new SvgColourServer(Color.Black),
-            StrokeWidth = pieceStroke,
+            StrokeWidth = iconStroke,
         };
         defs.Children.Add(root);
 
-        var pieceMask = new SvgMask
+        var iconMask = new SvgMask
         {
-            ID = "pieceMask",
+            ID = "iconMask",
             Children = {
-        new SvgCircle
-            {
-                CenterX = pieceWidth/2-pieceStroke,
-                CenterY = pieceWidth/2-pieceStroke,
-                Radius = pieceWidth/2-pieceStroke,
-                Fill = new SvgColourServer(Color.White)
+                new SvgCircle
+                    {
+                        CenterX = iconWidth/2-iconStroke,
+                        CenterY = iconWidth/2-iconStroke,
+                        Radius = iconWidth/2-iconStroke,
+                        Fill = new SvgColourServer(Color.White)
+                    }
             }
-    }
         };
-        defs.Children.Add(pieceMask);
+        defs.Children.Add(iconMask);
 
-        var building = new SvgImage()
+        foreach (var type in usedTypes)
         {
-            ID = "building",
-            Width = 50 - 2 * pieceStroke,
-            Height = 50 - 2 * pieceStroke,
-            CustomAttributes = {
-        {"href", "data:image/svg+xml;base64," + Convert.ToBase64String(File.ReadAllBytes("building.svg"))},
-        { "mask", "url(#pieceMask)" }
-        }
-        };
-        var buildingTransformed = new SvgGroup()
-        {
-            Children = { building }
-        };
-        var buildingTransform = new SvgTransformCollection
-        {
-            new SvgTranslate(pieceStroke, pieceStroke)
-        };
-        buildingTransformed.Transforms = buildingTransform;
-        var buildingDef = new SvgGroup()
-        {
-            ID = "building",
-            Children = {
-        new SvgUse(){CustomAttributes = { { "href", "#piece" } }},
-        buildingTransformed },
-        };
-        defs.Children.Add(buildingDef);
+            var typeDef = new SvgGroup()
+            {
+                ID = type.ToIdString(),
+            };
+            var icon = type.Icon;
+            var iconKind = Utility.ParseIconKind(icon);
+            if (iconKind == IconKind.Logogram)
+            {
+                // TODO: Variable font size to fit logogram text to width
+                var fontSize = iconWidth / 2;
+                var text = new SvgText()
+                {
+                    Text = icon,
+                    FontSize = fontSize,
+                    TextAnchor = SvgTextAnchor.Middle,
+                    Fill = new SvgColourServer(Color.Black),
+                    // TODO: Mask the icon logogram text
+                    CustomAttributes = {
+                        // { "mask", "url(#iconMask)" }
+                    }
+                };
+                var textTransformed = new SvgGroup()
+                {
+                    Children = { text }
+                };
+                var textTransform = new SvgTransformCollection
+                {
+                    new SvgTranslate(iconWidth/2, iconStroke + iconWidth/2 + fontSize/4)
+                };
+                textTransformed.Transforms = textTransform;
+                typeDef.Children.Add(new SvgUse() { CustomAttributes = { { "href", "#icon" } } });
+                typeDef.Children.Add(textTransformed);
+            }
+            else
+            {
+                if (iconKind == IconKind.Filepath)
+                    icon = Path.Combine(kitDirectory, icon);
 
-        var capsule = new SvgImage()
-        {
-            ID = "capsule",
-            Width = 50 - 2 * pieceStroke,
-            Height = 50 - 2 * pieceStroke,
-            CustomAttributes = {
-        { "href", "data:image/png;base64," + Convert.ToBase64String(File.ReadAllBytes("capsule.jpeg")) },
-        { "mask", "url(#pieceMask)" }
+                var image = new SvgImage()
+                {
+                    Width = iconWidth - 2 * iconStroke,
+                    Height = iconWidth - 2 * iconStroke,
+                    CustomAttributes = {
+                        {"href", Utility.DatastringFromUrl(icon) },
+                        { "mask", "url(#iconMask)" }
+                    }
+                };
+                var imageTransformed = new SvgGroup()
+                {
+                    Children = { image }
+                };
+                var imageTransform = new SvgTransformCollection
+                {
+                    new SvgTranslate(iconStroke, iconStroke)
+                };
+                imageTransformed.Transforms = imageTransform;
+                typeDef.Children.Add(new SvgUse() { CustomAttributes = { { "href", "#icon" } } });
+                typeDef.Children.Add(imageTransformed);
+            }
+
+            defs.Children.Add(typeDef);
         }
-        };
-        // capsule.CustomAttributes.Add("pieceMask", "url(#pieceMask)");
-        var capsuleTransformed = new SvgGroup()
-        {
-            Children = { capsule }
-        };
-        var capsuleTransform = new SvgTransformCollection();
-        capsuleTransform.Add(new SvgTranslate(pieceStroke, pieceStroke));
-        capsuleTransformed.Transforms = capsuleTransform;
-        var capsuleDef = new SvgGroup()
-        {
-            ID = "capsule",
-            Children = {
-        new SvgUse(){CustomAttributes = { { "href", "#piece" } }},
-        capsuleTransformed }
-        };
-        defs.Children.Add(capsuleDef);
 
         svgDoc.Children.Add(defs);
 
         var connections = new SvgGroup() { ID = "connections" };
 
-        var connection1 = new SvgLine
+        foreach (var connection in flatCloneInSvgCoordinates.Connections)
         {
-            StartX = pieceWidth / 2,
-            StartY = pieceWidth / 2,
-            EndX = 75,
-            EndY = 75,
-            Stroke = new SvgColourServer(Color.Black),
-            StrokeWidth = connectionStroke,
-            Children = { new SvgTitle { Content = "b1 -- c0" } }
-        };
-        connections.Children.Add(connection1);
-
-        var connection2 = new SvgLine
-        {
-            StartX = 75,
-            StartY = 75,
-            EndX = 125,
-            EndY = pieceWidth / 2,
-            Stroke = new SvgColourServer(Color.Black),
-            StrokeWidth = connectionStroke,
-        };
-        connections.Children.Add(connection2);
+            var connectionLine = new SvgLine
+            {
+                StartX = flatCloneInSvgCoordinates.Piece(connection.Connecting.Piece.Id).Center.X,
+                StartY = flatCloneInSvgCoordinates.Piece(connection.Connecting.Piece.Id).Center.Y,
+                EndX = flatCloneInSvgCoordinates.Piece(connection.Connected.Piece.Id).Center.X,
+                EndY = flatCloneInSvgCoordinates.Piece(connection.Connected.Piece.Id).Center.Y,
+                Stroke = new SvgColourServer(Color.Black),
+                StrokeWidth = connectionStroke,
+                Children = { new SvgTitle { Content = $"{connection.Connecting.Piece.Id} -- {connection.Connected.Piece.Id}" } }
+            };
+            connections.Children.Add(connectionLine);
+        }
 
         svgDoc.Children.Add(connections);
 
         var pieces = new SvgGroup() { ID = "pieces" };
 
-        foreach (var piece in Pieces)
+        foreach (var flatPiece in flatCloneInSvgCoordinates.Pieces)
         {
-
+            var piece = Piece(flatPiece.Id);
+            if (piece.Center != null)
+            {
+                var rootPiece = new SvgUse
+                {
+                    CustomAttributes = { { "href", "#root" } },
+                    X = flatPiece.Center.X,
+                    Y = flatPiece.Center.Y,
+                };
+                pieces.Children.Add(rootPiece);
+            }
+            var pieceIcon = new SvgUse
+            {
+                CustomAttributes = { { "href", "#" + typesDict[flatPiece.Type.Name][flatPiece.Type.Variant].ToIdString() } },
+                X = flatPiece.Center.X,
+                Y = flatPiece.Center.Y,
+                Children = { new SvgTitle { Content = flatPiece.Id } }
+            };
+            pieces.Children.Add(pieceIcon);
         }
-
-        var buildingUse = new SvgUse
-        {
-            // ReferencedElement produces deprecated xlink:href attribute
-            // See https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href
-            // ReferencedElement = new Uri("#building", UriKind.Relative),
-            CustomAttributes = { { "href", "#building" } },
-            X = 0,
-            Y = 0,
-            Children = { new SvgTitle { Content = "b0" } }
-        };
-        pieces.Children.Add(buildingUse);
-
-        var buildingUse2Root = new SvgUse
-        {
-            CustomAttributes = { { "href", "#root" } },
-            X = 100,
-            Y = 0,
-        };
-        pieces.Children.Add(buildingUse2Root);
-        var buildingUse2 = new SvgUse
-        {
-            CustomAttributes = { { "href", "#building" } },
-            X = 100,
-            Y = 0,
-            Children = { new SvgTitle { Content = "b1" } }
-        };
-        pieces.Children.Add(buildingUse2);
-
-        var capsuleUse = new SvgUse
-        {
-            CustomAttributes = { { "href", "#capsule" } },
-            X = 50,
-            Y = 50,
-            Children = { new SvgTitle { Content = "c0" } }
-        };
-        pieces.Children.Add(capsuleUse);
 
         svgDoc.Children.Add(pieces);
 
         var svg = svgDoc.GetXML();
-        return svg;
+
+        var xml = new XmlDocument();
+        xml.LoadXml(svg);
+        var styleElement = xml.CreateElement("style");
+        styleElement.InnerXml = @"
+@font-face {
+  font-family: ""Anta"";
+  src: url(""data:application/truetype;base64," + Resources.Anta + @""");
+}
+
+@font-face {
+  font-family: ""Noto Emoji"";
+  src: url(""data:application/truetype;base64," + Resources.NotoEmoji +@""");
+}
+
+text {
+  font-family: ""Anta"", ""Noto Emoji"";
+}";
+        xml.DocumentElement.PrependChild(styleElement);
+        return xml.OuterXml.Replace(" xmlns=\"\"", "");
     }
 
 

@@ -1129,6 +1129,47 @@ public class DeserializeKitComponent : DeserializeComponent<KitParam, KitGoo, Ki
 
 #endregion
 
+#region Diagram
+
+public class DrawDiagramComponent : Component
+{
+    public DrawDiagramComponent()
+        : base("Draw Diagram", ":Dgm", "Draw the diagram from a design.", "Diagram")
+    {
+    }
+
+    public override Guid ComponentGuid => new("C53A0CC8-6DD7-415E-A20A-C5887CBE0DB9");
+
+    protected override Bitmap Icon => Resources.diagram_draw_24x24;
+
+    protected override void RegisterInputParams(GH_InputParamManager pManager)
+    {
+        pManager.AddParameter(new DesignParam());
+        pManager.AddParameter(new TypeParam(), "Types", "Ty+",
+            "Types that are used by the pieces in the design.", GH_ParamAccess.list);
+    }
+
+    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+    {
+        pManager.AddTextParameter( "Scalable Vector Graphics", "SVG",
+            "The", GH_ParamAccess.item);
+    }
+
+    protected override void SolveInstance(IGH_DataAccess DA)
+    {
+        var designGoo = new DesignGoo();
+        var typesGoos = new List<TypeGoo>();
+        DA.GetData(0, ref designGoo);
+        DA.GetDataList(1, typesGoos);
+        var design = designGoo.Value;
+        var types = typesGoos.Select(t => t.Value).ToArray();
+        var svg = design.Diagram(types);
+        DA.SetData(0, svg);
+    }
+}
+
+#endregion
+
 #region Util
 
 public class FlattenDesignComponent : Component
