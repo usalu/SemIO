@@ -1368,7 +1368,7 @@ public class Type : TypeProps
     }
     public string ToIdString()
     {
-        return $"{Name}##{Variant}";
+        return $"{Name}#{Variant}";
     }
 }
 
@@ -1679,6 +1679,11 @@ public class Design : DesignProps
     /// </summary>
     [ModelProp("👥", "Au*", "Auts", "The optional authors of the design.", PropImportance.OPTIONAL)]
     public List<Author> Authors { get; set; } = new();
+
+    public string ToIdString()
+    {
+        return $"{Name}#{Variant}#{View}";
+    }
 
     public void Bfs(Action<Piece> onRoot, Action<Piece, Piece, Connection> onConnection)
     {
@@ -2230,14 +2235,14 @@ public class Kit : KitProps
         {
             var (isValidType, errorsType) = type.Validate();
             isValid = isValid && isValidType;
-            errors.AddRange(errorsType.Select(e => "A type is invalid: " + e));
+            errors.AddRange(errorsType.Select(e => $"A type ({type.ToIdString()}) is invalid: " + e));
         }
 
         foreach (var design in Designs)
         {
             var (isValidDesign, errorsDesign) = design.Validate();
             isValid = isValid && isValidDesign;
-            errors.AddRange(errorsDesign.Select(e => "A design is invalid: " + e));
+            errors.AddRange(errorsDesign.Select(e => $"A design ({design.ToIdString()}) is invalid: " + e));
         }
 
         var typeIds = Types.Select(t => (t.Name,t.Variant));
