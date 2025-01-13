@@ -784,9 +784,14 @@ public class ModelValidator<T> : AbstractValidator<T> where T : Model<T>
             if (property.GetCustomAttribute<DescriptionAttribute>() == null)
             {
                 RuleFor(model => property.GetValue(model) as string)
-                    .Matches(@"^\S.*\S$")
-                    .WithMessage($"The {property.Name.ToLower()} must not start or end with whitespaces.")
-                    .Matches(@"^[^\r\n]+$")
+                    .Matches(@"^\S.*$")
+                    .When(m => property.GetValue(m) != "" )
+                    .WithMessage($"The {property.Name.ToLower()} must not start with a space.")
+                    .Matches(@"^.*\S$")
+                    .When(m => property.GetValue(m) != "")
+                    .WithMessage($"The {property.Name.ToLower()} must not end with a space.")
+                    .Matches(@"^[^\r\n]*$")
+                    .When(m => property.GetValue(m) != "")
                     .WithMessage($"The {property.Name.ToLower()} must not contain newlines.");
             }
 
@@ -2234,6 +2239,40 @@ public class Kit : KitProps
             isValid = isValid && isValidDesign;
             errors.AddRange(errorsDesign.Select(e => "A design is invalid: " + e));
         }
+
+        var typeIds = Types.Select(t => (t.Name,t.Variant));
+        var duplicateTypeIds = typeIds.GroupBy(x => x).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
+        if (duplicateTypeIds.Length != 0)
+        {
+            isValid = false;
+            foreach (var duplicateVariant in duplicateTypeIds)
+            {
+                var message = $"There are multiple identical types ({duplicateVariant.Name}) with ";
+                message += duplicateVariant.Variant == ""
+                    ? "the default variant."
+                    : $"variant({duplicateVariant.Variant}).";
+                errors.Add(message);
+            }
+        }
+
+        var designIds = Designs.Select(d => (d.Name, d.Variant,d.View));
+        var duplicateDesignIds = designIds.GroupBy(x => x).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
+        if (duplicateDesignIds.Length != 0)
+        {
+            isValid = false;
+            foreach (var duplicateDesignId in duplicateDesignIds)
+            {
+                var message = $"There are multiple identical designs ({duplicateDesignId.Name}) with ";
+                message += duplicateDesignId.Variant == ""
+                    ? "the default variant "
+                    : $"variant({duplicateDesignId.Variant}) ";
+                message += duplicateDesignId.View == ""
+                    ? "with the default view."
+                    : $"with view({duplicateDesignId.View}).";
+                errors.Add(message);
+            }
+        }
+
 
         return (isValid, errors);
     }
