@@ -18,6 +18,24 @@
 
 #endregion
 
+#region TODOs
+// TODO: Think of modelling components that are resilient to future schema changes.
+// TODO: Refactor EngineComponent with GetInput and GetPersitanceInput etc. Very confusing. Probably no abstracting is better.
+// TODO: GetProps and SetProps (includes children) is not consistent with the prop naming in python (does not include children).
+// TODO: Add toplevel scanning for kits wherever a directory is given
+// Maybe extension function for components. The repeated code looks something like this:
+// if (!DA.GetData(_, ref path))
+//      path = OnPingDocument().IsFilePathDefined
+//          ? Path.GetDirectoryName(OnPingDocument().FilePath)
+//          : Directory.GetCurrentDirectory();
+// TODO: IsInvalid is used to check null state which is not clean.
+// Think of a better way to handle this.
+// The invalid check happen twice and code is duplicated.
+// TODO: Figure out why cast from Piece to Text is not triggering the casts. ToString has somehow has precedence.
+// TODO: NameM.ToLower() doesn't work for composite names. E.g. "DiagramPoint" -> "diagrampoint".
+
+#endregion
+
 #region Usings
 
 using System.Collections.Immutable;
@@ -38,24 +56,6 @@ using Rhino.Geometry;
 #endregion
 
 namespace Semio.Grasshopper;
-
-#region TODOs
-// TODO: Think of modelling components that are resilient to future schema changes.
-// TODO: Refactor EngineComponent with GetInput and GetPersitanceInput etc. Very confusing. Probably no abstracting is better.
-// TODO: GetProps and SetProps (includes children) is not consistent with the prop naming in python (does not include children).
-// TODO: Add toplevel scanning for kits wherever a directory is given
-// Maybe extension function for components. The repeated code looks something like this:
-// if (!DA.GetData(_, ref path))
-//      path = OnPingDocument().IsFilePathDefined
-//          ? Path.GetDirectoryName(OnPingDocument().FilePath)
-//          : Directory.GetCurrentDirectory();
-// TODO: IsInvalid is used to check null state which is not clean.
-// Think of a better way to handle this.
-// The invalid check happen twice and code is duplicated.
-// TODO: Figure out why cast from Piece to Text is not triggering the casts. ToString has somehow has precedence.
-// TODO: NameM.ToLower() doesn't work for composite names. E.g. "DiagramPoint" -> "diagrampoint".
-
-#endregion
 
 #region Constants
 
@@ -668,8 +668,8 @@ public class DiagramPointGoo : ModelGoo<DiagramPoint>
         {
             Value = new DiagramPoint
             {
-                X = (int)point.X,
-                Y = (int)point.Y
+                X = (float)point.X,
+                Y = (float)point.Y
             };
             return true;
         }
@@ -1147,23 +1147,33 @@ public class DrawDiagramComponent : Component
         pManager.AddParameter(new DesignParam());
         pManager.AddParameter(new TypeParam(), "Types", "Ty+",
             "Types that are used by the pieces in the design.", GH_ParamAccess.list);
+        pManager.AddTextParameter("Uri", "Ur?",
+            "Optional Unique Resource Identifier (URI) of the kit. This can be an absolute path to a local kit or a url to a remote kit.\n" +
+            "If none is provided, it will try to see if the Grasshopper script is executed inside a local kit.",
+            GH_ParamAccess.item);
+        pManager[2].Optional = true;
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddTextParameter( "Scalable Vector Graphics", "SVG",
-            "The", GH_ParamAccess.item);
+            "The diagram as a Scalable Vector Graphics (SVG).", GH_ParamAccess.item);
     }
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
         var designGoo = new DesignGoo();
         var typesGoos = new List<TypeGoo>();
+        var uri = "";
         DA.GetData(0, ref designGoo);
         DA.GetDataList(1, typesGoos);
+        if (!DA.GetData(2, ref uri))
+            uri = OnPingDocument().IsFilePathDefined
+                ? Path.GetDirectoryName(OnPingDocument().FilePath)
+                : Directory.GetCurrentDirectory();
         var design = designGoo.Value;
         var types = typesGoos.Select(t => t.Value).ToArray();
-        var svg = design.Diagram(types);
+        var svg = design.Diagram(types, Utility.ComputeChildPlane,uri);
         DA.SetData(0, svg);
     }
 }

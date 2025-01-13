@@ -16,6 +16,20 @@
 //along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+#region TODOs
+// TODO: Make remote uris work for diagram.
+// TODO: Remove computeChildPlane and separate the flatten diagram and flatten planes parts.
+// TODO: Refactor all ToSring() to use ToIdString() and add ABREVIATION(ID) to model.
+// TODO: Develop a validation template for urls.
+// TODO: Replace GetHashcode() with a proper hash function.
+// TODO: Add logging mechanism to all API calls if they fail.
+// TODO: Implement reflexive validation for model properties.
+// TODO: Add index to prop and add to list based on index not on source code order.
+// TODO: See if Utility.Encode(uri) can be added by attribute on parameters.
+// TODO: Turn inplace and leave clone to the user of the function.
+// TODO: Parametrize colors for diagram
+#endregion
+
 #region Usings
 using System.Collections;
 using System.Collections.Immutable;
@@ -42,16 +56,6 @@ using SvgImage = Svg.SvgImage;
 #endregion
 
 namespace Semio;
-
-#region TODOs
-// TODO: Develop a validation template for urls.
-// TODO: Replace GetHashcode() with a proper hash function.
-// TODO: Add logging mechanism to all API calls if they fail.
-// TODO: Implement reflexive validation for model properties.
-// TODO: Add index to prop and add to list based on index not on source code order.
-// TODO: See if Utility.Encode(uri) can be added by attribute on parameters.
-// TODO: Turn inplace and leave clone to the user of the function.
-#endregion
 
 #region Constants
 
@@ -228,7 +232,7 @@ public static class Utility
         {
             var uri = new Uri(icon, UriKind.Relative);
             var ext = Path.GetExtension(icon);
-            if (Enum.IsDefined(typeof(ImageExtensions), ext.ToLower()[1..]))
+            if (Enum.IsDefined(typeof(ImageExtensions), ext.ToLower().Substring(1)))
                 return IconKind.Filepath;
         }
         catch (Exception)
@@ -947,16 +951,6 @@ public class DiagramPoint : Model<DiagramPoint>
         return new DiagramPoint { X = X / length, Y = Y / length };
     }
 
-    public override (bool, List<string>) Validate()
-    {
-        var (isValid, errors) = base.Validate();
-        if (Math.Abs(X) < Constants.Tolerance && Math.Abs(Y) < Constants.Tolerance)
-        {
-            isValid = false;
-            errors.Add("The point must not be the zero vector.");
-        }
-        return (isValid, errors);
-    }
 }
 
 /// <summary>
@@ -1436,7 +1430,7 @@ public class Piece : Model<Piece>
     [ModelProp("⌖", "Ce", "Cen",
         "The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
         PropImportance.OPTIONAL)]
-    public DiagramPoint Center { get; set; } = new();
+    public DiagramPoint? Center { get; set; }
 
     // TODO: Implement reflexive validation for model properties.
     public override (bool, List<string>) Validate()
@@ -1450,6 +1444,12 @@ public class Piece : Model<Piece>
             var (isValidPlane, errorsPlane) = Plane.Validate();
             isValid = isValid && isValidPlane;
             errors.AddRange(errorsPlane.Select(e => "The plane is invalid: " + e));
+        }
+        if (Center != null)
+        {
+            var (isValidCenter, errorsCenter) = Center.Validate();
+            isValid = isValid && isValidCenter;
+            errors.AddRange(errorsCenter.Select(e => "The center is invalid: " + e));
         }
 
         return (isValid, errors);
@@ -1563,15 +1563,20 @@ public class Connection : Model<Connection>
     ///   ⬆️ The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.
     /// </summary>
     [NumberProp("⬆️", "Y?", "Y", "The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.")]
-    public float Y { get; set; } = 0;
+    public float Y { get; set; } = 1;
 
-
-    public override string ToString()
+    public string ToIdString()
     {
         var ctd = Connected.Piece.Id + (Connected.Port.Id != "" ? ":" + Connected.Port.Id : "");
         var cng = (Connecting.Port.Id != "" ? Connecting.Port.Id + ":" : "") +
                   Connecting.Piece.Id;
-        return $"Con({ctd}--{cng})";
+        return $"{ctd}--{cng}";
+    }
+
+    public override string ToString()
+    {
+       
+        return $"Con({ToIdString()})";
     }
 
     // TODO: Implement reflexive validation for model properties.
@@ -1720,7 +1725,7 @@ public class Design : DesignProps
         }
     }
 
-    public Design Flatten(Type[] types,
+    public Design Flatten(IEnumerable<Type> types,
         Func<Plane, Point, Vector, Point, Vector, float, float, float, float, Plane> computeChildPlane)
     {
         if (Pieces.Count > 1 && Connections.Count > 0)
@@ -1810,8 +1815,14 @@ public class Design : DesignProps
         }
         return this;
     }
-
-    public string Diagram(IEnumerable<Type> types, float iconWidth = 48, float iconStroke = 1f, float connectionStroke = 2f, float margin = 0, string kitDirectory = "")
+    // TODO: Remove computeChildPlane and separate the flatten diagram and flatten planes parts.
+    // TODO: Parametrize colors for diagram
+    // TODO: Make remote uris work for diagram.
+    public string Diagram(
+        IEnumerable<Type> types,
+        Func<Plane, Point, Vector, Point, Vector, float, float, float, float, Plane> computeChildPlane,
+        string kitDirectory = "",
+        float iconWidth = 48, float iconStroke = 1f, float connectionStroke = 2f, float margin = 0)
     {
         var typesDict = Type.EnumerableToDict(types);
 
@@ -1820,8 +1831,7 @@ public class Design : DesignProps
             if (Pieces.Exists(piece => piece.Type.Name == type.Name && piece.Type.Variant == type.Variant))
                 usedTypes.Add(type);
 
-        // TODO: flatten the diagram
-        var flatCloneInSvgCoordinates = DeepClone().FlatToSvgCoordinates(iconWidth, iconWidth + 2 * iconStroke, margin);
+        var flatCloneInSvgCoordinates = DeepClone().Flatten(types,computeChildPlane).FlatToSvgCoordinates(iconWidth, iconWidth + 2 * iconStroke, margin);
 
         var svgDoc = new SvgDocument()
         {
@@ -1942,17 +1952,19 @@ public class Design : DesignProps
 
         var connections = new SvgGroup() { ID = "connections" };
 
-        foreach (var connection in flatCloneInSvgCoordinates.Connections)
+        foreach (var connection in Connections)
         {
+            var connectedPieceFlat = flatCloneInSvgCoordinates.Piece(connection.Connected.Piece.Id);
+            var connectingPieceFlat = flatCloneInSvgCoordinates.Piece(connection.Connecting.Piece.Id);
             var connectionLine = new SvgLine
             {
-                StartX = flatCloneInSvgCoordinates.Piece(connection.Connecting.Piece.Id).Center.X,
-                StartY = flatCloneInSvgCoordinates.Piece(connection.Connecting.Piece.Id).Center.Y,
-                EndX = flatCloneInSvgCoordinates.Piece(connection.Connected.Piece.Id).Center.X,
-                EndY = flatCloneInSvgCoordinates.Piece(connection.Connected.Piece.Id).Center.Y,
+                StartX = connectedPieceFlat.Center.X + iconWidth / 2,
+                StartY = connectedPieceFlat.Center.Y + iconWidth / 2,
+                EndX = connectingPieceFlat.Center.X + iconWidth / 2,
+                EndY = connectingPieceFlat.Center.Y + iconWidth / 2,
                 Stroke = new SvgColourServer(Color.Black),
                 StrokeWidth = connectionStroke,
-                Children = { new SvgTitle { Content = $"{connection.Connecting.Piece.Id} -- {connection.Connected.Piece.Id}" } }
+                Children = { new SvgTitle { Content = connection.ToIdString() }}
             };
             connections.Children.Add(connectionLine);
         }
@@ -1961,9 +1973,9 @@ public class Design : DesignProps
 
         var pieces = new SvgGroup() { ID = "pieces" };
 
-        foreach (var flatPiece in flatCloneInSvgCoordinates.Pieces)
+        foreach (var piece in Pieces)
         {
-            var piece = Piece(flatPiece.Id);
+            var flatPiece = flatCloneInSvgCoordinates.Piece(piece.Id);
             if (piece.Center != null)
             {
                 var rootPiece = new SvgUse
