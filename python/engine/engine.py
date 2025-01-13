@@ -4221,7 +4221,11 @@ def replaceDefault(context: str, default: str):
 def encodeType(type: TypeContext):
     typeClone = type.model_copy(deep=True)
     typeClone.variant = replaceDefault(typeClone.variant, "DEFAULT")
-    typeClone.description = encodeForPrompt(typeClone.description)
+    typeClone.description = (
+        encodeForPrompt(typeClone.description)
+        if typeClone.description != ""
+        else "NO_DESCRIPTION"
+    )
     for port in typeClone.ports:
         port.id_ = replaceDefault(port.id_, "DEFAULT")
         for locator in port.locators:
@@ -4394,9 +4398,9 @@ When a piece fits to a port of another piece, there SHOULD be a connecting betwe
 designGenerationPromptTemplate = jinja2.Template(
     """Your task is to help to puzzle together a design.
 
-TYPE{NAME;VARIANT?;DESCRIPTION?;PORTS?}
-PORT{ID?;LOCATORS?}
-LOCATOR{GROUP;SUBGROUP?}
+TYPE{NAME;VARIANT;DESCRIPTION;PORTS}
+PORT{ID;LOCATORS}
+LOCATOR{GROUP;SUBGROUP}
 
 Available types:
 {% for type in types %}

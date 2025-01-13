@@ -1215,7 +1215,7 @@ public class FlattenDesignComponent : Component
         DA.GetDataList(1, typesGoos);
         var design = designGoo.Value;
         var types = typesGoos.Select(t => t.Value).ToArray();
-        var flatDesign = design.Flatten(types, Utility.ComputeChildPlane);
+        var flatDesign = design.DeepClone().Flatten(types, Utility.ComputeChildPlane);
         DA.SetData(0, new DesignGoo(flatDesign));
     }
 }
