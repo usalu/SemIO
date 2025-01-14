@@ -62,7 +62,7 @@ namespace Semio;
 public static class Constants
 {
     public const string Name = "semio";
-    public const string Email = "mail@semio-tech.com";
+    public const string Email = "ueli@semio-tech.com";
     public const string Release = "r25.01-1";
     public const string EngineHost = "http://127.0.0.1";
     public const int EnginePort = 2501;
@@ -1639,7 +1639,7 @@ public class DesignProps : Model<Design>
     /// <summary>
     ///    🥽 The optional view of the design. No view means the default view.
     /// </summary>
-    [Name("🥽", "Vw?", "Vew", "The optional view of the design. No view means the default view.")]
+    [Name("🥽", "Vw?", "Vew", "The optional view of the design. No view means the default view.", PropImportance.ID, true)]
     public string View { get; set; } = "";
 
     /// <summary>
