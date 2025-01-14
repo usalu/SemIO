@@ -110,7 +110,7 @@
                     "default": "",
                     "description": "\ud83c\udd94 The id of the piece.",
                     "maxLength": 128,
-                    "title": "Id ",
+                    "title": "Id",
                     "type": "string"
                 }
             },
@@ -124,7 +124,7 @@
                     "default": "",
                     "description": "\ud83c\udd94 The id of the piece.",
                     "maxLength": 128,
-                    "title": "Id ",
+                    "title": "Id",
                     "type": "string"
                 },
                 "type": {
@@ -144,13 +144,20 @@
                     "description": "\u25f3 The optional plane of the piece. When pieces are connected only one piece can have a plane."
                 },
                 "center": {
-                    "$ref": "#/$defs/DiagramPoint",
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DiagramPoint"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
                     "description": "\ud83d\udcfa The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."
                 }
             },
             "required": [
-                "type",
-                "center"
+                "type"
             ],
             "title": "Piece",
             "type": "object"
@@ -213,7 +220,7 @@
                     "default": "",
                     "description": "\ud83c\udd94 The id of the port.",
                     "maxLength": 128,
-                    "title": "Id ",
+                    "title": "Id",
                     "type": "string"
                 }
             },
@@ -343,14 +350,14 @@
         "icon": {
             "default": "",
             "description": "\ud83e\ude99 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB. The image must be at least 256x256 pixels and smaller than 1 MB.",
-            "maxLength": 1024,
+            "maxLength": 2048,
             "title": "Icon",
             "type": "string"
         },
         "image": {
             "default": "",
             "description": "\ud83d\uddbc\ufe0f The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.",
-            "maxLength": 1024,
+            "maxLength": 2048,
             "title": "Image",
             "type": "string"
         },

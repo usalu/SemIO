@@ -30,7 +30,7 @@
                     "default": "",
                     "description": "\ud83c\udd94 The id of the port.",
                     "maxLength": 128,
-                    "title": "Id ",
+                    "title": "Id",
                     "type": "string"
                 },
                 "description": {

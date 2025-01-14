@@ -132,6 +132,7 @@ import abc
 import argparse
 import base64
 import datetime
+import difflib
 import enum
 import functools
 import inspect
@@ -165,7 +166,6 @@ import sqlalchemy.exc
 import sqlmodel
 import starlette
 import starlette_graphene3
-import thefuzz
 import uvicorn
 
 
@@ -2336,7 +2336,8 @@ class PieceTypeField(MaskedField, abc.ABC):
 class PiecePlaneField(MaskedField, abc.ABC):
     """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
 
-    plane: Plane = sqlmodel.Field(
+    plane: typing.Optional[Plane] = sqlmodel.Field(
+        default=None,
         description="◳ The optional plane of the piece. When pieces are connected only one piece can have a plane.",
     )
     """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
@@ -2345,7 +2346,8 @@ class PiecePlaneField(MaskedField, abc.ABC):
 class PieceCenterField(MaskedField, abc.ABC):
     """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
 
-    center: DiagramPoint = sqlmodel.Field(
+    center: typing.Optional[DiagramPoint] = sqlmodel.Field(
+        default=None,
         description="📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
     )
     """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
@@ -2365,10 +2367,12 @@ class PieceInput(PieceTypeField, PieceIdField, Input):
     """⭕ A piece is a 3d-instance of a type in a design."""
 
     plane: typing.Optional[PlaneInput] = sqlmodel.Field(
+        default=None,
         description="◳ The optional plane of the piece. When pieces are connected only one piece can have a plane.",
     )
     """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
-    center: DiagramPointInput = sqlmodel.Field(
+    center: typing.Optional[DiagramPointInput] = sqlmodel.Field(
+        default=None,
         description="📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
     )
     """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
@@ -2382,7 +2386,8 @@ class PieceContext(PieceTypeField, PieceIdField, Context):
         description="◳ The optional plane of the piece. When pieces are connected only one piece can have a plane.",
     )
     """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
-    # center: DiagramPointContext = sqlmodel.Field(
+    # center: typing.Optional[DiagramPointContext] = sqlmodel.Field(
+    #     default=None,
     #     description="📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
     # )
     # """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
@@ -2396,7 +2401,8 @@ class PieceOutput(PieceTypeField, PieceIdField, Output):
         description="◳ The optional plane of the piece. When pieces are connected only one piece can have a plane.",
     )
     """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
-    center: DiagramPointOutput = sqlmodel.Field(
+    center: typing.Optional[DiagramPointOutput] = sqlmodel.Field(
+        default=None,
         description="📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
     )
     """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
@@ -2405,7 +2411,8 @@ class PieceOutput(PieceTypeField, PieceIdField, Output):
 class PiecePrediction(PieceTypeField, PieceIdField, Prediction):
     """⭕ A piece is a 3d-instance of a type in a design."""
 
-    # center: DiagramPointPrediction = sqlmodel.Field(
+    # center: typing.Optional[DiagramPointPrediction] = sqlmodel.Field(
+    #     default=None,
     #     description="📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
     # )
     # """📺 The optional center of the piece in the diagram. When pieces are connected only one piece can have a center."""
@@ -2455,12 +2462,12 @@ class Piece(TableEntity, table=True):
         default=None,
         exclude=True,
     )
-    """🔑 The foreign primary key of the plane of the piece in the database."""
+    """🔑 The optional foreign primary key of the plane of the piece in the database."""
     plane: typing.Optional[Plane] = sqlmodel.Relationship(back_populates="piece")
     """◳ The optional plane of the piece. When pieces are connected only one piece can have a plane."""
-    centerX: float = sqlmodel.Field(exclude=True)
+    centerX: typing.Optional[float] = sqlmodel.Field(default=None, exclude=True)
     """🎚️ The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
-    centerY: float = sqlmodel.Field(exclude=True)
+    centerY: typing.Optional[float] = sqlmodel.Field(default=None, exclude=True)
     """🎚️ The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon."""
     designPk: typing.Optional[int] = sqlmodel.Field(
         sa_column=sqlmodel.Column(
@@ -2488,13 +2495,19 @@ class Piece(TableEntity, table=True):
     __table_args__ = (sqlalchemy.UniqueConstraint("localId", "designId"),)
 
     @property
-    def center(self) -> DiagramPoint:
+    def center(self) -> typing.Optional[DiagramPoint]:
         """↗️ Get the masked screen point of the piece."""
+        if self.centerX is None or self.centerY is None:
+            return None
         return DiagramPoint(x=self.centerX, y=self.centerY)
 
     @center.setter
-    def center(self, center: DiagramPoint):
+    def center(self, center: typing.Optional[DiagramPoint]):
         """↘️ Set the masked screen point of the piece."""
+        if center is None:
+            self.centerX = None
+            self.centerY = None
+            return
         self.centerX = center.x
         self.centerY = center.y
 
@@ -4313,43 +4326,48 @@ def healDesign(design: DesignPrediction, types: list[TypeContext]):
     for piece in designClone.pieces:
         pieceD[piece.id_] = piece
         if piece.type.name not in typeD:
-            piece.type.name = thefuzz.process.extractOne(piece.type.name, typeD.keys())[
-                0
-            ]
-        if not (piece.type.variant in typeD[piece.type.name]):
-            piece.type.variant = thefuzz.process.extractOne(
-                piece.type.variant, typeD[piece.type.name].keys()
+            piece.type.name = difflib.get_close_matches(
+                piece.type.name, typeD.keys(), n=1
             )[0]
+        if not (piece.type.variant in typeD[piece.type.name]):
+            piece.type.variant = difflib.get_close_matches(
+                piece.type.variant, typeD[piece.type.name].keys(), n=1
+            )[0]
+
     for connection in designClone.connections:
         if connection.connected.piece.id_ not in pieceD:
-            connection.connected.piece.id_ = thefuzz.process.extractOne(
-                connection.connected.piece.id_, pieceD.keys()
+            connection.connected.piece.id_ = difflib.get_close_matches(
+                connection.connected.piece.id_, pieceD.keys(), n=1
             )[0]
         if connection.connecting.piece.id_ not in pieceD:
-            connection.connecting.piece.id_ = thefuzz.process.extractOne(
-                connection.connecting.piece.id_, pieceD.keys()
+            connection.connecting.piece.id_ = difflib.get_close_matches(
+                connection.connecting.piece.id_, pieceD.keys(), n=1
             )[0]
+
         connectedType = typeD[pieceD[connection.connected.piece.id_].type.name][
             pieceD[connection.connected.piece.id_].type.variant
         ]
         connectingType = typeD[pieceD[connection.connecting.piece.id_].type.name][
             pieceD[connection.connecting.piece.id_].type.variant
         ]
+
         if (
             connection.connected.port.id_
             not in portD[connectedType.name][connectedType.variant]
         ):
-            connection.connected.port.id_ = thefuzz.process.extractOne(
+            connection.connected.port.id_ = difflib.get_close_matches(
                 connection.connected.port.id_,
                 portD[connectedType.name][connectedType.variant].keys(),
+                n=1,
             )[0]
         if (
             connection.connecting.port.id_
             not in portD[connectingType.name][connectingType.variant]
         ):
-            connection.connecting.port.id_ = thefuzz.process.extractOne(
+            connection.connecting.port.id_ = difflib.get_close_matches(
                 connection.connecting.port.id_,
                 portD[connectingType.name][connectingType.variant].keys(),
+                n=1,
             )[0]
     # remove invalid connections
     designClone.connections = [
@@ -4533,6 +4551,8 @@ GRAPHQLTYPES = {
     "bool": graphene.NonNull(graphene.Boolean),
     "list[str]": graphene.NonNull(graphene.List(graphene.NonNull(graphene.String))),
     "DiagramPoint": graphene.NonNull(lambda: DiagramPointNode),
+    "typing.Optional[__main__.DiagramPoint]": lambda: DiagramPointNode,
+    "typing.Optional[engine.DiagramPoint]": lambda: DiagramPointNode,
     "Point": graphene.NonNull(lambda: PointNode),
     "Vector": graphene.NonNull(lambda: VectorNode),
     "Plane": graphene.NonNull(lambda: PlaneNode),
@@ -4552,6 +4572,9 @@ GRAPHQLTYPES = {
         graphene.List(graphene.NonNull(lambda: AuthorNode))
     ),
     "list[__main__.Author]": graphene.NonNull(
+        graphene.List(graphene.NonNull(lambda: AuthorNode))
+    ),
+    "list[engine.Author]": graphene.NonNull(
         graphene.List(graphene.NonNull(lambda: AuthorNode))
     ),
     "Type": graphene.NonNull(lambda: TypeNode),
@@ -4641,16 +4664,16 @@ class TableNode(graphene_sqlalchemy.SQLAlchemyObjectType):
             prop = getattr(model, name)
             prop_getter = prop.fget
             prop_return_type = inspect.signature(prop_getter).return_annotation
+            if prop_return_type.__name__.startswith("Optional"):
+                graphqlTypeName = prop_return_type.__args__[0].__name__
+            elif prop_return_type.__name__.startswith("list"):
+                graphqlTypeName = str(prop_return_type)
+            else:
+                graphqlTypeName = prop_return_type.__name__
             setattr(
                 cls,
                 name,
-                GRAPHQLTYPES[
-                    (
-                        str(prop_return_type)
-                        if prop_return_type.__name__.startswith("list")
-                        else prop_return_type.__name__
-                    )
-                ],
+                GRAPHQLTYPES[graphqlTypeName],
             )
             setattr(cls, f"resolve_{name}", make_resolve(name))
 
