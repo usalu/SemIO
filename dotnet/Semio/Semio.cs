@@ -1,4 +1,5 @@
 #region License
+
 //Semio.cs
 //2020-2025 Ueli Saluz
 
@@ -14,9 +15,11 @@
 
 //You should have received a copy of the GNU Affero General Public License
 //along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 #region TODOs
+
 // TODO: Make remote uris work for diagram.
 // TODO: Remove computeChildPlane and separate the flatten diagram and flatten planes parts.
 // TODO: Refactor all ToSring() to use ToIdString() and add ABREVIATION(ID) to model.
@@ -28,17 +31,18 @@
 // TODO: See if Utility.Encode(uri) can be added by attribute on parameters.
 // TODO: Turn inplace and leave clone to the user of the function.
 // TODO: Parametrize colors for diagram
+
 #endregion
 
 #region Usings
+
 using System.Collections;
 using System.Collections.Immutable;
 using System.Drawing;
+using System.Globalization;
 using System.Net;
-using System.Net.Http;
 using System.Reflection;
 using System.Xml;
-using System.Xml.Linq;
 using FluentValidation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -47,11 +51,9 @@ using QuikGraph.Algorithms;
 using QuikGraph.Algorithms.Search;
 using Refit;
 using Svg;
-using Svg.FilterEffects;
 using Svg.Transforms;
 using UnitsNet;
 using Formatting = Newtonsoft.Json.Formatting;
-using SvgImage = Svg.SvgImage;
 
 #endregion
 
@@ -75,12 +77,13 @@ public static class Constants
     public const int DescriptionLengthLimit = 4096;
     public const float Tolerance = 1e-5f;
 }
+
 public enum ImageExtensions
 {
     png,
     jpg,
     jpeg,
-    svg,
+    svg
 }
 
 public enum IconKind
@@ -95,9 +98,11 @@ public enum IconKind
 #region Copilot
 
 #region GraphQL
+
 #endregion
 
 #region Dictionary
+
 //Symbol,Code,Abbreviation,Name,Description
 //👥,Bs,Bas,Base,The shared base props for {{NAME}} models.
 //🧲,Cd,Cnd,Connected,The connected side of the piece of the connection.
@@ -184,6 +189,7 @@ public enum IconKind
 //🏁,Z,Z,Z,The z-coordinate of the screen point.
 //🎚️,Z,Z,Z,The z-coordinate of the point.
 //➡️,ZA,ZAx,ZAxis,The z-axis of the plane.
+
 #endregion
 
 #endregion
@@ -192,8 +198,10 @@ public enum IconKind
 
 public static class Utility
 {
-    public static bool UriIsNotAbsoluteFilePath(string uri) =>
-        !(Uri.IsWellFormedUriString(uri, UriKind.Relative) || uri.StartsWith("http"));
+    public static bool UriIsNotAbsoluteFilePath(string uri)
+    {
+        return !(Uri.IsWellFormedUriString(uri, UriKind.Relative) || uri.StartsWith("http"));
+    }
 
     public static string ParseMimeFromUrl(string url)
     {
@@ -238,6 +246,7 @@ public static class Utility
         catch (Exception)
         {
         }
+
         return IconKind.Logogram;
     }
 
@@ -247,9 +256,9 @@ public static class Utility
         byte[] content;
         if (url.StartsWith("http"))
         {
-            using (HttpClient client = new HttpClient())
+            using (var client = new HttpClient())
             {
-                HttpResponseMessage response = client.GetAsync(url).Result;
+                var response = client.GetAsync(url).Result;
                 response.EnsureSuccessStatusCode();
                 mime = response.Content.Headers.ContentType.MediaType;
                 content = response.Content.ReadAsByteArrayAsync().Result;
@@ -261,6 +270,7 @@ public static class Utility
             content = File.ReadAllBytes(osAwareUrl);
             mime = ParseMimeFromUrl(osAwareUrl);
         }
+
         return $"data:{mime};base64,{Convert.ToBase64String(content)}";
     }
 
@@ -317,19 +327,22 @@ public static class Utility
 
     public static class Units
     {
+        public static float Convert(float value, string fromUnit, string toUnit)
+        {
+            var convertModel = new PowerToysRunUnitConverter.ConvertModel(value, fromUnit, toUnit);
+            var results = PowerToysRunUnitConverter.UnitHandler.Convert(convertModel);
+            if (results.Count() == 0) return float.NaN;
+            return (float)results.First().ConvertedValue;
+        }
+
         /// <summary>
-        /// Adapted from https://github.com/microsoft/PowerToys/tree/95919508758e71dca88632add8a03c089a822d1c/src/modules/launcher/Plugins/Community.PowerToys.Run.Plugin.UnitConverter
+        ///     Adapted from
+        ///     https://github.com/microsoft/PowerToys/tree/95919508758e71dca88632add8a03c089a822d1c/src/modules/launcher/Plugins/Community.PowerToys.Run.Plugin.UnitConverter
         /// </summary>
         private class PowerToysRunUnitConverter
         {
             internal class ConvertModel
             {
-                internal double Value { get; set; }
-
-                internal string FromUnit { get; set; }
-
-                internal string ToUnit { get; set; }
-
                 internal ConvertModel()
                 {
                 }
@@ -340,10 +353,23 @@ public static class Utility
                     FromUnit = fromUnit;
                     ToUnit = toUnit;
                 }
+
+                internal double Value { get; }
+
+                internal string FromUnit { get; }
+
+                internal string ToUnit { get; }
             }
 
             internal class UnitConversionResult
             {
+                internal UnitConversionResult(double convertedValue, string unitName, QuantityInfo quantityInfo)
+                {
+                    ConvertedValue = convertedValue;
+                    UnitName = unitName;
+                    QuantityInfo = quantityInfo;
+                }
+
                 internal static string TitleFormat { get; set; } = "G14";
 
                 internal static string CopyFormat { get; set; } = "R";
@@ -353,18 +379,11 @@ public static class Utility
                 internal string UnitName { get; }
 
                 internal QuantityInfo QuantityInfo { get; }
-
-                internal UnitConversionResult(double convertedValue, string unitName, QuantityInfo quantityInfo)
-                {
-                    ConvertedValue = convertedValue;
-                    UnitName = unitName;
-                    QuantityInfo = quantityInfo;
-                }
             }
 
             internal static class UnitHandler
             {
-                private static readonly QuantityInfo[] _included = new QuantityInfo[]
+                private static readonly QuantityInfo[] _included =
                 {
                     Length.Info,
                     Area.Info,
@@ -378,40 +397,33 @@ public static class Utility
                     Temperature.Info,
                     Acceleration.Info,
                     Speed.Info,
-                    Information.Info,
+                    Information.Info
                 };
 
                 /// <summary>
-                /// Given string representation of unit, converts it to the enum.
+                ///     Given string representation of unit, converts it to the enum.
                 /// </summary>
                 /// <returns>Corresponding enum or null.</returns>
                 private static Enum GetUnitEnum(string unit, QuantityInfo unitInfo)
                 {
-                    UnitInfo first = Array.Find(unitInfo.UnitInfos, info =>
+                    var first = Array.Find(unitInfo.UnitInfos, info =>
                         string.Equals(unit, info.Name, StringComparison.OrdinalIgnoreCase) ||
                         string.Equals(unit, info.PluralName, StringComparison.OrdinalIgnoreCase));
 
-                    if (first != null)
-                    {
-                        return first.Value;
-                    }
+                    if (first != null) return first.Value;
 
-                    if (UnitsNetSetup.Default.UnitParser.TryParse(unit, unitInfo.UnitType, out Enum enum_unit))
-                    {
+                    if (UnitsNetSetup.Default.UnitParser.TryParse(unit, unitInfo.UnitType, out var enum_unit))
                         return enum_unit;
-                    }
 
-                    var cultureInfoEnglish = new System.Globalization.CultureInfo("en-US");
-                    if (UnitsNetSetup.Default.UnitParser.TryParse(unit, unitInfo.UnitType, cultureInfoEnglish, out Enum enum_unit_en))
-                    {
-                        return enum_unit_en;
-                    }
+                    var cultureInfoEnglish = new CultureInfo("en-US");
+                    if (UnitsNetSetup.Default.UnitParser.TryParse(unit, unitInfo.UnitType, cultureInfoEnglish,
+                            out var enum_unit_en)) return enum_unit_en;
 
                     return null;
                 }
 
                 /// <summary>
-                /// Given parsed ConvertModel, computes result. (E.g "1 foot in cm").
+                ///     Given parsed ConvertModel, computes result. (E.g "1 foot in cm").
                 /// </summary>
                 /// <returns>The converted value as a double.</returns>
                 internal static double ConvertInput(ConvertModel convertModel, QuantityInfo quantityInfo)
@@ -420,15 +432,13 @@ public static class Utility
                     var toUnit = GetUnitEnum(convertModel.ToUnit, quantityInfo);
 
                     if (fromUnit != null && toUnit != null)
-                    {
-                        return UnitsNet.UnitConverter.Convert(convertModel.Value, fromUnit, toUnit);
-                    }
+                        return UnitConverter.Convert(convertModel.Value, fromUnit, toUnit);
 
                     return double.NaN;
                 }
 
                 /// <summary>
-                /// Given ConvertModel returns collection of possible results.
+                ///     Given ConvertModel returns collection of possible results.
                 /// </summary>
                 /// <returns>The converted value as a double.</returns>
                 internal static IEnumerable<UnitConversionResult> Convert(ConvertModel convertModel)
@@ -436,11 +446,11 @@ public static class Utility
                     var results = new List<UnitConversionResult>();
                     foreach (var quantityInfo in _included)
                     {
-                        double convertedValue = UnitHandler.ConvertInput(convertModel, quantityInfo);
+                        var convertedValue = ConvertInput(convertModel, quantityInfo);
 
                         if (!double.IsNaN(convertedValue))
                         {
-                            UnitConversionResult result = new UnitConversionResult(convertedValue, convertModel.ToUnit, quantityInfo);
+                            var result = new UnitConversionResult(convertedValue, convertModel.ToUnit, quantityInfo);
                             results.Add(result);
                         }
                     }
@@ -448,16 +458,6 @@ public static class Utility
                     return results;
                 }
             }
-        }
-        public static float Convert(float value, string fromUnit, string toUnit)
-        {
-            var convertModel = new PowerToysRunUnitConverter.ConvertModel(value, fromUnit, toUnit);
-            var results = PowerToysRunUnitConverter.UnitHandler.Convert(convertModel);
-            if (results.Count() == 0)
-            {
-                return float.NaN;
-            }
-            return (float)results.First().ConvertedValue;
         }
     }
 
@@ -468,15 +468,10 @@ public static class Utility
             if (string.IsNullOrEmpty(word))
                 return string.Empty;
 
-            char firstChar = word.ToLower()[0];
+            var firstChar = word.ToLower()[0];
             if ("aeiou".IndexOf(firstChar) >= 0)
-            {
                 return "an";
-            }
-            else
-            {
-                return "a";
-            }
+            return "a";
         }
     }
 }
@@ -782,10 +777,9 @@ public class ModelValidator<T> : AbstractValidator<T> where T : Model<T>
 
             // All non-description text
             if (property.GetCustomAttribute<DescriptionAttribute>() == null)
-            {
                 RuleFor(model => property.GetValue(model) as string)
                     .Matches(@"^\S.*$")
-                    .When(m => property.GetValue(m) != "" )
+                    .When(m => property.GetValue(m) != "")
                     .WithMessage($"The {property.Name.ToLower()} must not start with a space.")
                     .Matches(@"^.*\S$")
                     .When(m => property.GetValue(m) != "")
@@ -793,14 +787,12 @@ public class ModelValidator<T> : AbstractValidator<T> where T : Model<T>
                     .Matches(@"^[^\r\n]*$")
                     .When(m => property.GetValue(m) != "")
                     .WithMessage($"The {property.Name.ToLower()} must not contain newlines.");
-            }
 
             if (property.GetCustomAttribute<NameAttribute>() != null)
             {
             }
             else if (property.GetCustomAttribute<IdAttribute>() != null)
             {
-
             }
             else if (property.GetCustomAttribute<EmailAttribute>() != null)
             {
@@ -809,9 +801,7 @@ public class ModelValidator<T> : AbstractValidator<T> where T : Model<T>
             }
             else if (property.GetCustomAttribute<UrlAttribute>() != null)
             {
-
             }
-
         }
         else if (property.PropertyType == typeof(List<string>))
         {
@@ -860,7 +850,8 @@ public class Representation : Model<Representation>
     /// <summary>
     ///     🔗 The Unique Resource Locator (URL) to the resource of the representation.
     /// </summary>
-    [Url("🔗", "Ur", "Url", "The Unique Resource Locator (URL) to the resource of the representation.", PropImportance.REQUIRED)]
+    [Url("🔗", "Ur", "Url", "The Unique Resource Locator (URL) to the resource of the representation.",
+        PropImportance.REQUIRED)]
     public string Url { get; set; } = "";
 
     /// <summary>
@@ -920,9 +911,11 @@ public class Representation : Model<Representation>
 }
 
 /// <summary>
-///     🗺️ A locator is machine-readable metadata for grouping ports and provides a mechanism to easily switch between ports based on individual locators.
+///     🗺️ A locator is machine-readable metadata for grouping ports and provides a mechanism to easily switch between
+///     ports based on individual locators.
 /// </summary>
-[Model("🗺️", "Lc", "Loc", "A locator is machine-readable metadata for grouping ports and provides a mechanism to easily switch between ports based on individual locators.")]
+[Model("🗺️", "Lc", "Loc",
+    "A locator is machine-readable metadata for grouping ports and provides a mechanism to easily switch between ports based on individual locators.")]
 public class Locator : Model<Locator>
 {
     /// <summary>
@@ -944,18 +937,21 @@ public class Locator : Model<Locator>
 [Model("📺", "DP", "DPt", "A 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.")]
 public class DiagramPoint : Model<DiagramPoint>
 {
-    [NumberProp("🎚️", "X", "X", "The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.", PropImportance.REQUIRED)]
-    public float X { get; set; } = 0;
+    [NumberProp("🎚️", "X", "X",
+        "The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.",
+        PropImportance.REQUIRED)]
+    public float X { get; set; }
 
-    [NumberProp("🎚️", "Y", "Y", "The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.", PropImportance.REQUIRED)]
-    public float Y { get; set; } = 0;
+    [NumberProp("🎚️", "Y", "Y",
+        "The y-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.",
+        PropImportance.REQUIRED)]
+    public float Y { get; set; }
 
     public DiagramPoint Normalize()
     {
         var length = (float)Math.Sqrt(X * X + Y * Y);
         return new DiagramPoint { X = X / length, Y = Y / length };
     }
-
 }
 
 /// <summary>
@@ -1098,7 +1094,7 @@ public class Port : Model<Port>
     public string Id { get; set; } = "";
 
     /// <summary>
-    ///    💬 The optional human-readable description of the port.
+    ///     💬 The optional human-readable description of the port.
     /// </summary>
     [Description("💬", "Dc?", "Dsc", "The optional human-readable description of the port.")]
     public string Description { get; set; } = "";
@@ -1110,7 +1106,8 @@ public class Port : Model<Port>
     public Point? Point { get; set; } = null;
 
     /// <summary>
-    ///     ➡️ The direction of the port. When another piece connects the direction of the other port is flipped and then the pieces are aligned.
+    ///     ➡️ The direction of the port. When another piece connects the direction of the other port is flipped and then the
+    ///     pieces are aligned.
     /// </summary>
     [ModelProp("➡️", "Dr", "Drn",
         "The direction of the port. When another piece connects the direction of the other port is flipped and then the pieces are aligned.")]
@@ -1119,7 +1116,9 @@ public class Port : Model<Port>
     /// <summary>
     ///     🗺️ The optional machine-readable locators of the port. Every port should have a unique set of locators.
     /// </summary>
-    [ModelProp("🗺️", "Lc*", "Locs", "The optional machine-readable locators of the port. Every port should have a unique set of locators.", PropImportance.OPTIONAL)]
+    [ModelProp("🗺️", "Lc*", "Locs",
+        "The optional machine-readable locators of the port. Every port should have a unique set of locators.",
+        PropImportance.OPTIONAL)]
     public List<Locator> Locators { get; set; } = new();
 
     // TODO: Implement reflexive validation for model properties.
@@ -1231,21 +1230,26 @@ public class TypeProps : Model<Type>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg |
+    ///     svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
+    [Url("🪙", "Ic?", "Ico",
+        "The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
+    ///     🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which
+    ///     will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
+    [Url("🖼️", "Im?", "Img",
+        "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
     public string Image { get; set; } = "";
 
     /// <summary>
-    ///     🔀 The optional variant of the type. No variant means the default variant. 
+    ///     🔀 The optional variant of the type. No variant means the default variant.
     /// </summary>
-    [Name("🔀", "Vn?", "Vnt", "The optional variant of the type. No variant means the default variant. ", PropImportance.ID, true)]
+    [Name("🔀", "Vn?", "Vnt", "The optional variant of the type. No variant means the default variant. ",
+        PropImportance.ID, true)]
     public string Variant { get; set; } = "";
 
     /// <summary>
@@ -1283,6 +1287,7 @@ public class Author : Model<Author>
             isValid = false;
             errors.Add("The email must contain an @.");
         }
+
         return (isValid, errors);
     }
 }
@@ -1312,7 +1317,7 @@ public class Type : TypeProps
     public List<Quality> Qualities { get; set; } = new();
 
     /// <summary>
-    ///    👥 The optional authors of the type.
+    ///     👥 The optional authors of the type.
     /// </summary>
     [ModelProp("👥", "Au*", "Auts", "The optional authors of the type.", PropImportance.OPTIONAL)]
     public List<Author> Authors { get; set; } = new();
@@ -1358,14 +1363,13 @@ public class Type : TypeProps
         var typesDict = new Dictionary<string, Dictionary<string, Type>>();
         foreach (var type in types)
         {
-            if (!typesDict.ContainsKey(type.Name))
-            {
-                typesDict[type.Name] = new Dictionary<string, Type>();
-            }
+            if (!typesDict.ContainsKey(type.Name)) typesDict[type.Name] = new Dictionary<string, Type>();
             typesDict[type.Name][type.Variant] = type;
         }
+
         return typesDict;
     }
+
     public string ToIdString()
     {
         return $"{Name}#{Variant}";
@@ -1385,9 +1389,10 @@ public class TypeId : Model<TypeId>
     public string Name { get; set; } = "";
 
     /// <summary>
-    ///     🔀 The optional variant of the type. No variant means the default variant. 
+    ///     🔀 The optional variant of the type. No variant means the default variant.
     /// </summary>
-    [Name("🔀", "Vn?", "Vnt", "The optional variant of the type. No variant means the default variant. ", PropImportance.ID, true)]
+    [Name("🔀", "Vn?", "Vnt", "The optional variant of the type. No variant means the default variant. ",
+        PropImportance.ID, true)]
     public string Variant { get; set; } = "";
 
     public static implicit operator TypeId(Type type)
@@ -1450,6 +1455,7 @@ public class Piece : Model<Piece>
             isValid = isValid && isValidPlane;
             errors.AddRange(errorsPlane.Select(e => "The plane is invalid: " + e));
         }
+
         if (Center != null)
         {
             var (isValidCenter, errorsCenter) = Center.Validate();
@@ -1523,7 +1529,8 @@ public class Connection : Model<Connection>
     /// <summary>
     ///     🔄 The optional horizontal rotation in port direction between the connected and the connecting piece in degrees.
     /// </summary>
-    [AngleProp("🔄", "Rt?", "Rot", "The optional horizontal rotation in port direction between the connected and the connecting piece in degrees.")]
+    [AngleProp("🔄", "Rt?", "Rot",
+        "The optional horizontal rotation in port direction between the connected and the connecting piece in degrees.")]
     public float Rotation
     {
         get => _rotation;
@@ -1531,7 +1538,8 @@ public class Connection : Model<Connection>
     }
 
     /// <summary>
-    ///     ∡ The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.
+    ///     ∡ The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected
+    ///     and the connecting piece in degrees.
     /// </summary>
     [AngleProp("∡", "Tl?", "Tlt",
         "The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.")]
@@ -1559,15 +1567,19 @@ public class Connection : Model<Connection>
     public float Shift { get; set; } = 0;
 
     /// <summary>
-    ///    ➡️ The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.
+    ///     ➡️ The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit
+    ///     is equal the width of a piece icon.
     /// </summary>
-    [NumberProp("➡️", "X?", "X", "The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.")]
-    public float X { get; set; } = 0;
+    [NumberProp("➡️", "X?", "X",
+        "The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.")]
+    public float X { get; set; }
 
     /// <summary>
-    ///   ⬆️ The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.
+    ///     ⬆️ The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit
+    ///     is equal the width of a piece icon.
     /// </summary>
-    [NumberProp("⬆️", "Y?", "Y", "The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.")]
+    [NumberProp("⬆️", "Y?", "Y",
+        "The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.")]
     public float Y { get; set; } = 1;
 
     public string ToIdString()
@@ -1580,7 +1592,6 @@ public class Connection : Model<Connection>
 
     public override string ToString()
     {
-       
         return $"Con({ToIdString()})";
     }
 
@@ -1619,27 +1630,33 @@ public class DesignProps : Model<Design>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg
+    ///     | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
+    [Url("🪙", "Ic?", "Ico",
+        "The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
+    ///     🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which
+    ///     will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
+    [Url("🖼️", "Im?", "Img",
+        "The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
     public string Image { get; set; } = "";
 
     /// <summary>
     ///     🔀 The optional variant of the design. No variant means the default variant.
     /// </summary>
-    [Name("🔀", "Vn?", "Vnt", "The optional variant of the design. No variant means the default variant.", PropImportance.ID, true)]
+    [Name("🔀", "Vn?", "Vnt", "The optional variant of the design. No variant means the default variant.",
+        PropImportance.ID, true)]
     public string Variant { get; set; } = "";
 
     /// <summary>
-    ///    🥽 The optional view of the design. No view means the default view.
+    ///     🥽 The optional view of the design. No view means the default view.
     /// </summary>
-    [Name("🥽", "Vw?", "Vew", "The optional view of the design. No view means the default view.", PropImportance.ID, true)]
+    [Name("🥽", "Vw?", "Vew", "The optional view of the design. No view means the default view.", PropImportance.ID,
+        true)]
     public string View { get; set; } = "";
 
     /// <summary>
@@ -1675,7 +1692,7 @@ public class Design : DesignProps
     public List<Quality> Qualities { get; set; } = new();
 
     /// <summary>
-    ///    👥 The optional authors of the design.
+    ///     👥 The optional authors of the design.
     /// </summary>
     [ModelProp("👥", "Au*", "Auts", "The optional authors of the design.", PropImportance.OPTIONAL)]
     public List<Author> Authors { get; set; } = new();
@@ -1796,7 +1813,7 @@ public class Design : DesignProps
         return Pieces.Find(piece => piece.Id == id);
     }
 
-    Design FlatToSvgCoordinates(float iconWidth, float iconWidthMax, float margin)
+    private Design FlatToSvgCoordinates(float iconWidth, float iconWidthMax, float margin)
     {
         // scale to iconWidth and change coordinate system
         foreach (var piece in Pieces)
@@ -1804,6 +1821,7 @@ public class Design : DesignProps
             piece.Center.X = piece.Center.X * iconWidth;
             piece.Center.Y = -(piece.Center.Y * iconWidth);
         }
+
         foreach (var connection in Connections)
         {
             connection.X = connection.X * iconWidth;
@@ -1823,8 +1841,10 @@ public class Design : DesignProps
             piece.Center.X += offsetX;
             piece.Center.Y += offsetY;
         }
+
         return this;
     }
+
     // TODO: Remove computeChildPlane and separate the flatten diagram and flatten planes parts.
     // TODO: Parametrize colors for diagram
     // TODO: Make remote uris work for diagram.
@@ -1841,15 +1861,15 @@ public class Design : DesignProps
             if (Pieces.Exists(piece => piece.Type.Name == type.Name && piece.Type.Variant == type.Variant))
                 usedTypes.Add(type);
 
-        var flatCloneInSvgCoordinates = DeepClone().Flatten(types,computeChildPlane).FlatToSvgCoordinates(iconWidth, iconWidth + 2 * iconStroke, margin);
+        var flatCloneInSvgCoordinates = DeepClone().Flatten(types, computeChildPlane)
+            .FlatToSvgCoordinates(iconWidth, iconWidth + 2 * iconStroke, margin);
 
-        var svgDoc = new SvgDocument()
+        var svgDoc = new SvgDocument
         {
             Width = flatCloneInSvgCoordinates.Pieces.Max(piece => piece.Center.X) + margin * 2 + iconWidth +
                     2 * iconStroke,
             Height = flatCloneInSvgCoordinates.Pieces.Max(piece => piece.Center.Y) + margin * 2 + iconWidth +
-                     2 * iconStroke,
-            
+                     2 * iconStroke
         };
 
         var defs = new SvgDefinitionList();
@@ -1862,7 +1882,7 @@ public class Design : DesignProps
             Radius = iconWidth / 2 - iconStroke / 2,
             Fill = new SvgColourServer(Color.White),
             Stroke = new SvgColourServer(Color.Black),
-            StrokeWidth = iconStroke,
+            StrokeWidth = iconStroke
         };
         defs.Children.Add(iconCircle);
 
@@ -1874,30 +1894,31 @@ public class Design : DesignProps
             Radius = iconWidth / 2 + iconStroke,
             Fill = new SvgColourServer(Color.White),
             Stroke = new SvgColourServer(Color.Black),
-            StrokeWidth = iconStroke,
+            StrokeWidth = iconStroke
         };
         defs.Children.Add(root);
 
         var iconMask = new SvgMask
         {
             ID = "iconMask",
-            Children = {
+            Children =
+            {
                 new SvgCircle
-                    {
-                        CenterX = iconWidth/2-iconStroke,
-                        CenterY = iconWidth/2-iconStroke,
-                        Radius = iconWidth/2-iconStroke,
-                        Fill = new SvgColourServer(Color.White)
-                    }
+                {
+                    CenterX = iconWidth / 2 - iconStroke,
+                    CenterY = iconWidth / 2 - iconStroke,
+                    Radius = iconWidth / 2 - iconStroke,
+                    Fill = new SvgColourServer(Color.White)
+                }
             }
         };
         defs.Children.Add(iconMask);
 
         foreach (var type in usedTypes)
         {
-            var typeDef = new SvgGroup()
+            var typeDef = new SvgGroup
             {
-                ID = type.ToIdString(),
+                ID = type.ToIdString()
             };
             var icon = type.Icon;
             var iconKind = Utility.ParseIconKind(icon);
@@ -1905,27 +1926,28 @@ public class Design : DesignProps
             {
                 // TODO: Variable font size to fit logogram text to width
                 var fontSize = iconWidth / 2;
-                var text = new SvgText()
+                var text = new SvgText
                 {
                     Text = icon,
                     FontSize = fontSize,
                     TextAnchor = SvgTextAnchor.Middle,
                     Fill = new SvgColourServer(Color.Black),
                     // TODO: Mask the icon logogram text
-                    CustomAttributes = {
+                    CustomAttributes =
+                    {
                         // { "mask", "url(#iconMask)" }
                     }
                 };
-                var textTransformed = new SvgGroup()
+                var textTransformed = new SvgGroup
                 {
                     Children = { text }
                 };
                 var textTransform = new SvgTransformCollection
                 {
-                    new SvgTranslate(iconWidth/2, iconStroke + iconWidth/2 + fontSize/4)
+                    new SvgTranslate(iconWidth / 2, iconStroke + iconWidth / 2 + fontSize / 4)
                 };
                 textTransformed.Transforms = textTransform;
-                typeDef.Children.Add(new SvgUse() { CustomAttributes = { { "href", "#icon" } } });
+                typeDef.Children.Add(new SvgUse { CustomAttributes = { { "href", "#icon" } } });
                 typeDef.Children.Add(textTransformed);
             }
             else
@@ -1933,16 +1955,17 @@ public class Design : DesignProps
                 if (iconKind == IconKind.Filepath)
                     icon = Path.Combine(kitDirectory, icon);
 
-                var image = new SvgImage()
+                var image = new SvgImage
                 {
                     Width = iconWidth - 2 * iconStroke,
                     Height = iconWidth - 2 * iconStroke,
-                    CustomAttributes = {
-                        {"href", Utility.DatastringFromUrl(icon) },
+                    CustomAttributes =
+                    {
+                        { "href", Utility.DatastringFromUrl(icon) },
                         { "mask", "url(#iconMask)" }
                     }
                 };
-                var imageTransformed = new SvgGroup()
+                var imageTransformed = new SvgGroup
                 {
                     Children = { image }
                 };
@@ -1951,7 +1974,7 @@ public class Design : DesignProps
                     new SvgTranslate(iconStroke, iconStroke)
                 };
                 imageTransformed.Transforms = imageTransform;
-                typeDef.Children.Add(new SvgUse() { CustomAttributes = { { "href", "#icon" } } });
+                typeDef.Children.Add(new SvgUse { CustomAttributes = { { "href", "#icon" } } });
                 typeDef.Children.Add(imageTransformed);
             }
 
@@ -1960,7 +1983,7 @@ public class Design : DesignProps
 
         svgDoc.Children.Add(defs);
 
-        var connections = new SvgGroup() { ID = "connections" };
+        var connections = new SvgGroup { ID = "connections" };
 
         foreach (var connection in Connections)
         {
@@ -1974,14 +1997,14 @@ public class Design : DesignProps
                 EndY = connectingPieceFlat.Center.Y + iconWidth / 2,
                 Stroke = new SvgColourServer(Color.Black),
                 StrokeWidth = connectionStroke,
-                Children = { new SvgTitle { Content = connection.ToIdString() }}
+                Children = { new SvgTitle { Content = connection.ToIdString() } }
             };
             connections.Children.Add(connectionLine);
         }
 
         svgDoc.Children.Add(connections);
 
-        var pieces = new SvgGroup() { ID = "pieces" };
+        var pieces = new SvgGroup { ID = "pieces" };
 
         foreach (var piece in Pieces)
         {
@@ -1992,13 +2015,15 @@ public class Design : DesignProps
                 {
                     CustomAttributes = { { "href", "#root" } },
                     X = flatPiece.Center.X,
-                    Y = flatPiece.Center.Y,
+                    Y = flatPiece.Center.Y
                 };
                 pieces.Children.Add(rootPiece);
             }
+
             var pieceIcon = new SvgUse
             {
-                CustomAttributes = { { "href", "#" + typesDict[flatPiece.Type.Name][flatPiece.Type.Variant].ToIdString() } },
+                CustomAttributes =
+                    { { "href", "#" + typesDict[flatPiece.Type.Name][flatPiece.Type.Variant].ToIdString() } },
                 X = flatPiece.Center.X,
                 Y = flatPiece.Center.Y,
                 Children = { new SvgTitle { Content = flatPiece.Id } }
@@ -2021,7 +2046,7 @@ public class Design : DesignProps
 
 @font-face {
   font-family: ""Noto Emoji"";
-  src: url(""data:application/truetype;base64," + Resources.NotoEmoji +@""");
+  src: url(""data:application/truetype;base64," + Resources.NotoEmoji + @""");
 }
 
 text {
@@ -2114,7 +2139,8 @@ public class DesignId : Model<DesignId>
     /// <summary>
     ///     🔀 The optional variant of the design. No variant means the default variant.
     /// </summary>
-    [Name("🔀", "Vn?", "Vnt", "The optional variant of the design. No variant means the default variant.", PropImportance.ID, true)]
+    [Name("🔀", "Vn?", "Vnt", "The optional variant of the design. No variant means the default variant.",
+        PropImportance.ID, true)]
     public string Variant { get; set; } = "";
 
     public static implicit operator DesignId(DesignProps design)
@@ -2151,26 +2177,34 @@ public class KitProps : Model<Kit>
     public string Description { get; set; } = "";
 
     /// <summary>
-    ///     🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
+    ///     🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg |
+    ///     svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico", "The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
+    [Url("🪙", "Ic?", "Ico",
+        "The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
     public string Icon { get; set; } = "";
 
     /// <summary>
-    ///    🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
+    ///     🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which
+    ///     will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img", "The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
+    [Url("🖼️", "Im?", "Img",
+        "The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
     public string Image { get; set; } = "";
 
     /// <summary>
-    ///    🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB.
+    ///     🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ]
+    ///     which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB.
     /// </summary>
-    [Url("🔮", "Pv?", "Prv", "The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB.")]
+    [Url("🔮", "Pv?", "Prv",
+        "The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB.")]
     public string Preview { get; set; } = "";
+
     /// <summary>
     ///     🔀 The optional version of the kit. No version means the latest version.
     /// </summary>
-    [Name("🔀", "Vr?", "Ver", "The optional version of the kit. No version means the latest version.", PropImportance.ID, true)]
+    [Name("🔀", "Vr?", "Ver", "The optional version of the kit. No version means the latest version.",
+        PropImportance.ID, true)]
     public string Version { get; set; } = "";
 
     /// <summary>
@@ -2186,7 +2220,7 @@ public class KitProps : Model<Kit>
     public string Homepage { get; set; } = "";
 
     /// <summary>
-    ///    ⚖️ The optional license [ spdx id | url ] of the kit.
+    ///     ⚖️ The optional license [ spdx id | url ] of the kit.
     /// </summary>
     [Url("⚖️", "Ln?", "Lcn", "The optional license [ spdx id | url ] of the kit.")]
     public string License { get; set; } = "";
@@ -2245,7 +2279,7 @@ public class Kit : KitProps
             errors.AddRange(errorsDesign.Select(e => $"A design ({design.ToIdString()}) is invalid: " + e));
         }
 
-        var typeIds = Types.Select(t => (t.Name,t.Variant));
+        var typeIds = Types.Select(t => (t.Name, t.Variant));
         var duplicateTypeIds = typeIds.GroupBy(x => x).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
         if (duplicateTypeIds.Length != 0)
         {
@@ -2260,7 +2294,7 @@ public class Kit : KitProps
             }
         }
 
-        var designIds = Designs.Select(d => (d.Name, d.Variant,d.View));
+        var designIds = Designs.Select(d => (d.Name, d.Variant, d.View));
         var duplicateDesignIds = designIds.GroupBy(x => x).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
         if (duplicateDesignIds.Length != 0)
         {
@@ -2342,7 +2376,6 @@ public interface IApi
 
     [Get("/api/assistant/predictDesign")]
     Task<ApiResponse<Design>> PredictDesign([Body] PredictDesignBody body);
-
 }
 
 public static class Api
@@ -2434,21 +2467,21 @@ public static class Api
     }
 
 
-
     public static Design PredictDesign(string description, Type[] types, Design design)
     {
-        var response = GetApi().PredictDesign(new PredictDesignBody() { Description = description, Types = types, Design = design }).Result;
+        var response = GetApi().PredictDesign(new PredictDesignBody
+            { Description = description, Types = types, Design = design }).Result;
         if (response.IsSuccessStatusCode)
             return response.Content;
         HandleErrors(response);
         return null; // This line will never be reached, but is required to satisfy the compiler.
     }
-
 }
 
 #endregion
 
 #region Meta
+
 public static class Meta
 {
     /// <summary>
@@ -2564,4 +2597,5 @@ public static class Meta
             kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray());
     }
 }
+
 #endregion

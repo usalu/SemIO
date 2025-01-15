@@ -19,6 +19,7 @@
 #endregion
 
 #region TODOs
+
 // TODO: Think of modelling components that are resilient to future schema changes.
 // TODO: Refactor EngineComponent with GetInput and GetPersitanceInput etc. Very confusing. Probably no abstracting is better.
 // TODO: GetProps and SetProps (includes children) is not consistent with the prop naming in python (does not include children).
@@ -44,7 +45,6 @@ using System.Drawing;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using ExCSS;
 using GH_IO.Serialization;
 using Grasshopper;
 using Grasshopper.Kernel;
@@ -96,9 +96,11 @@ public class SemioCategoryIcon : GH_AssemblyPriority
 #region Copilot
 
 #region GraphQL
+
 #endregion
 
 #region Dictionary
+
 //Symbol,Code,Abbreviation,Name,Description
 //👥,Bs,Bas,Base,The shared base props for {{NAME}} models.
 //🧲,Cd,Cnd,Connected,The connected side of the piece of the connection.
@@ -185,6 +187,7 @@ public class SemioCategoryIcon : GH_AssemblyPriority
 //🏁,Z,Z,Z,The z-coordinate of the screen point.
 //🎚️,Z,Z,Z,The z-coordinate of the point.
 //➡️,ZA,ZAx,ZAxis,The z-axis of the plane.
+
 #endregion
 
 #endregion
@@ -597,9 +600,11 @@ public class AuthorGoo : ModelGoo<Author>
     public AuthorGoo()
     {
     }
+
     public AuthorGoo(Author value) : base(value)
     {
     }
+
     public override bool CastTo<Q>(ref Q target)
     {
         if (typeof(Q).IsAssignableFrom(typeof(GH_String)))
@@ -608,8 +613,10 @@ public class AuthorGoo : ModelGoo<Author>
             target = (Q)ptr;
             return true;
         }
+
         return false;
     }
+
     public override bool CastFrom(object source)
     {
         if (source == null) return false;
@@ -622,6 +629,7 @@ public class AuthorGoo : ModelGoo<Author>
             };
             return true;
         }
+
         return false;
     }
 }
@@ -1156,7 +1164,7 @@ public class DrawDiagramComponent : Component
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddTextParameter( "Scalable Vector Graphics", "SVG",
+        pManager.AddTextParameter("Scalable Vector Graphics", "SVG",
             "The diagram as a Scalable Vector Graphics (SVG).", GH_ParamAccess.item);
     }
 
@@ -1173,7 +1181,7 @@ public class DrawDiagramComponent : Component
                 : Directory.GetCurrentDirectory();
         var design = designGoo.Value;
         var types = typesGoos.Select(t => t.Value).ToArray();
-        var svg = design.Diagram(types, Utility.ComputeChildPlane,uri);
+        var svg = design.Diagram(types, Utility.ComputeChildPlane, uri);
         DA.SetData(0, svg);
     }
 }
@@ -1230,6 +1238,7 @@ public class ConvertUnitComponent : Component
     public override Guid ComponentGuid => new("4EEB48B6-39A2-4FE1-B83F-6755EE355FF5");
 
     protected override Bitmap Icon => Resources.unit_convert_24x24;
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
@@ -1254,7 +1263,6 @@ public class ConvertUnitComponent : Component
         var convertedValue = Semio.Utility.Units.Convert((float)value, from, to);
         DA.SetData(0, (double)convertedValue);
     }
-    public override GH_Exposure Exposure => GH_Exposure.secondary;
 }
 
 //public class UpdateComponents : Component
@@ -1369,7 +1377,9 @@ public abstract class ModelComponent<T, U, V> : Component
         pManager.AddParameter(modelParam, NameM, isOutput ? ModelM.Code : ModelM.Code + "?",
             description, GH_ParamAccess.item);
         pManager.AddBooleanParameter(isOutput ? "Valid" : "Validate", "Vd?",
-            isOutput ? $"True if the {NameM.ToLower()} is valid. Null if no validation was performed." : $"Whether the {NameM.ToLower()} should be validated.", GH_ParamAccess.item);
+            isOutput
+                ? $"True if the {NameM.ToLower()} is valid. Null if no validation was performed."
+                : $"Whether the {NameM.ToLower()} should be validated.", GH_ParamAccess.item);
 
         AddModelProps(pManager);
 
@@ -1546,6 +1556,7 @@ public class TypeComponent : ModelComponent<TypeParam, TypeGoo, Type>
             {
                 type.Unit = "m";
             }
+
         type.Icon = type.Icon.Replace('\\', '/');
         type.Image = type.Image.Replace('\\', '/');
         return type;
@@ -1625,7 +1636,8 @@ public class ConnectionComponent : ModelComponent<ConnectionParam, ConnectionGoo
             "Optional id of the port of type of the piece. Otherwise the default port will be selected.",
             GH_ParamAccess.item);
         pManager.AddNumberParameter("Rotation", "Rt?",
-            "The optional horizontal rotation in port direction between the connected and the connecting piece in degrees.", GH_ParamAccess.item);
+            "The optional horizontal rotation in port direction between the connected and the connecting piece in degrees.",
+            GH_ParamAccess.item);
         pManager.AddNumberParameter("Tilt", "Tl?",
             "The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.",
             GH_ParamAccess.item);
@@ -1709,6 +1721,7 @@ public class DesignComponent : ModelComponent<DesignParam, DesignGoo, Design>
             {
                 design.Unit = "m";
             }
+
         design.Icon = design.Icon.Replace('\\', '/');
         design.Image = design.Image.Replace('\\', '/');
 
@@ -1719,6 +1732,7 @@ public class DesignComponent : ModelComponent<DesignParam, DesignGoo, Design>
 public class KitComponent : ModelComponent<KitParam, KitGoo, Kit>
 {
     public override Guid ComponentGuid => new("987560A8-10D4-43F6-BEBE-D71DC2FD86AF");
+
     protected override Kit ProcessModel(Kit kit)
     {
         kit.Icon = kit.Icon.Replace('\\', '/');
@@ -1902,12 +1916,14 @@ public abstract class EngineComponent : Component
 public abstract class PersistenceComponent : EngineComponent
 {
     protected PersistenceComponent(string name, string nickname, string description, string subcategory = "Persistence")
-    : base(name, nickname, description, subcategory)
+        : base(name, nickname, description, subcategory)
     {
     }
+
     protected virtual void RegisterPersitenceInputParams(GH_InputParamManager pManager)
     {
     }
+
     protected override void RegisterEngineInputParams(GH_InputParamManager pManager)
     {
         RegisterPersitenceInputParams(pManager);
@@ -1941,7 +1957,7 @@ public abstract class PersistenceComponent : EngineComponent
             uri = OnPingDocument().IsFilePathDefined
                 ? Path.GetDirectoryName(OnPingDocument().FilePath)
                 : Directory.GetCurrentDirectory();
-        dynamic? input = GetPersistentInput(DA);
+        var input = GetPersistentInput(DA);
 
         return new { Uri = uri, Input = input };
     }
@@ -1953,8 +1969,8 @@ public abstract class PersistenceComponent : EngineComponent
         var output = RunOnKit(input.Uri, input.Input);
         return output;
     }
-
 }
+
 public class LoadKitComponent : PersistenceComponent
 {
     public LoadKitComponent() : base("Load Kit", "/Kit", "Load a kit.")
@@ -2287,18 +2303,21 @@ public class ClearCacheComponent : Component
 #endregion
 
 #region Assistant
+
 public abstract class AssistantComponent : EngineComponent
 {
-    public AssistantComponent(string name, string nickname, string description) : base(name, nickname, description, "Assistant")
+    public AssistantComponent(string name, string nickname, string description) : base(name, nickname, description,
+        "Assistant")
     {
     }
-
 }
+
 public class PredictDesignComponent : AssistantComponent
 {
     public PredictDesignComponent() : base("Predict Design", "%Dsn", "Predict a design.")
     {
     }
+
     protected override string RunDescription => "True to predict the design.";
     protected override string SuccessDescription => "True if the design was successfully predicted. False otherwise.";
 
@@ -2309,9 +2328,11 @@ public class PredictDesignComponent : AssistantComponent
     protected override void RegisterEngineInputParams(GH_InputParamManager pManager)
     {
         var pCount = pManager.ParamCount;
-        pManager.AddTextParameter("Description", "Dc", "The description of the design or an instruction how to change the base design.", GH_ParamAccess.item);
+        pManager.AddTextParameter("Description", "Dc",
+            "The description of the design or an instruction how to change the base design.", GH_ParamAccess.item);
         pManager.AddParameter(new TypeParam(), "Types", "Ty+", "The types to use in the design.", GH_ParamAccess.list);
-        pManager.AddParameter(new DesignParam(), "Design", "Dn?", "The optional design to use a base.", GH_ParamAccess.item);
+        pManager.AddParameter(new DesignParam(), "Design", "Dn?", "The optional design to use a base.",
+            GH_ParamAccess.item);
         pManager[pCount + 2].Optional = true;
     }
 
