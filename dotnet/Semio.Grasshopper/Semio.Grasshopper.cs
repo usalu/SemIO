@@ -45,6 +45,7 @@ using System.Drawing;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using FluentValidation;
 using GH_IO.Serialization;
 using Grasshopper;
 using Grasshopper.Kernel;
@@ -421,7 +422,7 @@ public abstract class ModelGoo<T> : GH_Goo<T> where T : Model<T>, new()
 
     public override bool IsValid { get; }
 
-    public override string TypeName => Value.GetType().Name;
+    public override string TypeName => typeof(T).Name;
 
     public override string TypeDescription =>
         ((ModelAttribute)Attribute.GetCustomAttribute(typeof(T), typeof(ModelAttribute))).Description;
@@ -435,6 +436,8 @@ public abstract class ModelGoo<T> : GH_Goo<T> where T : Model<T>, new()
 
     public override string ToString()
     {
+        if (Value == null)
+            return null;
         return Value.ToString();
     }
 
@@ -659,6 +662,8 @@ public class DiagramPointGoo : ModelGoo<DiagramPoint>
     {
         if (typeof(Q).IsAssignableFrom(typeof(GH_Point)))
         {
+            if (Value == null)
+                return false;
             object ptr = new GH_Point(new Point3d(Value.X, Value.Y, 0));
             target = (Q)ptr;
             return true;
@@ -1584,8 +1589,8 @@ public class PieceComponent : ModelComponent<PieceParam, PieceGoo, Piece>
         pManager.AddPlaneParameter("Plane", "Pn?",
             "The optional plane of the piece. When pieces are connected only one piece can have a plane.",
             GH_ParamAccess.item);
-        pManager.AddParameter(new DiagramPointParam(), "Diagram Point", "DP",
-            "A 2d-point (xy) of floats in the diagram. One unit is equal the width of a piece icon.",
+        pManager.AddParameter(new DiagramPointParam(), "Center", "Ce?",
+            "The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
             GH_ParamAccess.item);
     }
 
@@ -1615,7 +1620,7 @@ public class PieceComponent : ModelComponent<PieceParam, PieceGoo, Piece>
         DA.SetData(3, pieceGoo.Value.Type.Name);
         DA.SetData(4, pieceGoo.Value.Type.Variant);
         DA.SetData(5, (pieceGoo.Value.Plane as Plane)?.Convert());
-        DA.SetData(6, new DiagramPointGoo(pieceGoo.Value.Center as DiagramPoint));
+        DA.SetData(6, pieceGoo.Value!=null? new DiagramPointGoo(pieceGoo.Value.Center as DiagramPoint) : null);
     }
 }
 

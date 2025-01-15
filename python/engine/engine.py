@@ -4123,7 +4123,7 @@ class SqliteStore(DatabaseStore):
             kit.uri = uri
             session.commit()
             session.close()
-        except sqlalchemy.exc.OperationalError:
+        except sqlalchemy.exc.OperationalError as e:
             pass
         return SqliteStore(uri, engine, sqlitePath)
 

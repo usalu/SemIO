@@ -41,6 +41,7 @@ using System.Collections.Immutable;
 using System.Drawing;
 using System.Globalization;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Xml;
 using FluentValidation;
@@ -1437,7 +1438,7 @@ public class Piece : Model<Piece>
     /// <summary>
     ///     ⌖ The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.
     /// </summary>
-    [ModelProp("⌖", "Ce", "Cen",
+    [ModelProp("⌖", "Ce?", "Cen",
         "The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
         PropImportance.OPTIONAL)]
     public DiagramPoint? Center { get; set; }
