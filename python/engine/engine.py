@@ -24,6 +24,7 @@ engine.py
 
 # TODOs #
 
+# TODO: Replace prototype healing with one that makes more for every single property.
 # TODO: Try closest embedding instead of smallest Levenshtein distance.
 # TODO: Automatic derive from Id model.
 # TODO: Automatic emptying.
@@ -1317,13 +1318,14 @@ class Plane(Table, table=True):
             if isinstance(input, str)
             else input if isinstance(input, dict) else input.__dict__
         )
-        origin = PointInput.model_validate(obj["origin"])
-        xAxis = VectorInput.model_validate(obj["xAxis"])
-        yAxis = VectorInput.model_validate(obj["yAxis"])
-        entity = PlaneInput.model_construct()
+        origin = Point.model_validate(obj["origin"])
+        xAxis = Vector.model_validate(obj["xAxis"])
+        yAxis = Vector.model_validate(obj["yAxis"])
+        entity = Plane()
         entity.origin = origin
         entity.xAxis = xAxis
         entity.yAxis = yAxis
+
         return entity
 
 
@@ -2542,13 +2544,18 @@ class Piece(TableEntity, table=True):
             entity.type = types[type.name][type.variant]
         except KeyError:
             raise TypeNotFound(type)
-        center = DiagramPoint.parse(obj["center"])
-        entity.center = center
         try:
-            plane = Plane.parse(obj["plane"])
-            # TODO: Proper mechanism of nullable fields.
-            if plane.originX is not None:
-                entity.plane = plane
+            if obj["plane"] is not None:
+                plane = Plane.parse(obj["plane"])
+                # TODO: Proper mechanism of nullable fields.
+                if plane.originX is not None:
+                    entity.plane = plane
+        except KeyError:
+            pass
+        try:
+            if obj["center"] is not None:
+                center = DiagramPoint.parse(obj["center"])
+                entity.center = center
         except KeyError:
             pass
         return entity
@@ -4307,6 +4314,7 @@ def decodeDesign(design: dict):
     return DesignPrediction.parse(decodedDesign)
 
 
+# TODO: Replace prototype healing with one that makes more for every single property.
 def healDesign(design: DesignPrediction, types: list[TypeContext]):
     """🩺 Heal a design by replacing missing type variants with the first variant."""
     designClone = design.model_copy(deep=True)
@@ -4326,24 +4334,37 @@ def healDesign(design: DesignPrediction, types: list[TypeContext]):
     for piece in designClone.pieces:
         pieceD[piece.id_] = piece
         if piece.type.name not in typeD:
-            piece.type.name = difflib.get_close_matches(
-                piece.type.name, typeD.keys(), n=1
-            )[0]
+            # TODO: Remove piece if type name is not found instead of taking the first.
+            try:
+                piece.type.name = difflib.get_close_matches(
+                    piece.type.name, typeD.keys(), n=1
+                )[0]
+            except Error as e:  # TODO: Make more specific
+                piece.type.name = typeD.keys()[0]
         if not (piece.type.variant in typeD[piece.type.name]):
-            piece.type.variant = difflib.get_close_matches(
-                piece.type.variant, typeD[piece.type.name].keys(), n=1
-            )[0]
+            try:
+                piece.type.variant = difflib.get_close_matches(
+                    piece.type.variant, typeD[piece.type.name].keys(), n=1
+                )[0]
+            except Error as e:  # TODO: Make more specific
+                piece.type.variant = typeD[piece.type.name].keys()[0]
 
+    validConnections = []
     for connection in designClone.connections:
         if connection.connected.piece.id_ not in pieceD:
-            connection.connected.piece.id_ = difflib.get_close_matches(
-                connection.connected.piece.id_, pieceD.keys(), n=1
-            )[0]
+            try:
+                connection.connected.piece.id_ = difflib.get_close_matches(
+                    connection.connected.piece.id_, pieceD.keys(), n=1
+                )[0]
+            except Error as e:
+                continue
         if connection.connecting.piece.id_ not in pieceD:
-            connection.connecting.piece.id_ = difflib.get_close_matches(
-                connection.connecting.piece.id_, pieceD.keys(), n=1
-            )[0]
-
+            try:
+                connection.connecting.piece.id_ = difflib.get_close_matches(
+                    connection.connecting.piece.id_, pieceD.keys(), n=1
+                )[0]
+            except Error as e:
+                continue
         connectedType = typeD[pieceD[connection.connected.piece.id_].type.name][
             pieceD[connection.connected.piece.id_].type.variant
         ]
@@ -4369,6 +4390,8 @@ def healDesign(design: DesignPrediction, types: list[TypeContext]):
                 portD[connectingType.name][connectingType.variant].keys(),
                 n=1,
             )[0]
+        validConnections.append(connection)
+    designClone.connections = validConnections
     # remove invalid connections
     designClone.connections = [
         c for c in designClone.connections if c.connected.piece.id_ != c.connecting
