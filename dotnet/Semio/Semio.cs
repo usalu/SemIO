@@ -112,7 +112,7 @@ public enum IconKind
 //🖇️,Co*,Cons,Connections,The optional connections of a design.
 //⌚,CA,CAt,Created At,The time when the {{NAME}} was created.
 //💬,Dc?,Dsc,Description,The optional human-readable description of the {{NAME}}.
-//📖,Df,Def,Definition,The optional definition [ text | url ] of the quality.
+//📖,Df,Def,Definition,The optional definition [ text | uri ] of the quality.
 //✏️,Dg,Dgm,Diagram,The diagram of the design.
 //📁,Di?,Dir,Directory,The optional directory where to find the kit.
 //🏅,Dl,Dfl,Default,Whether it is the default representation of the type. There can be only one default representation per type.
@@ -294,14 +294,35 @@ public static class Utility
         return Uri.UnescapeDataString(text);
     }
 
-    public static string Serialize(this object obj, bool indented = false)
+    public static string Serialize(this object obj, string indent = "")
     {
-        return JsonConvert.SerializeObject(
-            obj, indented ? Formatting.Indented : Formatting.None, new JsonSerializerSettings
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
-            });
+        var isTabbed = indent.StartsWith("\t");
+        var formatting = string.IsNullOrEmpty(indent) ? Formatting.None : Formatting.Indented;
+        var settings = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            Formatting = formatting
+        };
+
+        if (formatting == Formatting.None)
+        {
+            return JsonConvert.SerializeObject(obj, settings);
+        }
+
+        var stringWriter = new StringWriter();
+        using (var jsonWriter = new JsonTextWriter(stringWriter))
+        {
+            jsonWriter.Formatting = Formatting.Indented;
+            jsonWriter.IndentChar = isTabbed ? '\t' : ' ';
+            jsonWriter.Indentation = indent.Length;
+
+            var serializer = JsonSerializer.Create(settings);
+            serializer.Serialize(jsonWriter, obj);
+        }
+
+        return stringWriter.ToString();
     }
+
 
     public static T Deserialize<T>(this string json)
     {
@@ -1210,9 +1231,9 @@ public class Quality : Model<Quality>
     public string Unit { get; set; } = "";
 
     /// <summary>
-    ///     📖 The optional definition [ text | url ] of the quality.
+    ///     📖 The optional definition [ text | uri ] of the quality.
     /// </summary>
-    [Description("📖", "Df?", "Def", "The optional definition [ text | url ] of the quality.")]
+    [Description("📖", "Df?", "Def", "The optional definition [ text | uri ] of the quality.")]
     public string Definition { get; set; } = "";
 }
 
@@ -2471,7 +2492,7 @@ public static class Api
     public static Design PredictDesign(string description, Type[] types, Design design)
     {
         var response = GetApi().PredictDesign(new PredictDesignBody
-            { Description = description, Types = types, Design = design }).Result;
+        { Description = description, Types = types, Design = design }).Result;
         if (response.IsSuccessStatusCode)
             return response.Content;
         HandleErrors(response);

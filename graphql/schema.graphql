@@ -529,7 +529,7 @@ input QualityInputNode {
   """📏 The optional unit of the value of the quality."""
   unit: String = ""
 
-  """📏 The optional definition [ text | url ] of the quality."""
+  """📏 The optional definition [ text | uri ] of the quality."""
   definition: String = ""
 }
 

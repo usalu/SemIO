@@ -49,7 +49,7 @@ engine.py
 # 🖇️,Co*,Cons,Connections,The optional connections of a design.
 # ⌚,CA,CAt,Created At,The time when the {{NAME}} was created.
 # 💬,Dc?,Dsc,Description,The optional human-readable description of the {{NAME}}.
-# 📖,Df,Def,Definition,The optional definition [ text | url ] of the quality.
+# 📖,Df,Def,Definition,The optional definition [ text | uri ] of the quality.
 # ✏️,Dg,Dgm,Diagram,The diagram of the design.
 # 📁,Di?,Dir,Directory,The optional directory where to find the kit.
 # 🏅,Dl,Dfl,Default,Whether it is the default representation of the type. There can be only one default representation per type.
@@ -1791,14 +1791,14 @@ class QualityUnitField(RealField, abc.ABC):
 
 
 class QualityDefinitionField(RealField, abc.ABC):
-    """📏 The optional definition [ text | url ] of the quality."""
+    """📏 The optional definition [ text | uri ] of the quality."""
 
     definition: str = sqlmodel.Field(
         default="",
         max_length=DESCRIPTION_LENGTH_LIMIT,
-        description="📏 The optional definition [ text | url ] of the quality.",
+        description="📏 The optional definition [ text | uri ] of the quality.",
     )
-    """📏 The optional definition [ text | url ] of the quality."""
+    """📏 The optional definition [ text | uri ] of the quality."""
 
 
 class QualityId(QualityNameField, Id):
@@ -2987,6 +2987,14 @@ class Connection(
             pass
         try:
             entity.shift = obj["shift"]
+        except KeyError:
+            pass
+        try:
+            entity.x = obj["x"]
+        except KeyError:
+            pass
+        try:
+            entity.y = obj["y"]
         except KeyError:
             pass
         return entity
@@ -4417,7 +4425,7 @@ def healDesign(design: DesignPrediction, types: list[TypeContext]):
 
 try:
     openaiClient = openai.Client()
-except Error as e:
+except openai.OpenAIError as e:
     pass
 
 systemPrompt = """You are a kit-of-parts design assistant.
@@ -4662,7 +4670,7 @@ class TableNode(graphene_sqlalchemy.SQLAlchemyObjectType):
 
     @classmethod
     def __init_subclass_with_meta__(cls, model=None, **options):
-        excludedFields = tuple(k for k, v in model.__fields__.items() if v.exclude)
+        excludedFields = tuple(k for k, v in model.model_fields.items() if v.exclude)
         if "exclude_fields" in options:
             options["exclude_fields"] += excludedFields
         else:

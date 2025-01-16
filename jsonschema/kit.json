@@ -414,7 +414,7 @@
                 },
                 "definition": {
                     "default": "",
-                    "description": "\ud83d\udccf The optional definition [ text | url ] of the quality.",
+                    "description": "\ud83d\udccf The optional definition [ text | uri ] of the quality.",
                     "maxLength": 4096,
                     "title": "Definition",
                     "type": "string"

@@ -9,7 +9,7 @@ Symbol,Code,Abbreviation,Name,Description
 🖇️,Co*,Cons,Connections,The optional connections of a design.
 ⌚,CA,CAt,Created At,The time when the {{NAME}} was created.
 💬,Dc?,Dsc,Description,The optional human-readable description of the {{NAME}}.
-📖,Df,Def,Definition,The optional definition [ text | url ] of the quality.
+📖,Df,Def,Definition,The optional definition [ text | uri ] of the quality.
 ✏️,Dg,Dgm,Diagram,The diagram of the design.
 📁,Di?,Dir,Directory,The optional directory where to find the kit.
 🏅,Dl,Dfl,Default,Whether it is the default representation of the type. There can be only one default representation per type.
@@ -81,6 +81,7 @@ Symbol,Code,Abbreviation,Name,Description
 🛂,Vd,Vld,Validate,Check if the {{NAME}} is valid.
 🏷️,Vl,Val,Value,The value of the tag.
 🔢,Vl?,Val,Value,The optional value [ text | url ] of the quality. No value is equivalent to true for the name.
++,+Tx,+Txt,Write Text,(Over)write the text
 🎚️,X,X,X,The x-coordinate of the icon of the piece in the diagram. One unit is equal the width of a piece icon.
 🎚️,X,X,X,The x-coordinate of the point.
 ➡️,X?,X,X,The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.

@@ -110,7 +110,7 @@ public class SemioCategoryIcon : GH_AssemblyPriority
 //🖇️,Co*,Cons,Connections,The optional connections of a design.
 //⌚,CA,CAt,Created At,The time when the {{NAME}} was created.
 //💬,Dc?,Dsc,Description,The optional human-readable description of the {{NAME}}.
-//📖,Df,Def,Definition,The optional definition [ text | url ] of the quality.
+//📖,Df,Def,Definition,The optional definition [ text | uri ] of the quality.
 //✏️,Dg,Dgm,Diagram,The diagram of the design.
 //📁,Di?,Dir,Directory,The optional directory where to find the kit.
 //🏅,Dl,Dfl,Default,Whether it is the default representation of the type. There can be only one default representation per type.
@@ -957,7 +957,9 @@ public abstract class SerializeComponent<T, U, V> : ScriptingComponent
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddParameter(new T(), NameM, ModelM.Code,
-            $"The {typeof(T).Name} to serialize.", GH_ParamAccess.item);
+            $"The {NameM.ToLower()} to serialize.", GH_ParamAccess.item);
+        pManager.AddTextParameter("Indent", "In?", $"The optional indent unit for the serialized {NameM.ToLower()}. Empty text for no indent or spaces or tabs", GH_ParamAccess.item, "");
+        pManager[1].Optional = true;
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -968,8 +970,10 @@ public abstract class SerializeComponent<T, U, V> : ScriptingComponent
     protected override void SolveInstance(IGH_DataAccess DA)
     {
         var goo = new U();
+        var indent = "";
         DA.GetData(0, ref goo);
-        var text = goo.Value.Serialize(true);
+        DA.GetData(1, ref indent);
+        var text = goo.Value.Serialize(indent);
         DA.SetData(0, text);
     }
 }
@@ -1216,7 +1220,7 @@ public class FlattenDesignComponent : Component
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddParameter(new DesignParam(), "Design", "D",
+        pManager.AddParameter(new DesignParam(), "Design", "Dn",
             "Flat Design with no connections.", GH_ParamAccess.item);
     }
 
@@ -1620,7 +1624,7 @@ public class PieceComponent : ModelComponent<PieceParam, PieceGoo, Piece>
         DA.SetData(3, pieceGoo.Value.Type.Name);
         DA.SetData(4, pieceGoo.Value.Type.Variant);
         DA.SetData(5, (pieceGoo.Value.Plane as Plane)?.Convert());
-        DA.SetData(6, pieceGoo.Value!=null? new DiagramPointGoo(pieceGoo.Value.Center as DiagramPoint) : null);
+        DA.SetData(6, pieceGoo.Value != null ? new DiagramPointGoo(pieceGoo.Value.Center as DiagramPoint) : null);
     }
 }
 

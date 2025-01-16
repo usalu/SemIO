@@ -1773,7 +1773,7 @@
                         "type": "string",
                         "maxLength": 4096,
                         "title": "Definition",
-                        "description": "\ud83d\udccf The optional definition [ text | url ] of the quality.",
+                        "description": "\ud83d\udccf The optional definition [ text | uri ] of the quality.",
                         "default": ""
                     }
                 },
@@ -1810,7 +1810,7 @@
                         "type": "string",
                         "maxLength": 4096,
                         "title": "Definition",
-                        "description": "\ud83d\udccf The optional definition [ text | url ] of the quality.",
+                        "description": "\ud83d\udccf The optional definition [ text | uri ] of the quality.",
                         "default": ""
                     }
                 },
