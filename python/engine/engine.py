@@ -4483,7 +4483,9 @@ def predictDesign(
     )
     try:
         response = openaiClient.chat.completions.create(
+            # model="o1-mini",
             model="gpt-4o",
+            # model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
@@ -4517,7 +4519,7 @@ def predictDesign(
     except Error as e:
         pass
 
-    iteration = 13
+    iteration = 17
 
     # create iteration folder
     os.makedirs(f"log/0{iteration}", exist_ok=True)

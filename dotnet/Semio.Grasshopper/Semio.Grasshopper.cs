@@ -1151,13 +1151,15 @@ public class DeserializeKitComponent : DeserializeComponent<KitParam, KitGoo, Ki
 public class DrawDiagramComponent : Component
 {
     public DrawDiagramComponent()
-        : base("Draw Diagram", ":Dgm", "Draw the diagram from a design.", "Diagram")
+        : base("Draw Diagram", ":Dgm", "Draw the diagram from a design.", "Display")
     {
     }
 
     public override Guid ComponentGuid => new("C53A0CC8-6DD7-415E-A20A-C5887CBE0DB9");
 
     protected override Bitmap Icon => Resources.diagram_draw_24x24;
+
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
@@ -1247,7 +1249,6 @@ public class ConvertUnitComponent : Component
     public override Guid ComponentGuid => new("4EEB48B6-39A2-4FE1-B83F-6755EE355FF5");
 
     protected override Bitmap Icon => Resources.unit_convert_24x24;
-    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {

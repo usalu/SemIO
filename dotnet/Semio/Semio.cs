@@ -2404,7 +2404,12 @@ public static class Api
 {
     private static IApi GetApi()
     {
-        return RestService.For<IApi>(Constants.EngineAddress, new RefitSettings
+        var httpClient = new HttpClient
+        {
+            BaseAddress = new Uri(Constants.EngineAddress),
+            Timeout = TimeSpan.FromMinutes(3)
+        };
+        return RestService.For<IApi>(httpClient, new RefitSettings
         {
             ContentSerializer = new NewtonsoftJsonContentSerializer(
                 new JsonSerializerSettings
