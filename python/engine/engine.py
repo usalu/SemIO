@@ -143,6 +143,7 @@ import multiprocessing
 import os
 import pathlib
 import sqlite3
+import time
 import typing
 import urllib
 import zipfile
@@ -4519,7 +4520,7 @@ def predictDesign(
     except Error as e:
         pass
 
-    iteration = 17
+    iteration = 19
 
     # create iteration folder
     os.makedirs(f"log/0{iteration}", exist_ok=True)
@@ -4585,6 +4586,7 @@ GRAPHQLTYPES = {
     "list[str]": graphene.NonNull(graphene.List(graphene.NonNull(graphene.String))),
     "DiagramPoint": graphene.NonNull(lambda: DiagramPointNode),
     "typing.Optional[__main__.DiagramPoint]": lambda: DiagramPointNode,
+    "typing.Optional[__mp_main__.DiagramPoint]": lambda: DiagramPointNode,
     "typing.Optional[engine.DiagramPoint]": lambda: DiagramPointNode,
     "Point": graphene.NonNull(lambda: PointNode),
     "Vector": graphene.NonNull(lambda: VectorNode),
@@ -4605,6 +4607,9 @@ GRAPHQLTYPES = {
         graphene.List(graphene.NonNull(lambda: AuthorNode))
     ),
     "list[__main__.Author]": graphene.NonNull(
+        graphene.List(graphene.NonNull(lambda: AuthorNode))
+    ),
+    "list[__mp_main__.Author]": graphene.NonNull(
         graphene.List(graphene.NonNull(lambda: AuthorNode))
     ),
     "list[engine.Author]": graphene.NonNull(
@@ -5260,8 +5265,12 @@ def main():
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     args = parser.parse_args()
     start_engine(args.debug)
+    # process = multiprocessing.Process(target=start_engine, args=(args.debug,))
+    # process.start()
 
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()  # needed for pyinstaller on Windows
     main()
+    while True:
+        time.sleep(1)
