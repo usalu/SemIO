@@ -34,6 +34,7 @@
 // The invalid check happen twice and code is duplicated.
 // TODO: Figure out why cast from Piece to Text is not triggering the casts. ToString has somehow has precedence.
 // TODO: NameM.ToLower() doesn't work for composite names. E.g. "DiagramPoint" -> "diagrampoint".
+// TODO: Implement a status check and wait for the engine to be ready
 
 #endregion
 
@@ -1171,6 +1172,7 @@ public class DrawDiagramComponent : Component
             "If none is provided, it will try to see if the Grasshopper script is executed inside a local kit.",
             GH_ParamAccess.item);
         pManager[2].Optional = true;
+        pManager.AddBooleanParameter("Run", "R", "True to create the diagram of the design.", GH_ParamAccess.item);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -1184,12 +1186,17 @@ public class DrawDiagramComponent : Component
         var designGoo = new DesignGoo();
         var typesGoos = new List<TypeGoo>();
         var uri = "";
+        var run = false;
+
         DA.GetData(0, ref designGoo);
         DA.GetDataList(1, typesGoos);
         if (!DA.GetData(2, ref uri))
             uri = OnPingDocument().IsFilePathDefined
                 ? Path.GetDirectoryName(OnPingDocument().FilePath)
                 : Directory.GetCurrentDirectory();
+        DA.GetData(3, ref run);
+        if (!run)
+            return;
         var design = designGoo.Value;
         var types = typesGoos.Select(t => t.Value).ToArray();
         var svg = design.Diagram(types, Utility.ComputeChildPlane, uri);
@@ -1917,6 +1924,8 @@ public abstract class EngineComponent : Component
                 engine.Kill();
                 engine.WaitForExit();
             };
+            // TODO: Implement a status check and wait for the engine to be ready
+            Thread.Sleep(1000);
         }
     }
 }

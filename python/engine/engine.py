@@ -151,6 +151,7 @@ import io
 import shutil
 import stat
 import signal
+import sys
 
 import dotenv
 import fastapi
@@ -162,6 +163,9 @@ import lark
 import jinja2
 import openai
 import pydantic
+import PySide6.QtCore
+import PySide6.QtGui
+import PySide6.QtWidgets
 import requests
 import sqlalchemy
 import sqlalchemy.exc
@@ -4449,7 +4453,7 @@ designGenerationPromptTemplate = jinja2.Template(
     """Your task is to help to puzzle together a design.
 
 TYPE{NAME;VARIANT;DESCRIPTION;PORTS}
-PORT{ID;LOCATORS}
+PORT{ID;DESCRIPTION,LOCATORS}
 LOCATOR{GROUP;SUBGROUP}
 
 Available types:
@@ -4457,7 +4461,7 @@ Available types:
 {% raw %}{{% endraw -%}
 {{ type.name }};{{ type.variant }};{{ type.description }};
 {%- for port in type.ports %}
-{%- raw %}{{% endraw -%}{{ port.id_ }};
+{%- raw %}{{% endraw -%}{{ port.id_ }};{{ port.description }};
 {%- for locator in port.locators %}
 {%- raw %}{{% endraw -%}
 {{ locator.group }};{{ locator.subgroup }}}
@@ -5173,18 +5177,6 @@ engine.mount(
 )
 
 
-def start_engine(debug: bool = False):
-    logging.basicConfig(level=logging.INFO)  # for uvicorn in pyinstaller
-    uvicorn.run(
-        engine,
-        host=HOST,
-        port=PORT,
-        log_level="info",
-        access_log=False,
-        log_config=None,
-    )
-
-
 def generateSchemas():
     if os.path.exists("temp"):
         for root, dirs, files in os.walk("temp", topdown=False):
@@ -5260,17 +5252,72 @@ def generateSchemas():
         f.write(str(graphqlSchema))
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    args = parser.parse_args()
-    start_engine(args.debug)
-    # process = multiprocessing.Process(target=start_engine, args=(args.debug,))
-    # process.start()
+def start_engine():
+    logging.basicConfig(level=logging.INFO)  # for uvicorn in pyinstaller
+    uvicorn.run(
+        engine,
+        host=HOST,
+        port=PORT,
+        log_level="info",
+        access_log=False,
+        log_config=None,
+    )
+
+
+def restart_engine():
+    ui_instance = PySide6.QtWidgets.QApplication.instance()
+    engine_process = ui_instance.engine_process
+    if engine_process.is_alive():
+        engine_process.terminate()
+    ui_instance.engine_process = multiprocessing.Process(target=start_engine)
+    ui_instance.engine_process.start()
 
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()  # needed for pyinstaller on Windows
-    main()
-    while True:
-        time.sleep(1)
+
+    ui = PySide6.QtWidgets.QApplication(sys.argv)
+    ui.setQuitOnLastWindowClosed(False)
+
+    # Final location of assets when bundled with PyInstaller
+    if getattr(sys, "frozen", False):
+        basedir = sys._MEIPASS
+    else:
+        basedir = "../.."
+
+    icon = PySide6.QtGui.QIcon()
+    icon.addFile(
+        os.path.join(basedir, "icons/semio_16x16.png"), PySide6.QtCore.QSize(16, 16)
+    )
+    icon.addFile(
+        os.path.join(basedir, "icons/semio_32x32.png"), PySide6.QtCore.QSize(32, 32)
+    )
+    icon.addFile(
+        os.path.join(basedir, "icons/semio_48x48.png"), PySide6.QtCore.QSize(48, 48)
+    )
+    icon.addFile(
+        os.path.join(basedir, "icons/semio_128x128.png"), PySide6.QtCore.QSize(128, 128)
+    )
+    icon.addFile(
+        os.path.join(basedir, "icons/semio_256x256.png"), PySide6.QtCore.QSize(256, 256)
+    )
+
+    tray = PySide6.QtWidgets.QSystemTrayIcon()
+    tray.setIcon(icon)
+    tray.setVisible(True)
+
+    menu = PySide6.QtWidgets.QMenu()
+    restart = PySide6.QtGui.QAction("Restart")
+    restart.triggered.connect(restart_engine)
+    menu.addAction(restart)
+
+    quit = PySide6.QtGui.QAction("Quit")
+    quit.triggered.connect(lambda: ui.engine_process.terminate() or ui.quit())
+    menu.addAction(quit)
+
+    tray.setContextMenu(menu)
+
+    ui.engine_process = multiprocessing.Process(target=start_engine)
+    ui.engine_process.start()
+
+    sys.exit(ui.exec())
