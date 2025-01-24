@@ -64,7 +64,7 @@ namespace Semio.Grasshopper;
 public static class Constants
 {
     public const string Category = Semio.Constants.Name;
-    public const string Version = "4.1.0";
+    public const string Version = "5.0.0-beta";
 }
 
 #endregion
