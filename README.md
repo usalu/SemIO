@@ -1,9 +1,11 @@
 <p align="center">
-    <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/usalu/semio/r25.01-1/logo/semio-horizontal-dark.svg">
-        <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/usalu/semio/r25.01-1/logo/semio-horizontal.svg">
-        <img alt="semio" href="https://github.com/usalu/semio/" src="https://raw.githubusercontent.com/usalu/semio/r25.01-1/logo/semio-horizontal.svg">
-    </picture>
+    <a href="https://github.com/semio">
+      <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/usalu/semio/r25.01-1/logo/semio-horizontal-dark.svg">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/usalu/semio/r25.01-1/logo/semio-horizontal.svg">
+          <img alt="semio" href="https://github.com/usalu/semio/" src="https://raw.githubusercontent.com/usalu/semio/r25.01-1/logo/semio-horizontal.svg">
+      </picture>
+    </a>
     <br/>
     <a href="https://doi.org/10.5281/zenodo.8419156"><img src="https://raw.githubusercontent.com/usalu/semio/r25.01-1/badges/doi-zenodo.svg" alt="Cite"></a>
     <a href="https://github.com/usalu/semio/"><img src="https://raw.githubusercontent.com/usalu/semio/r25.01-1/badges/latest-release.svg" alt="Latest Release"></a>

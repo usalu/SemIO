@@ -1754,10 +1754,9 @@ public class Design : DesignProps
                         new Edge<string>(connection.Connected.Piece.Id, connection.Connecting.Piece.Id));
             var root = subGraph.Vertices.FirstOrDefault(p => pieces[p].Plane != null);
             if (root == null)
-            {
                 root = subGraph.Vertices.First();
-                onRoot(pieces[root]);
-            }
+            
+            onRoot(pieces[root]);
 
             var bfs = new UndirectedBreadthFirstSearchAlgorithm<string, Edge<string>>(subGraph);
             bfs.SetRootVertex(root);
