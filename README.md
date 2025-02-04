@@ -208,6 +208,10 @@ Afterwards you can install poetry with this Powershell command:
 
 `(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -`
 
+
+> If `poetry` is not found, you might want to add the path to your environmental variables.
+
+
 Then you can `build.ps1` in the Powershell and add your full path `LOCAL_PATH\dotnet\Semio.Grasshopper\Debug\net48` to your GrasshopperDeveloperSettings ⚙️
 
 # 📊 Stats
