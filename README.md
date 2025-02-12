@@ -163,9 +163,9 @@ That's it!
 
 ### 🫀 Metabolism
 
-<!-- ![Metabolism getting started](https://raw.githubusercontent.com/usalu/metabolism/r25.03-1/docs/getting-started.gif) -->
+<!-- ![Metabolism getting started](https://raw.githubusercontent.com/usalu/metabolism/main-tag/docs/getting-started.gif) -->
 
-![Design Variants](https://raw.githubusercontent.com/usalu/metabolism/r25.03-1/docs/design-variants.png)
+![Design Variants](https://raw.githubusercontent.com/usalu/metabolism/main-tag/docs/design-variants.png)
 
 You can fetch the kit directly from within Grasshopper if you copy this [uri](https://github.com/usalu/metabolism/archive/refs/tags/r25.03-1.zip), take a look at the [source](https://github.com/usalu/metabolism/archive/refs/tags/r25.03-1.zip) or the [documentation](https://github.com/usalu/metabolism/tree/r25.03-1) 👀
 
