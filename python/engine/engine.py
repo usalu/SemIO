@@ -186,11 +186,11 @@ RecursiveAnyList = typing.Any | list["RecursiveAnyList"]
 
 NAME = "semio"
 EMAIL = "mail@semio-tech.com"
-RELEASE = "r25.01-1"
+RELEASE = "r25.03-1"
 VERSION = "4.1.0"
 HOST = "127.0.0.1"
-PORT = 2501
-ADDRESS = "http://127.0.0.1:2501"
+PORT = 2503
+ADDRESS = "http://127.0.0.1:2503"
 NAME_LENGTH_LIMIT = 64
 ID_LENGTH_LIMIT = 128
 URL_LENGTH_LIMIT = 2048
