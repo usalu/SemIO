@@ -662,16 +662,6 @@ class RepresentationMimeField(RealField, abc.ABC):
     """✉️ The Multipurpose Internet Mail Extensions (MIME) type of the content of the resource of the representation."""
 
 
-class RepresentationLodField(RealField, abc.ABC):
-    """🔍 The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod."""
-
-    lod: str = sqlmodel.Field(
-        max_length=NAME_LENGTH_LIMIT,
-        description="🔍 The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod.",
-    )
-    """🔍 The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod."""
-
-
 class RepresentationUrlField(RealField, abc.ABC):
     """🔗 The Unique Resource Locator (URL) to the resource of the representation."""
 
@@ -692,16 +682,13 @@ class RepresentationTagsField(MaskedField, abc.ABC):
     """🏷️ The optional tags to group representations. No tags means default."""
 
 
-class RepresentationId(
-    RepresentationTagsField, RepresentationLodField, RepresentationMimeField, Id
-):
+class RepresentationId(RepresentationTagsField, RepresentationMimeField, Id):
     """🪪 The props to identify the representation within the parent type."""
 
 
 class RepresentationProps(
     RepresentationUrlField,
     RepresentationTagsField,
-    RepresentationLodField,
     RepresentationMimeField,
     Props,
 ):
@@ -711,7 +698,6 @@ class RepresentationProps(
 class RepresentationInput(
     RepresentationUrlField,
     RepresentationTagsField,
-    RepresentationLodField,
     RepresentationMimeField,
     Input,
 ):
@@ -720,7 +706,6 @@ class RepresentationInput(
 
 class RepresentationContext(
     RepresentationTagsField,
-    RepresentationLodField,
     RepresentationMimeField,
     Context,
 ):
@@ -730,7 +715,6 @@ class RepresentationContext(
 class RepresentationOutput(
     RepresentationUrlField,
     RepresentationTagsField,
-    RepresentationLodField,
     RepresentationMimeField,
     Output,
 ):
@@ -739,7 +723,6 @@ class RepresentationOutput(
 
 class Representation(
     RepresentationUrlField,
-    RepresentationLodField,
     RepresentationMimeField,
     TableEntity,
     table=True,
@@ -1573,11 +1556,22 @@ class PortLocatorsField(MaskedField, abc.ABC):
     """🗺️ The locators of the port."""
 
 
+class PortTField(RealField, abc.ABC):
+    """💍 The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise."""
+
+    t: float = sqlmodel.Field(
+        default=0.0,
+        description="💍 The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise.",
+    )
+    """💍 The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise."""
+
+
 class PortId(PortIdField, Id):
     """🪪 The props to identify the port within the parent type."""
 
 
 class PortProps(
+    PortTField,
     PortLocatorsField,
     PortDirectionField,
     PortPointField,
@@ -1588,7 +1582,7 @@ class PortProps(
     """🎫 The props of a port."""
 
 
-class PortInput(PortDescriptionField, PortIdField, Input):
+class PortInput(PortTField, PortDescriptionField, PortIdField, Input):
     """🔌 A port is a connection point (with a direction) of a type."""
 
     point: PointInput = sqlmodel.Field(
@@ -1606,7 +1600,7 @@ class PortInput(PortDescriptionField, PortIdField, Input):
     """🗺️ The locators of the port."""
 
 
-class PortContext(PortDescriptionField, PortIdField, Context):
+class PortContext(PortTField, PortDescriptionField, PortIdField, Context):
     """🔌 A port is a connection point (with a direction) of a type."""
 
     locators: list[LocatorContext] = sqlmodel.Field(
@@ -1617,7 +1611,12 @@ class PortContext(PortDescriptionField, PortIdField, Context):
 
 
 class PortOutput(
-    PortDirectionField, PortPointField, PortDescriptionField, PortIdField, Output
+    PortTField,
+    PortDirectionField,
+    PortPointField,
+    PortDescriptionField,
+    PortIdField,
+    Output,
 ):
     """🔌 A port is a connection point (with a direction) of a type."""
 
@@ -1628,7 +1627,7 @@ class PortOutput(
     """🗺️ The locators of the port."""
 
 
-class Port(PortDescriptionField, TableEntity, table=True):
+class Port(PortTField, PortDescriptionField, TableEntity, table=True):
     """🔌 A port is a connection point (with a direction) of a type."""
 
     PLURAL = "ports"

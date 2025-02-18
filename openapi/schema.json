@@ -1608,6 +1608,12 @@
                         "description": "\ud83d\udcac The optional human-readable description of the port.",
                         "default": ""
                     },
+                    "t": {
+                        "type": "number",
+                        "title": "T",
+                        "description": "\ud83d\udc8d The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise.",
+                        "default": 0.0
+                    },
                     "locators": {
                         "items": {
                             "$ref": "#/components/schemas/LocatorContext"
@@ -1650,6 +1656,12 @@
                         "title": "Description",
                         "description": "\ud83d\udcac The optional human-readable description of the port.",
                         "default": ""
+                    },
+                    "t": {
+                        "type": "number",
+                        "title": "T",
+                        "description": "\ud83d\udc8d The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise.",
+                        "default": 0.0
                     },
                     "point": {
                         "$ref": "#/components/schemas/PointInput",
@@ -1699,6 +1711,12 @@
                     "direction": {
                         "$ref": "#/components/schemas/Vector",
                         "description": "\u27a1\ufe0f The direction of the port. When another piece connects the direction of the other port is flipped and then the pieces are aligned."
+                    },
+                    "t": {
+                        "type": "number",
+                        "title": "T",
+                        "description": "\ud83d\udc8d The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise.",
+                        "default": 0.0
                     },
                     "locators": {
                         "items": {
@@ -1829,12 +1847,6 @@
                         "title": "Mime",
                         "description": "\u2709\ufe0f The Multipurpose Internet Mail Extensions (MIME) type of the content of the resource of the representation."
                     },
-                    "lod": {
-                        "type": "string",
-                        "maxLength": 64,
-                        "title": "Lod",
-                        "description": "\ud83d\udd0d The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod."
-                    },
                     "tags": {
                         "items": {
                             "type": "string"
@@ -1853,7 +1865,6 @@
                 "type": "object",
                 "required": [
                     "mime",
-                    "lod",
                     "url"
                 ],
                 "title": "RepresentationInput",
@@ -1867,12 +1878,6 @@
                         "title": "Mime",
                         "description": "\u2709\ufe0f The Multipurpose Internet Mail Extensions (MIME) type of the content of the resource of the representation."
                     },
-                    "lod": {
-                        "type": "string",
-                        "maxLength": 64,
-                        "title": "Lod",
-                        "description": "\ud83d\udd0d The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod."
-                    },
                     "tags": {
                         "items": {
                             "type": "string"
@@ -1891,7 +1896,6 @@
                 "type": "object",
                 "required": [
                     "mime",
-                    "lod",
                     "url"
                 ],
                 "title": "Representation",

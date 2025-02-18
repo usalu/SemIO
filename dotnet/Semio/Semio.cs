@@ -883,15 +883,6 @@ public class Representation : Model<Representation>
         "The Multipurpose Internet Mail Extensions (MIME) type of the content of the resource of the representation.")]
     public string Mime { get; set; } = "";
 
-    /// <summary>
-    ///     🔍 The optional Level of Detail/Development/Design (LoD) of the representation. No lod means default.
-    /// </summary>
-
-    [Name("🔍", "Ld?", "Lod",
-        "The optional Level of Detail/Development/Design (LoD) of the representation. No lod means default.",
-        PropImportance.ID,
-        true)]
-    public string Lod { get; set; } = "";
 
     /// <summary>
     ///     🏷️ The optional tags to group representations. No tags means default.
@@ -926,9 +917,8 @@ public class Representation : Model<Representation>
 
     public override string ToString()
     {
-        var lod = Lod == "" ? "" : ", " + Lod;
-        var tags = Tags.Count == 0 ? "" : ", " + string.Join(" ", Tags);
-        return $"Rep({Mime}{lod}{tags})";
+        var tags = Tags.Count == 0 ? "" : "," + string.Join(" ", Tags);
+        return $"Rep({Mime},{tags})";
     }
 }
 
@@ -1142,6 +1132,10 @@ public class Port : Model<Port>
         "The optional machine-readable locators of the port. Every port should have a unique set of locators.",
         PropImportance.OPTIONAL)]
     public List<Locator> Locators { get; set; } = new();
+
+    [NumberProp("💍", "T", "T", "The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise.", PropImportance.REQUIRED)]
+    public float T { get; set; } = 0;
+
 
     // TODO: Implement reflexive validation for model properties.
     public override (bool, List<string>) Validate()

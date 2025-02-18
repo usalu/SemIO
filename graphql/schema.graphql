@@ -112,7 +112,6 @@ type RepresentationNodeEdge {
 
 type Representation implements Node {
   mime: String!
-  lod: String!
   url: String!
   type: Type
 
@@ -140,6 +139,7 @@ type PortNodeEdge {
 
 type Port implements Node {
   description: String!
+  t: Float!
   id_: String
   type: Type
   locators: [Locator!]
@@ -452,11 +452,6 @@ input RepresentationInputNode {
   """
   mime: String!
 
-  """
-  🔍 The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod.
-  """
-  lod: String!
-
   """🏷️ The optional tags to group representations. No tags means default."""
   tags: [String] = null
 
@@ -472,6 +467,11 @@ input PortInputNode {
 
   """💬 The optional human-readable description of the port."""
   description: String = ""
+
+  """
+  💍 The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise.
+  """
+  t: Float = 0
 
   """
   ✖️ The connection point of the port that is attracted to another connection point.

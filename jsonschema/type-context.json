@@ -40,6 +40,12 @@
                     "title": "Description",
                     "type": "string"
                 },
+                "t": {
+                    "default": 0.0,
+                    "description": "\ud83d\udc8d The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise.",
+                    "title": "T",
+                    "type": "number"
+                },
                 "locators": {
                     "description": "\ud83d\uddfa\ufe0f The locators of the port.",
                     "items": {

@@ -78,7 +78,6 @@ CREATE TABLE design (
 );
 CREATE TABLE representation (
 	mime VARCHAR(64) NOT NULL, 
-	lod VARCHAR(64) NOT NULL, 
 	url VARCHAR(2048) NOT NULL, 
 	id INTEGER NOT NULL, 
 	"encodedTags" VARCHAR(1039) NOT NULL, 
@@ -88,6 +87,7 @@ CREATE TABLE representation (
 );
 CREATE TABLE port (
 	description VARCHAR(4096) NOT NULL, 
+	t FLOAT NOT NULL, 
 	id INTEGER NOT NULL, 
 	"localId" VARCHAR(128), 
 	"pointX" FLOAT NOT NULL, 

@@ -373,6 +373,12 @@
                     "$ref": "#/$defs/Vector",
                     "description": "\u27a1\ufe0f The direction of the port. When another piece connects the direction of the other port is flipped and then the pieces are aligned."
                 },
+                "t": {
+                    "default": 0.0,
+                    "description": "\ud83d\udc8d The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise.",
+                    "title": "T",
+                    "type": "number"
+                },
                 "locators": {
                     "description": "\ud83d\uddfa\ufe0f The locators of the port.",
                     "items": {
@@ -435,12 +441,6 @@
                     "title": "Mime",
                     "type": "string"
                 },
-                "lod": {
-                    "description": "\ud83d\udd0d The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod.",
-                    "maxLength": 64,
-                    "title": "Lod",
-                    "type": "string"
-                },
                 "tags": {
                     "description": "\ud83c\udff7\ufe0f The optional tags to group representations. No tags means default.",
                     "items": {
@@ -458,7 +458,6 @@
             },
             "required": [
                 "mime",
-                "lod",
                 "url"
             ],
             "title": "Representation",
