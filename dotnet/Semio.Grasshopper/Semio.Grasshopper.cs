@@ -453,6 +453,41 @@ public abstract class ModelGoo<T> : GH_Goo<T> where T : Model<T>, new()
         Value = reader.GetString(typeof(T).Name).Deserialize<T>();
         return base.Read(reader);
     }
+
+    internal virtual bool CustomCastTo<Q>(ref Q target)
+    {
+        return false;
+    }
+
+    internal virtual bool CustomCastFrom(object source)
+    {
+        return false;
+    }
+
+    public override bool CastTo<Q>(ref Q target)
+    {
+        if (typeof(Q).IsAssignableFrom(typeof(T)))
+        {
+            target = (Q)(object)this;
+            return true;
+        }
+
+        return CustomCastTo(ref target);
+    }
+
+    public override bool CastFrom(object source)
+    {
+        if (source == null) return false;
+
+        if (source is T model)
+        {
+            Value = model;
+            return true;
+        }
+
+        return CustomCastFrom(source);
+
+    }
 }
 
 public class RepresentationGoo : ModelGoo<Representation>
@@ -476,7 +511,7 @@ public class LocatorGoo : ModelGoo<Locator>
     {
     }
 
-    public override bool CastTo<Q>(ref Q target)
+    internal override bool CustomCastTo<Q>(ref Q target)
     {
         if (typeof(Q).IsAssignableFrom(typeof(GH_String)))
         {
@@ -488,7 +523,7 @@ public class LocatorGoo : ModelGoo<Locator>
         return false;
     }
 
-    public override bool CastFrom(object source)
+    internal override bool CustomCastFrom(object source)
     {
         if (source == null) return false;
 
@@ -516,7 +551,7 @@ public class PortGoo : ModelGoo<Port>
     {
     }
 
-    public override bool CastTo<Q>(ref Q target)
+    internal override bool CustomCastTo<Q>(ref Q target)
     {
         if (typeof(Q).IsAssignableFrom(typeof(GH_Plane)))
         {
@@ -535,7 +570,7 @@ public class PortGoo : ModelGoo<Port>
         return false;
     }
 
-    public override bool CastFrom(object source)
+    internal override bool CustomCastFrom(object source)
     {
         if (source == null) return false;
 
@@ -569,7 +604,7 @@ public class QualityGoo : ModelGoo<Quality>
     {
     }
 
-    public override bool CastTo<Q>(ref Q target)
+    internal override bool CustomCastTo<Q>(ref Q target)
     {
         if (typeof(Q).IsAssignableFrom(typeof(GH_String)))
         {
@@ -581,7 +616,7 @@ public class QualityGoo : ModelGoo<Quality>
         return false;
     }
 
-    public override bool CastFrom(object source)
+    internal override bool CustomCastFrom(object source)
     {
         if (source == null) return false;
 
@@ -609,7 +644,7 @@ public class AuthorGoo : ModelGoo<Author>
     {
     }
 
-    public override bool CastTo<Q>(ref Q target)
+    internal override bool CustomCastTo<Q>(ref Q target)
     {
         if (typeof(Q).IsAssignableFrom(typeof(GH_String)))
         {
@@ -621,7 +656,7 @@ public class AuthorGoo : ModelGoo<Author>
         return false;
     }
 
-    public override bool CastFrom(object source)
+    internal override bool CustomCastFrom(object source)
     {
         if (source == null) return false;
         string str;
@@ -659,7 +694,7 @@ public class DiagramPointGoo : ModelGoo<DiagramPoint>
     {
     }
 
-    public override bool CastTo<Q>(ref Q target)
+    internal override bool CustomCastTo<Q>(ref Q target)
     {
         if (typeof(Q).IsAssignableFrom(typeof(GH_Point)))
         {
@@ -673,7 +708,7 @@ public class DiagramPointGoo : ModelGoo<DiagramPoint>
         return false;
     }
 
-    public override bool CastFrom(object source)
+    internal override bool CustomCastFrom(object source)
     {
         if (source == null) return false;
 
@@ -1249,7 +1284,7 @@ public class FlattenDesignComponent : Component
 public class ConvertUnitComponent : Component
 {
     public ConvertUnitComponent()
-        : base("Convert Unit", "CnvUnt", "Convert a unit.", "Util")
+        : base("Convert Unit", "↦Unt", "Convert a unit.", "Util")
     {
     }
 

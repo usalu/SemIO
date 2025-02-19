@@ -44,6 +44,7 @@ using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Xml;
+using System.Xml.Linq;
 using FluentValidation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -911,10 +912,19 @@ public class Representation : Model<Representation>
         return (isValid, errors);
     }
 
+    public string ToIdString()
+    {
+        return $"{Mime}#{string.Join(",", Tags.Select(t => Utility.Encode(t)))}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{Mime}" + (Tags.Count == 0 ? "" : "," + string.Join(" ", Tags));
+    }
+
     public override string ToString()
     {
-        var tags = Tags.Count == 0 ? "" : "," + string.Join(" ", Tags);
-        return $"Rep({Mime}{tags})";
+        return $"Rep({ToHumanIdString()})";
     }
 }
 
@@ -937,6 +947,21 @@ public class Locator : Model<Locator>
     /// </summary>
     [Name("📌", "SG?", "SGr", "The optional sub-group of the locator. No sub-group means true.", isDefaultValid: true)]
     public string Subgroup { get; set; } = "";
+
+    public string ToIdString()
+    {
+        return $"{Group}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{ToIdString()}";
+    }
+
+    public override string ToString()
+    {
+        return $"Loc({ToHumanIdString()})";
+    }
 }
 
 /// <summary>
@@ -1134,6 +1159,20 @@ public class Port : Model<Port>
         PropImportance.REQUIRED)]
     public float T { get; set; } = 0;
 
+    public string ToIdString()
+    {
+        return $"{Id}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{ToIdString()}";
+    }
+
+    public override string ToString()
+    {
+        return $"Por({ToHumanIdString()})";
+    }
 
     // TODO: Implement reflexive validation for model properties.
     public override (bool, List<string>) Validate()
@@ -1168,7 +1207,7 @@ public class Port : Model<Port>
             {
                 var (isValidLocator, errorsLocator) = locator.Validate();
                 isValid = isValid && isValidLocator;
-                errors.AddRange(errorsLocator.Select(e => "A locator is invalid: " + e));
+                errors.AddRange(errorsLocator.Select(e => $"A locator ({locator.ToHumanIdString()}) is invalid: " + e));
             }
 
         return (isValid, errors);
@@ -1194,6 +1233,21 @@ public class PortId : Model<PortId>
         {
             Id = port.Id
         };
+    }
+
+    public string ToIdString()
+    {
+        return $"{Id}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{ToIdString()}";
+    }
+
+    public override string ToString()
+    {
+        return $"Por({ToHumanIdString()})";
     }
 }
 
@@ -1227,6 +1281,21 @@ public class Quality : Model<Quality>
     /// </summary>
     [Description("📖", "Df?", "Def", "The optional definition [ text | uri ] of the quality.")]
     public string Definition { get; set; } = "";
+
+    public string ToIdString()
+    {
+        return $"{Name}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{ToIdString()}";
+    }
+
+    public override string ToString()
+    {
+        return $"Qal({ToHumanIdString()})";
+    }
 }
 
 public class TypeProps : Model<Type>
@@ -1272,6 +1341,21 @@ public class TypeProps : Model<Type>
     [Name("Ⓜ️", "Ut", "Unt", "The length unit of the point and the direction of the ports of the type.",
         PropImportance.REQUIRED)]
     public string Unit { get; set; } = "";
+
+    public string ToIdString()
+    {
+        return $"{Name}#{Variant}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{Name}" + (Variant.Length == 0 ? "" : $", {Variant}");
+    }
+
+    public override string ToString()
+    {
+        return $"Typ({ToHumanIdString()})";
+    }
 }
 
 /// <summary>
@@ -1291,6 +1375,21 @@ public class Author : Model<Author>
     /// </summary>
     [Email("📧", "Em", "Eml", "The email of the author.", PropImportance.ID)]
     public string Email { get; set; } = "";
+
+    public string ToIdString()
+    {
+        return $"{Email}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{ToIdString()}";
+    }
+
+    public override string ToString()
+    {
+        return $"Aut({ToHumanIdString()})";
+    }
 
     public override (bool, List<string>) Validate()
     {
@@ -1345,28 +1444,29 @@ public class Type : TypeProps
         {
             var (isValidPort, errorsPort) = port.Validate();
             isValid = isValid && isValidPort;
-            errors.AddRange(errorsPort.Select(e => "A port is invalid: " + e));
+            errors.AddRange(errorsPort.Select(e => $"A port({port.ToHumanIdString()}) is invalid: " + e));
         }
 
         foreach (var representation in Representations)
         {
             var (isValidRepresentation, errorsRepresentation) = representation.Validate();
             isValid = isValid && isValidRepresentation;
-            errors.AddRange(errorsRepresentation.Select(e => "A representation is invalid: " + e));
+            errors.AddRange(errorsRepresentation.Select(e =>
+                $"A representation({representation.ToHumanIdString()}) is invalid: " + e));
         }
 
         foreach (var quality in Qualities)
         {
             var (isValidQuality, errorsQuality) = quality.Validate();
             isValid = isValid && isValidQuality;
-            errors.AddRange(errorsQuality.Select(e => "A quality is invalid: " + e));
+            errors.AddRange(errorsQuality.Select(e => $"A quality({quality.ToHumanIdString()}) is invalid: " + e));
         }
 
         foreach (var author in Authors)
         {
             var (isValidAuthor, errorsAuthor) = author.Validate();
             isValid = isValid && isValidAuthor;
-            errors.AddRange(errorsAuthor.Select(e => "An author is invalid: " + e));
+            errors.AddRange(errorsAuthor.Select(e => $"An author({author.ToHumanIdString()}) is invalid: " + e));
         }
 
         return (isValid, errors);
@@ -1382,11 +1482,6 @@ public class Type : TypeProps
         }
 
         return typesDict;
-    }
-
-    public string ToIdString()
-    {
-        return $"{Name}#{Variant}";
     }
 }
 
@@ -1408,6 +1503,21 @@ public class TypeId : Model<TypeId>
     [Name("🔀", "Vn?", "Vnt", "The optional variant of the type. No variant means the default variant. ",
         PropImportance.ID, true)]
     public string Variant { get; set; } = "";
+
+    public string ToIdString()
+    {
+        return $"{Name}#{Variant}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{Name}" + (Variant.Length == 0 ? "" : $", {Variant}");
+    }
+
+    public override string ToString()
+    {
+        return $"Typ({ToHumanIdString()})";
+    }
 
     public static implicit operator TypeId(Type type)
     {
@@ -1456,13 +1566,28 @@ public class Piece : Model<Piece>
         PropImportance.OPTIONAL)]
     public DiagramPoint? Center { get; set; }
 
+    public string ToIdString()
+    {
+        return $"{Id}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{ToIdString()}";
+    }
+
+    public override string ToString()
+    {
+        return $"Pce({ToHumanIdString()})";
+    }
+
     // TODO: Implement reflexive validation for model properties.
     public override (bool, List<string>) Validate()
     {
         var (isValid, errors) = base.Validate();
         var (isValidType, errorsType) = Type.Validate();
         isValid = isValid && isValidType;
-        errors.AddRange(errorsType.Select(e => "The type is invalid: " + e));
+        errors.AddRange(errorsType.Select(e => $"The type({Type.ToHumanIdString()}) is invalid: " + e));
         if (Plane != null)
         {
             var (isValidPlane, errorsPlane) = Plane.Validate();
@@ -1493,6 +1618,21 @@ public class PieceId : Model<PieceId>
         isDefaultValid: true)]
     [JsonProperty("id_")]
     public string Id { get; set; } = "";
+
+    public string ToIdString()
+    {
+        return $"{Id}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{ToIdString()}";
+    }
+
+    public override string ToString()
+    {
+        return $"Pce({ToHumanIdString()})";
+    }
 }
 
 /// <summary>
@@ -1603,6 +1743,10 @@ public class Connection : Model<Connection>
                   Connecting.Piece.Id;
         return $"{ctd}--{cng}";
     }
+    public string ToHumanIdString()
+    {
+        return $"{ToIdString()}";
+    }
 
     public override string ToString()
     {
@@ -1679,6 +1823,22 @@ public class DesignProps : Model<Design>
     [Name("Ⓜ️", "Ut", "Unt", "The length unit for all distance-related information of the design.",
         PropImportance.REQUIRED)]
     public string Unit { get; set; } = "";
+
+    public string ToIdString()
+    {
+        return $"{Name}#{Variant}#{View}";
+    }
+
+    public string ToHumanIdString()
+    {
+        return $"{Name}" + (Variant.Length == 0 ? "" : $", {Variant}") +
+               (View.Length == 0 ? "" : $", {View}");
+    }
+
+    public override string ToString()
+    {
+        return $"Dsn({ToHumanIdString()})";
+    }
 }
 
 /// <summary>
@@ -1710,11 +1870,6 @@ public class Design : DesignProps
     /// </summary>
     [ModelProp("👥", "Au*", "Auts", "The optional authors of the design.", PropImportance.OPTIONAL)]
     public List<Author> Authors { get; set; } = new();
-
-    public string ToIdString()
-    {
-        return $"{Name}#{Variant}#{View}";
-    }
 
     public void Bfs(Action<Piece> onRoot, Action<Piece, Piece, Connection> onConnection)
     {
@@ -2079,28 +2234,28 @@ text {
         {
             var (isValidPiece, errorsPiece) = piece.Validate();
             isValid = isValid && isValidPiece;
-            errors.AddRange(errorsPiece.Select(e => "A piece is invalid: " + e));
+            errors.AddRange(errorsPiece.Select(e => $"A piece({piece.ToHumanIdString()}) is invalid: " + e));
         }
 
         foreach (var connection in Connections)
         {
             var (isValidConnection, errorsConnection) = connection.Validate();
             isValid = isValid && isValidConnection;
-            errors.AddRange(errorsConnection.Select(e => "A connection is invalid: " + e));
+            errors.AddRange(errorsConnection.Select(e => $"A connection({connection.ToHumanIdString()}) is invalid: " + e));
         }
 
         foreach (var quality in Qualities)
         {
             var (isValidQuality, errorsQuality) = quality.Validate();
             isValid = isValid && isValidQuality;
-            errors.AddRange(errorsQuality.Select(e => "A quality is invalid: " + e));
+            errors.AddRange(errorsQuality.Select(e => $"A quality({quality.ToHumanIdString()}) is invalid: " + e));
         }
 
         foreach (var author in Authors)
         {
             var (isValidAuthor, errorsAuthor) = author.Validate();
             isValid = isValid && isValidAuthor;
-            errors.AddRange(errorsAuthor.Select(e => "An author is invalid: " + e));
+            errors.AddRange(errorsAuthor.Select(e => $"An author({author.ToHumanIdString()}) is invalid: " + e));
         }
 
         var pieceIds = Pieces.Select(p => p.Id);
