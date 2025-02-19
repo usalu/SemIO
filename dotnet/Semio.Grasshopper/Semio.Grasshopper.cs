@@ -2315,6 +2315,7 @@ public class CacheRepresentationComponent : Component
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
+        pManager.AddParameter(new Param_FilePath(), "Path", "Pa", "Path to the cached representation.", GH_ParamAccess.item);
         pManager.AddBooleanParameter("Success", "Sc", "True if the representation was successfully downloaded and cached.", GH_ParamAccess.item);
     }
 
@@ -2324,7 +2325,7 @@ public class CacheRepresentationComponent : Component
         var run = false;
         DA.GetData(0, ref url);
         DA.GetData(1, ref run);
-        DA.SetData(0, false);
+        DA.SetData(1, false);
         if (!run) return;
         var userPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var cachePath = Path.Combine(userPath, ".semio", "cache");
@@ -2334,7 +2335,8 @@ public class CacheRepresentationComponent : Component
         var path = Path.Combine(cachePath, encodedUri);
         if (File.Exists(path))
         {
-            DA.SetData(0, true);
+            DA.SetData(0, path);
+            DA.SetData(1, true);
             return;
         }
         var http = new HttpClient();
@@ -2342,7 +2344,8 @@ public class CacheRepresentationComponent : Component
         if (!response.IsSuccessStatusCode) return;
         var content = response.Content.ReadAsByteArrayAsync().Result;
         File.WriteAllBytes(path, content);
-        DA.SetData(0, true);
+        DA.SetData(0, path);
+        DA.SetData(1, true);
     }
 
 }

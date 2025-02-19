@@ -2,6 +2,7 @@ Symbol,Code,Abbreviation,Name,Description
 👤,Au,Aut,Author,The information about the author.
 👥,Au*,Auts,Authors,The optional authors of the {{NAME}}.
 👥,Bs,Bas,Base,The shared base props for {{NAME}} models.
+💾,Ca,Cac,Cache,The cache to store remote kits and representations.
 ⌖,Ce,Cen,Center,The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.
 🧲,Cd,Cnd,Connected,The connected side of the piece of the connection.
 🧲,Cg,Cng,Connecting,The connecting side of the piece of the connection.
