@@ -304,10 +304,7 @@ public static class Utility
             Formatting = formatting
         };
 
-        if (formatting == Formatting.None)
-        {
-            return JsonConvert.SerializeObject(obj, settings);
-        }
+        if (formatting == Formatting.None) return JsonConvert.SerializeObject(obj, settings);
 
         var stringWriter = new StringWriter();
         using (var jsonWriter = new JsonTextWriter(stringWriter))
@@ -883,7 +880,6 @@ public class Representation : Model<Representation>
         "The Multipurpose Internet Mail Extensions (MIME) type of the content of the resource of the representation.")]
     public string Mime { get; set; } = "";
 
-
     /// <summary>
     ///     🏷️ The optional tags to group representations. No tags means default.
     /// </summary>
@@ -918,7 +914,7 @@ public class Representation : Model<Representation>
     public override string ToString()
     {
         var tags = Tags.Count == 0 ? "" : "," + string.Join(" ", Tags);
-        return $"Rep({Mime},{tags})";
+        return $"Rep({Mime}{tags})";
     }
 }
 
@@ -1133,7 +1129,9 @@ public class Port : Model<Port>
         PropImportance.OPTIONAL)]
     public List<Locator> Locators { get; set; } = new();
 
-    [NumberProp("💍", "T", "T", "The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise.", PropImportance.REQUIRED)]
+    [NumberProp("💍", "T", "T",
+        "The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise.",
+        PropImportance.REQUIRED)]
     public float T { get; set; } = 0;
 
 
@@ -2490,7 +2488,7 @@ public static class Api
     public static Design PredictDesign(string description, Type[] types, Design design)
     {
         var response = GetApi().PredictDesign(new PredictDesignBody
-        { Description = description, Types = types, Design = design }).Result;
+            { Description = description, Types = types, Design = design }).Result;
         if (response.IsSuccessStatusCode)
             return response.Content;
         HandleErrors(response);
