@@ -35,7 +35,6 @@ Symbol,Code,Abbreviation,Name,Description
 ⚖️,Ln?,Lcn,License,The optional license [ spdx id | url ] of the kit.
 🗺️,Lc,Loc,Locator,A locator is machine-readable metadata for grouping ports and provides a mechanism to easily switch between ports based on individual locators.
 🗺️,Lc*,Locs,Locators,The optional machine-readable locators of the port. Every port should have a unique set of locators.
-🔍,Ld?,Lod,Level of Detail,The optional Level of Detail/Development/Design (LoD) of the representation. No lod means the default lod.
 📛,Na,Nam,Name,The name of the {{NAME}}.
 ✉️,Mm,Mim,Mime,The Multipurpose Internet Mail Extensions (MIME) type of the content of the resource of the representation.
 ⌱,Og,Org,Origin,The origin of the plane.
@@ -64,6 +63,7 @@ Symbol,Code,Abbreviation,Name,Description
 ↔️,Sf,Sft,Shift,The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece.
 📌,SG?,SGr,Subgroup,The optional sub-group of the locator. No sub-group means true.
 ✅,Su,Suc,Success,{{NAME}} was successful.
+💍,T,T,T,"The parameter t [0,1[ where the port will be shown on the ring of a piece in the diagram. It starts at 12 o`clock and turns clockwise."
 🏷️,Tg*,Tags,Tags,The optional tags to group representations. No tags means default.
 ∡,Tl?,Tlt,Tilt,The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.
 ▦,Tf,Trf,Transform,A 4x4 translation and rotation transformation matrix (no scaling or shearing).

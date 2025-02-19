@@ -46,6 +46,8 @@ using System.Drawing;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Net;
+using System.Net.Http;
 using FluentValidation;
 using GH_IO.Serialization;
 using Grasshopper;
@@ -2297,9 +2299,56 @@ public class RemoveDesignComponent : RemoveComponent<DesignParam, DesignGoo, Des
 
 #endregion
 
+public class CacheRepresentationComponent : Component
+{
+    public CacheRepresentationComponent() : base("Cache Representation", "+Rep", "Download and cache a remote representation.", "Persistence")
+    {
+    }
+    public override Guid ComponentGuid => new("56673DF0-4524-40BC-AB26-37920F71E3E0");
+    protected override Bitmap Icon => Resources.representation_cache_24x24;
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
+    protected override void RegisterInputParams(GH_InputParamManager pManager)
+    {
+        pManager.AddTextParameter("Url", "Ur", "Unique Resource Locator (URL) of the remote representation.", GH_ParamAccess.item);
+        pManager.AddBooleanParameter("Run", "R", "True to downloaded and cache the remote representation.", GH_ParamAccess.item, false);
+    }
+
+    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+    {
+        pManager.AddBooleanParameter("Success", "Sc", "True if the representation was successfully downloaded and cached.", GH_ParamAccess.item);
+    }
+
+    protected override void SolveInstance(IGH_DataAccess DA)
+    {
+        var url = "";
+        var run = false;
+        DA.GetData(0, ref url);
+        DA.GetData(1, ref run);
+        DA.SetData(0, false);
+        if (!run) return;
+        var userPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var cachePath = Path.Combine(userPath, ".semio", "cache");
+        if (!Directory.Exists(cachePath))
+            Directory.CreateDirectory(cachePath);
+        var encodedUri = Semio.Utility.Encode(url);
+        var path = Path.Combine(cachePath, encodedUri);
+        if (File.Exists(path))
+        {
+            DA.SetData(0, true);
+            return;
+        }
+        var http = new HttpClient();
+        var response = http.GetAsync(url).Result;
+        if (!response.IsSuccessStatusCode) return;
+        var content = response.Content.ReadAsByteArrayAsync().Result;
+        File.WriteAllBytes(path, content);
+        DA.SetData(0, true);
+    }
+
+}
 public class ClearCacheComponent : Component
 {
-    public ClearCacheComponent() : base("Clear Cache", "-Ca", "Clear the cache of all the remote kits.", "Persistence")
+    public ClearCacheComponent() : base("Clear Cache", "-Cac", "Clear the cache of all the remote kits.", "Persistence")
     {
     }
 
@@ -2311,6 +2360,9 @@ public class ClearCacheComponent : Component
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
+        pManager.AddTextParameter("Uri|Url", "Ur?",
+            "Optional Unique Resource Identifier (URI) of a kit or Unique Resource Locator (URL) of a representation. If None is provided, it will clear the entire cache.",
+            GH_ParamAccess.item);
         pManager.AddBooleanParameter("Run", "R", "True to clear the cache.", GH_ParamAccess.item, false);
     }
 
@@ -2322,8 +2374,10 @@ public class ClearCacheComponent : Component
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
+        var ur = "";
         var run = false;
-        DA.GetData(0, ref run);
+        DA.GetData(0, ref ur);
+        DA.GetData(1, ref run);
         DA.SetData(0, false);
         if (!run) return;
 
@@ -2346,8 +2400,18 @@ public class ClearCacheComponent : Component
         var cachePath = Path.Combine(userPath, ".semio", "cache");
         if (Directory.Exists(cachePath))
         {
-            Directory.Delete(cachePath, true);
-            Directory.CreateDirectory(cachePath);
+            if (ur != "")
+            {
+                var encodedUri = Semio.Utility.Encode(ur);
+                var path = Path.Combine(cachePath, encodedUri);
+                if (Directory.Exists(path))
+                    Directory.Delete(path, true);
+            }
+            else
+            {
+                Directory.Delete(cachePath, true);
+                Directory.CreateDirectory(cachePath);
+            }
         }
 
         DA.SetData(0, true);
