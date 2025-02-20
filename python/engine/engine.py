@@ -160,6 +160,7 @@ import graphene
 import graphene_pydantic
 import graphene_sqlalchemy
 import lark
+import loguru
 import jinja2
 import openai
 import pydantic
@@ -204,6 +205,10 @@ KIT_LOCAL_FILENAME = "kit.sqlite3"
 KIT_LOCAL_SUFFIX = str(
     pathlib.Path(KIT_LOCAL_FOLDERNAME) / pathlib.Path(KIT_LOCAL_FILENAME)
 )
+USER_FOLDER = str(pathlib.Path.home() / ".semio")
+CACHE_FOLDER = str(pathlib.Path(USER_FOLDER) / "cache")
+LOG_FOLDER = str(pathlib.Path(USER_FOLDER) / "logs")
+DEBUG_LOG_FILE = str(pathlib.Path(LOG_FOLDER) / "debug.log")
 TOLERANCE = 1e-5
 SIGNIFICANT_DIGITS = 5
 MIMES = {
@@ -231,7 +236,7 @@ dotenv.load_dotenv()
 ENVS = {key: value for key, value in os.environ.items() if key.startswith("SEMIO_")}
 
 
-# Utility
+# Utility #
 
 
 def encode(value: str) -> str:
@@ -304,6 +309,12 @@ def changeKeys(c: dict | list, func: callable) -> None:
 def normalizeAngle(angle: float) -> float:
     """🔃 Normalize an angle to be greater or equal to 0 and smaller than 360 degrees."""
     return (angle % 360 + 360) % 360
+
+
+# Logging #
+
+
+logger = loguru.logger
 
 
 # Exceptions #
@@ -4474,6 +4485,105 @@ The generated design should match this description:
 {{ description }}"""
 )
 
+designResponseFormat = """
+{
+    "name": "design",
+    "strict": true,
+    "schema": {
+        "type": "object",
+        "description": "A design is a collection of pieces that are connected.",
+        "properties": {
+            "pieces": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "description": " A piece is a 3d-instance of a type in a design.",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "typeName": {
+                            "type": "string"
+                        },
+                        "typeVariant": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "id",
+                        "typeName",
+                        "typeVariant"
+                    ],
+                    "additionalProperties": false
+                }
+            },
+            "connections": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "description": "A bidirectional connection between two pieces of a design.",
+                    "properties": {
+                        "connectedPieceId": {
+                            "type": "string"
+                        },
+                        "connectedPieceTypePortId": {
+                            "type": "string"
+                        },
+                        "connectingPieceId": {
+                            "type": "string"
+                        },
+                        "connectingPieceTypePortId": {
+                            "type": "string"
+                        },
+                        "rotation": {
+                            "type": "number",
+                            "description": "The optional horizontal rotation in port direction between the connected and the connecting piece in degrees."
+                        },
+                        "tilt": {
+                            "type": "number",
+                            "description": "The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees."
+                        },
+                        "gap": {
+                            "type": "number",
+                            "description": "The optional longitudinal gap (applied after rotation and tilt in port direction) between the connected and the connecting piece. "
+                        },
+                        "shift": {
+                            "type": "number",
+                            "description": "The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece.."
+                        },
+                        "diagramX": {
+                            "description": "The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.",
+                            "type": "number"
+                        },
+                        "diagramY": {
+                            "description": "The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.",
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "connectedPieceId",
+                        "connectedPieceTypePortId",
+                        "connectingPieceId",
+                        "connectingPieceTypePortId",
+                        "rotation",
+                        "tilt",
+                        "gap",
+                        "shift",
+                        "diagramX",
+                        "diagramY"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        "required": [
+            "pieces",
+            "connections"
+        ],
+        "additionalProperties": false
+    }
+}"""
+
 
 def predictDesign(
     description: str, types: list[TypeContext], design: DesignContext | None = None
@@ -4482,9 +4592,7 @@ def predictDesign(
     prompt = designGenerationPromptTemplate.render(
         description=description, types=[encodeType(t) for t in types]
     )
-    designResponseFormat = json.load(
-        open("../../jsonschema/design-prediction-openai.json", "r")
-    )
+    logger.debug("Generated prompt: {}", prompt)
     try:
         response = openaiClient.chat.completions.create(
             # model="o1-mini",
@@ -4520,21 +4628,6 @@ def predictDesign(
             # frequency_penalty=0,
             # presence_penalty=0,
         )
-    except Error as e:
-        pass
-
-    iteration = 19
-
-    # create iteration folder
-    os.makedirs(f"log/0{iteration}", exist_ok=True)
-
-    with open(f"log/0{iteration}/schema.json", "w") as file:
-        file.write(json.dumps(designResponseFormat, indent=4))
-    with open(f"log/0{iteration}/prompt.txt", "w") as file:
-        file.write(prompt)
-    with open(f"log/0{iteration}/system-prompt.txt", "w") as file:
-        file.write(systemPrompt)
-    with open(f"log/0{iteration}/response.json", "w") as file:
         responseDump = {
             "id": response.id,
             "created": response.created,
@@ -4559,21 +4652,31 @@ def predictDesign(
                 for c in response.choices
             ],
         }
-        json.dump(responseDump, file, indent=4)
-    with open(f"log/0{iteration}/predicted-design-raw.json", "w") as file:
-        json.dump(json.loads(response.choices[0].message.content), file, indent=4)
+        logger.debug("Received response: {}", responseDump)
+    except Error as e:
+        logger.error("Error occurred: {}", e)
+        pass
+
+    logger.debug("Schema: %s", json.dumps(designResponseFormat, indent=4))
+    logger.debug("Prompt: %s", prompt)
+    logger.debug("System Prompt: %s", systemPrompt)
+    logger.debug(
+        "Predicted Design Raw: %s",
+        json.dumps(json.loads(response.choices[0].message.content), indent=4),
+    )
 
     result = response.choices[0]
     if result.finish_reason == "stop" and result.message.refusal is None:
         design = decodeDesign(json.loads(result.message.content))
 
-        with open(f"log/0{iteration}/predicted-design.json", "w") as file:
-            json.dump(design.model_dump(), file, indent=4)
+        logger.debug("Predicted Design: %s", json.dumps(design.model_dump(), indent=4))
 
         # piece healing of variants that do not exist
         healedDesign = healDesign(design, types)
-        with open(f"log/0{iteration}/predicted-design-healed.json", "w") as file:
-            json.dump(healedDesign.model_dump(), file, indent=4)
+        logger.debug(
+            "Predicted Design Healed: %s",
+            json.dumps(healedDesign.model_dump(), indent=4),
+        )
 
         return healedDesign
 
@@ -5274,6 +5377,19 @@ def restart_engine():
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()  # needed for pyinstaller on Windows
+
+    parser = argparse.ArgumentParser(description="semio engine")
+    parser.add_argument(
+        "-d",
+        "--debug",
+        help="debug mode",
+        action="store_true",
+    )
+
+    args = parser.parse_args()
+    logger.add(sys.stderr, level="INFO")
+    if args.debug:
+        logger.add(DEBUG_LOG_FILE, level="DEBUG", rotation="10 MB")
 
     ui = PySide6.QtWidgets.QApplication(sys.argv)
     ui.setQuitOnLastWindowClosed(False)
