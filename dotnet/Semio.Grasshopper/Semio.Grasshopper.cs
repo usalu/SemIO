@@ -1189,7 +1189,7 @@ public class DeserializeKitComponent : DeserializeComponent<KitParam, KitGoo, Ki
 public class DrawDiagramComponent : Component
 {
     public DrawDiagramComponent()
-        : base("Draw Diagram", ":Dgm", "Draw the diagram from a design.", "Display")
+        : base("Draw Diagram", ":Dgm", "Draw the diagram of the design.", "Display")
     {
     }
 
