@@ -1283,6 +1283,34 @@ public class FlattenDesignComponent : Component
     }
 }
 
+public class SortDesignComponent : Component
+{
+    public SortDesignComponent()
+        : base("Sort Design", "⁐Dsn", "Sort a design by reordering pieces and connections to appear in order that they are discovered by breadth-first-search and some times flipping connected and connecting if the connected is not the parent of the connecting.", "Util")
+    {
+    }
+    public override Guid ComponentGuid => new("F5E118B2-66EC-4622-9B8C-E77785AA1183");
+    protected override Bitmap Icon => Resources.design_sort_24x24;
+    protected override void RegisterInputParams(GH_InputParamManager pManager)
+    {
+        pManager.AddParameter(new DesignParam(), "Design", "Dn",
+            "Design to sort.", GH_ParamAccess.item);
+    }
+    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+    {
+        pManager.AddParameter(new DesignParam(), "Design", "Dn",
+            "Sorted Design.", GH_ParamAccess.item);
+    }
+    protected override void SolveInstance(IGH_DataAccess DA)
+    {
+        var designGoo = new DesignGoo();
+        DA.GetData(0, ref designGoo);
+        var design = designGoo.Value;
+        var sortedDesign = design.DeepClone().Sort();
+        DA.SetData(0, new DesignGoo(sortedDesign));
+    }
+}
+
 public class ConvertUnitComponent : Component
 {
     public ConvertUnitComponent()

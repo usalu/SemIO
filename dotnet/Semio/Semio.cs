@@ -1976,6 +1976,33 @@ public class Design : DesignProps
         return this;
     }
 
+    /// <summary>
+    /// Sort a design by reordering pieces and connections to appear in order that they are discovered by breadth-first-search and some times flipping connected and connecting if the connected is not the parent of the connecting.
+    /// </summary>
+    /// <returns></returns>
+    public Design Sort()
+    {
+        var sortedPieces = new List<Piece>();
+        var sortedConnections = new List<Connection>();
+
+        Bfs(
+            piece => { sortedPieces.Add(piece); },
+            (parent, child, connection) =>
+            {
+                if (connection.Connected.Piece.Id != parent.Id)
+                {
+                    connection.Connected.Piece = new PieceId { Id = child.Id };
+                    connection.Connecting.Piece = new PieceId { Id = parent.Id };
+                }
+                sortedConnections.Add(connection);
+            });
+
+        Pieces = sortedPieces;
+        Connections = sortedConnections;
+
+        return this;
+    }
+
     public Piece Piece(string id)
     {
         return Pieces.Find(piece => piece.Id == id);
