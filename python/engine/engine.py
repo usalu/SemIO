@@ -721,7 +721,7 @@ class Tag(TagOrderField, TagNameField, Table, table=True):
     )
     """🔑 The foreign primary key of the parent representation of the tag in the database."""
     representation: typing.Optional["Representation"] = sqlmodel.Relationship(
-        back_populates="tags"
+        back_populates="tags_"
     )
     """👪 The parent type of the representation."""
 
@@ -817,11 +817,11 @@ class Representation(
         default=None,
         exclude=True,
     )
+    """🔑 The primary key of the representation in the database."""
     tags_: list[Tag] = sqlmodel.Relationship(
         back_populates="representation", cascade_delete=True
     )
     """🧑 The real tags of the representation in the database."""
-    """🔑 The primary key of the representation in the database."""
     typePk: typing.Optional[int] = sqlmodel.Field(
         # alias="typeId",  # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
         sa_column=sqlmodel.Column(
@@ -833,7 +833,9 @@ class Representation(
         exclude=True,
     )
     """🔑 The foreign primary key of the parent type of the representation in the database."""
-    type: typing.Optional["Type"] = sqlmodel.Relationship(back_populates="tags")
+    type: typing.Optional["Type"] = sqlmodel.Relationship(
+        back_populates="representations"
+    )
     """👪 The parent type of the representation."""
 
     @property
@@ -1614,7 +1616,7 @@ class CompatibleFamily(CompatibleFamilyNameField, Table, table=True):
     )
     """🔑 The foreign primary key of the parent port of the compatible port family in the database."""
     port: typing.Optional["Port"] = sqlmodel.Relationship(
-        back_populates="compatibleFamilies"
+        back_populates="compatibleFamilies_"
     )
     """👪 The parent type of the compatible port family."""
 
@@ -1713,6 +1715,7 @@ class PortProps(
     PortLocatorsField,
     PortDirectionField,
     PortPointField,
+    PortCompatibleFamiliesField,
     PortFamilyField,
     PortDescriptionField,
     PortIdField,
@@ -1766,6 +1769,7 @@ class PortOutput(
     PortTField,
     PortDirectionField,
     PortPointField,
+    PortCompatibleFamiliesField,
     PortFamilyField,
     PortDescriptionField,
     PortIdField,
@@ -1780,7 +1784,7 @@ class PortOutput(
     """🗺️ The locators of the port."""
 
 
-class Port(PortTField, PortDescriptionField, TableEntity, table=True):
+class Port(PortTField, PortFamilyField, PortDescriptionField, TableEntity, table=True):
     """🔌 A port is a connection point (with a direction) of a type."""
 
     PLURAL = "ports"
@@ -4642,7 +4646,8 @@ The generated design should match this description:
 {{ description }}"""
 )
 
-designResponseFormat = """
+designResponseFormat = json.loads(
+    """
 {
     "name": "design",
     "strict": true,
@@ -4740,6 +4745,9 @@ designResponseFormat = """
         "additionalProperties": false
     }
 }"""
+)
+# with open("../../jsonschema/design-prediction-openai.json", "r") as f:
+#     designResponseFormat = json.load(f)
 
 
 def predictDesign(
@@ -4814,11 +4822,11 @@ def predictDesign(
         logger.error("Error occurred: {}", e)
         pass
 
-    logger.debug("Schema: %s", json.dumps(designResponseFormat, indent=4))
-    logger.debug("Prompt: %s", prompt)
-    logger.debug("System Prompt: %s", systemPrompt)
+    logger.debug("Schema: {}", json.dumps(designResponseFormat, indent=4))
+    logger.debug("Prompt: {}", prompt)
+    logger.debug("System Prompt: {}", systemPrompt)
     logger.debug(
-        "Predicted Design Raw: %s",
+        "Predicted Design Raw: {}",
         json.dumps(json.loads(response.choices[0].message.content), indent=4),
     )
 
@@ -4826,12 +4834,12 @@ def predictDesign(
     if result.finish_reason == "stop" and result.message.refusal is None:
         design = decodeDesign(json.loads(result.message.content))
 
-        logger.debug("Predicted Design: %s", json.dumps(design.model_dump(), indent=4))
+        logger.debug("Predicted Design: {}", json.dumps(design.model_dump(), indent=4))
 
         # piece healing of variants that do not exist
         healedDesign = healDesign(design, types)
         logger.debug(
-            "Predicted Design Healed: %s",
+            "Predicted Design Healed: {}",
             json.dumps(healedDesign.model_dump(), indent=4),
         )
 
@@ -5005,6 +5013,7 @@ class TableEntityNode(TableNode):
 class RepresentationNode(TableEntityNode):
     class Meta:
         model = Representation
+        excludedFields = ("tags_",)
 
 
 class RepresentationInputNode(InputNode):
