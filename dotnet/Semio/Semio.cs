@@ -1989,6 +1989,7 @@ public class Design : DesignProps
             piece => { sortedPieces.Add(piece); },
             (parent, child, connection) =>
             {
+                sortedPieces.Add(child);
                 if (connection.Connected.Piece.Id != parent.Id)
                 {
                     connection.Connected.Piece = new PieceId { Id = child.Id };
