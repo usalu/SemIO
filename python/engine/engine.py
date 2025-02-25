@@ -839,12 +839,12 @@ class Representation(
     @property
     def tags(self: "Representation") -> list[str]:
         """↗️ Get the masked tags of the representation."""
-        return [tag.name for tag in self.tags_]
+        return sorted([tag.name for tag in self.tags_], key=lambda x: x.order)
 
     @tags.setter
     def tags(self: "Representation", tags: list[str]):
         """↘️ Set the masked tags of the representation."""
-        self.tags_ = [Tag(name=tag) for tag in tags]
+        self.tags_ = [Tag(name=tag, order=i) for i, tag in enumerate(tags)]
 
     def parent(self: "Representation") -> "Type":
         """👪 The parent type of the representation or otherwise `NoTypeAssigned` is raised."""
@@ -1575,6 +1575,50 @@ class Plane(Table, table=True):
 #         )
 
 
+### CompatibleFamily
+
+
+class CompatibleFamilyNameField(RealField, abc.ABC):
+    """📛 The name of the compatible port family."""
+
+    name: str = sqlmodel.Field(
+        max_length=NAME_LENGTH_LIMIT,
+        description="📛 The name of the compatible port family.",
+    )
+    """📛 The name of the compatible port family."""
+
+
+class CompatibleFamily(CompatibleFamilyNameField, Table, table=True):
+    """✅ A compatible family is a label to group representations."""
+
+    __tablename__ = "compatible_family"
+    pk: typing.Optional[int] = sqlmodel.Field(
+        sa_column=sqlmodel.Column(
+            "id",
+            sqlalchemy.Integer(),
+            primary_key=True,
+        ),
+        default=None,
+        exclude=True,
+    )
+    """🔑 The primary key of the compatible port family in the database."""
+    portPk: typing.Optional[int] = sqlmodel.Field(
+        # alias="portId",  # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
+        sa_column=sqlmodel.Column(
+            "portId",
+            sqlalchemy.Integer(),
+            sqlalchemy.ForeignKey("port.id"),
+        ),
+        default=None,
+        exclude=True,
+    )
+    """🔑 The foreign primary key of the parent port of the compatible port family in the database."""
+    port: typing.Optional["Port"] = sqlmodel.Relationship(
+        back_populates="compatibleFamilies"
+    )
+    """👪 The parent type of the compatible port family."""
+
+
 ### Ports ###
 
 
@@ -1590,7 +1634,7 @@ class PortIdField(MaskedField, abc.ABC):
     """🆔 The id of the port."""
 
 
-class PortDescriptionField(MaskedField, abc.ABC):
+class PortDescriptionField(RealField, abc.ABC):
     """💬 The optional human-readable description of the port."""
 
     description: str = sqlmodel.Field(
@@ -1599,6 +1643,27 @@ class PortDescriptionField(MaskedField, abc.ABC):
         description="💬 The optional human-readable description of the port.",
     )
     """💬 The optional human-readable description of the port."""
+
+
+class PortFamilyField(RealField, abc.ABC):
+    """👨‍👩‍👧‍👦 The optional family of the port. This allows to define explicit compatibility with other ports."""
+
+    family: str = sqlmodel.Field(
+        default="",
+        max_length=NAME_LENGTH_LIMIT,
+        description="👨‍👩‍👧‍👦 The optional family of the port. This allows to define explicit compatibility with other ports.",
+    )
+    """👨‍👩‍👧‍👦 The optional family of the port. This allows to define explicit compatibility with other ports."""
+
+
+class PortCompatibleFamiliesField(MaskedField, abc.ABC):
+    """✅ The optional other compatible families of the port. An empty list means this port is compatible with all other ports."""
+
+    compatibleFamilies: list[str] = sqlmodel.Field(
+        default_factory=list,
+        description="✅ The optional other compatible families of the port. An empty list means this port is compatible with all other ports.",
+    )
+    """✅ The optional other compatible families of the port. An empty list means this port is compatible with all other ports."""
 
 
 class PortPointField(MaskedField, abc.ABC):
@@ -1648,6 +1713,7 @@ class PortProps(
     PortLocatorsField,
     PortDirectionField,
     PortPointField,
+    PortFamilyField,
     PortDescriptionField,
     PortIdField,
     Props,
@@ -1655,7 +1721,14 @@ class PortProps(
     """🎫 The props of a port."""
 
 
-class PortInput(PortTField, PortDescriptionField, PortIdField, Input):
+class PortInput(
+    PortTField,
+    PortCompatibleFamiliesField,
+    PortFamilyField,
+    PortDescriptionField,
+    PortIdField,
+    Input,
+):
     """🔌 A port is a connection point (with a direction) of a type."""
 
     point: PointInput = sqlmodel.Field(
@@ -1673,7 +1746,13 @@ class PortInput(PortTField, PortDescriptionField, PortIdField, Input):
     """🗺️ The locators of the port."""
 
 
-class PortContext(PortTField, PortDescriptionField, PortIdField, Context):
+class PortContext(
+    PortCompatibleFamiliesField,
+    PortFamilyField,
+    PortDescriptionField,
+    PortIdField,
+    Context,
+):
     """🔌 A port is a connection point (with a direction) of a type."""
 
     locators: list[LocatorContext] = sqlmodel.Field(
@@ -1687,6 +1766,7 @@ class PortOutput(
     PortTField,
     PortDirectionField,
     PortPointField,
+    PortFamilyField,
     PortDescriptionField,
     PortIdField,
     Output,
@@ -1726,6 +1806,10 @@ class Port(PortTField, PortDescriptionField, TableEntity, table=True):
         default="",
     )
     """🆔 The id of the port within the type."""
+    compatibleFamilies_: list[CompatibleFamily] = sqlmodel.Relationship(
+        back_populates="port", cascade_delete=True
+    )
+    """✅ The compatible families of the port."""
     pointX: float = sqlmodel.Field(exclude=True)
     """🎚️ The x-coordinate of the connection point of the port."""
     pointY: float = sqlmodel.Field(exclude=True)
@@ -1738,6 +1822,11 @@ class Port(PortTField, PortDescriptionField, TableEntity, table=True):
     """🎚️ The y-coordinate of the direction of the port."""
     directionZ: float = sqlmodel.Field(exclude=True)
     """🎚️ The z-coordinate of the direction of the port."""
+    """👪 The parent type of the port."""
+    locators: list[Locator] = sqlmodel.Relationship(
+        back_populates="port", cascade_delete=True
+    )
+    """🗺️ The locators of the port."""
     typePk: typing.Optional[int] = sqlmodel.Field(
         # alias="typeId",  # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
         sa_column=sqlmodel.Column(
@@ -1750,11 +1839,6 @@ class Port(PortTField, PortDescriptionField, TableEntity, table=True):
     )
     """🔑 The foreign primary key of the parent type of the port in the database."""
     type: typing.Optional["Type"] = sqlmodel.Relationship(back_populates="ports")
-    """👪 The parent type of the port."""
-    locators: list[Locator] = sqlmodel.Relationship(
-        back_populates="port", cascade_delete=True
-    )
-    """🗺️ The locators of the port."""
     connecteds: list["Connection"] = sqlmodel.Relationship(
         back_populates="connectedPort",
         sa_relationship_kwargs={"foreign_keys": "Connection.connectedPortPk"},
@@ -1767,6 +1851,14 @@ class Port(PortTField, PortDescriptionField, TableEntity, table=True):
     __table_args__ = (
         sqlalchemy.UniqueConstraint("localId", "typeId", name="Unique localId"),
     )
+
+    @property
+    def compatibleFamilies(self) -> list[str]:
+        return [f.name for f in self.compatibleFamilies_]
+
+    @compatibleFamilies.setter
+    def compatibleFamilies(self, families: list[str]):
+        self.compatibleFamilies_ = [CompatibleFamily(name=f) for f in families]
 
     @property
     def point(self) -> Point:
