@@ -231,6 +231,18 @@ ENCODED_PATH = typing.Annotated[str, fastapi.Path(pattern=ENCODING_REGEX)]
 ENCODED_NAME_AND_VARIANT_PATH = typing.Annotated[
     str, fastapi.Path(pattern=ENCODING_REGEX + "," + ENCODING_ALPHABET_REGEX + "*")
 ]
+ENCODED_NAME_AND_VARIANT_AND_VIEW_PATH = typing.Annotated[
+    str,
+    fastapi.Path(
+        pattern=ENCODING_REGEX
+        + ","
+        + ENCODING_ALPHABET_REGEX
+        + "*"
+        + ","
+        + ENCODING_ALPHABET_REGEX
+        + "*"
+    ),
+]
 MAX_REQUEST_BODY_SIZE = 50 * 1024 * 1024  # 50MB
 dotenv.load_dotenv()
 ENVS = {key: value for key, value in os.environ.items() if key.startswith("SEMIO_")}
@@ -660,6 +672,60 @@ class TableEntity(Entity, Table, abc.ABC):
     """📛 The lowercase name of the table in the database."""
 
 
+### Tags
+
+
+class TagNameField(RealField, abc.ABC):
+    """📛 The name of the tag."""
+
+    name: str = sqlmodel.Field(
+        max_length=NAME_LENGTH_LIMIT,
+        description="📛 The name of the tag.",
+    )
+    """📛 The name of the tag."""
+
+
+class TagOrderField(RealField, abc.ABC):
+    """🔢 The order of the tag."""
+
+    order: int = sqlmodel.Field(
+        default=0,
+        description="🔢 The order of the tag.",
+    )
+    """🔢 The order of the tag."""
+
+
+class Tag(TagOrderField, TagNameField, Table, table=True):
+    """🏷️ A tag is a label to group representations."""
+
+    __tablename__ = "tag"
+    pk: typing.Optional[int] = sqlmodel.Field(
+        sa_column=sqlmodel.Column(
+            "id",
+            sqlalchemy.Integer(),
+            primary_key=True,
+        ),
+        default=None,
+        exclude=True,
+    )
+    """🔑 The primary key of the tag in the database."""
+    representationPk: typing.Optional[int] = sqlmodel.Field(
+        # alias="representationId",  # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
+        sa_column=sqlmodel.Column(
+            "representationId",
+            sqlalchemy.Integer(),
+            sqlalchemy.ForeignKey("representation.id"),
+        ),
+        default=None,
+        exclude=True,
+    )
+    """🔑 The foreign primary key of the parent representation of the tag in the database."""
+    representation: typing.Optional["Representation"] = sqlmodel.Relationship(
+        back_populates="tags"
+    )
+    """👪 The parent type of the representation."""
+
+
 ### Representations
 
 
@@ -751,13 +817,11 @@ class Representation(
         default=None,
         exclude=True,
     )
-    """🔑 The primary key of the representation in the database."""
-    encodedTags: str = sqlmodel.Field(
-        max_length=(NAME_LENGTH_LIMIT + 1) * TAGS_MAX - 1,
-        default="",
-        exclude=True,
+    tags_: list[Tag] = sqlmodel.Relationship(
+        back_populates="representation", cascade_delete=True
     )
-    """🧑 The real tags in the database."""
+    """🧑 The real tags of the representation in the database."""
+    """🔑 The primary key of the representation in the database."""
     typePk: typing.Optional[int] = sqlmodel.Field(
         # alias="typeId",  # TODO: Check if alias bug is fixed: https://github.com/fastapi/sqlmodel/issues/374
         sa_column=sqlmodel.Column(
@@ -769,20 +833,18 @@ class Representation(
         exclude=True,
     )
     """🔑 The foreign primary key of the parent type of the representation in the database."""
-    type: typing.Optional["Type"] = sqlmodel.Relationship(
-        back_populates="representations"
-    )
+    type: typing.Optional["Type"] = sqlmodel.Relationship(back_populates="tags")
     """👪 The parent type of the representation."""
 
     @property
     def tags(self: "Representation") -> list[str]:
         """↗️ Get the masked tags of the representation."""
-        return decodeList(self.encodedTags)
+        return [tag.name for tag in self.tags_]
 
     @tags.setter
     def tags(self: "Representation", tags: list[str]):
         """↘️ Set the masked tags of the representation."""
-        self.encodedTags = encodeList(tags)
+        self.tags_ = [Tag(name=tag) for tag in tags]
 
     def parent(self: "Representation") -> "Type":
         """👪 The parent type of the representation or otherwise `NoTypeAssigned` is raised."""
@@ -3660,7 +3722,7 @@ codeGrammar = (
     """
     code: (ENCODED_STRING)? ("/" (design | type))?
     type: "types" ("/" ENCODED_STRING "," ENCODED_STRING?)?
-    design: "designs" ("/" ENCODED_STRING "," ENCODED_STRING?)?
+    design: "designs" ("/" ENCODED_STRING "," ENCODED_STRING? "," ENCODED_STRING?)?
     ENCODED_STRING: /"""
     + ENCODING_REGEX
     + "/"
@@ -3700,6 +3762,7 @@ class OperationBuilder(lark.Transformer):
             "kind": "design",
             "designName": decode(children[0].value),
             "designVariant": (decode(children[1].value) if len(children) == 2 else ""),
+            "designView": (decode(children[2].value) if len(children) == 3 else ""),
         }
 
     def type(self, children):
@@ -3897,6 +3960,7 @@ class DatabaseStore(Store, abc.ABC):
                         Kit.uri == kitUri,
                         Design.name == input.name,
                         Design.variant == input.variant,
+                        Design.view == input.view,
                     )
                     .one_or_none()
                 )
@@ -4042,6 +4106,7 @@ class DatabaseStore(Store, abc.ABC):
                         Kit.uri == kitUri,
                         Design.name == operation["designName"],
                         Design.variant == operation["designVariant"],
+                        Design.view == operation["designView"],
                     ).delete()
                     self.session.commit()
                 except Exception as e:
@@ -5167,12 +5232,12 @@ async def delete_type(
     return fastapi.Response(content=str(error), status_code=statusCode)
 
 
-@rest.put("/kits/{encodedKitUri}/designs/{encodedDesignNameAndVariant}")
+@rest.put("/kits/{encodedKitUri}/designs/{encodedDesignNameAndVariantAndView}")
 async def put_design(
     request: fastapi.Request,
     input: DesignInput,
     encodedKitUri: ENCODED_PATH,
-    encodedDesignNameAndVariant: ENCODED_NAME_AND_VARIANT_PATH,
+    encodedDesignNameAndVariantAndView: ENCODED_NAME_AND_VARIANT_AND_VIEW_PATH,
 ) -> None:
     try:
         put(request.url.path.removeprefix("/api/kits/"), input)
@@ -5186,11 +5251,11 @@ async def put_design(
     return fastapi.Response(content=str(error), status_code=statusCode)
 
 
-@rest.delete("/kits/{encodedKitUri}/designs/{encodedDesignNameAndVariant}")
+@rest.delete("/kits/{encodedKitUri}/designs/{encodedDesignNameAndVariantAndView}")
 async def delete_design(
     request: fastapi.Request,
     encodedKitUri: ENCODED_PATH,
-    encodedDesignNameAndVariant: ENCODED_NAME_AND_VARIANT_PATH,
+    encodedDesignNameAndVariantAndView: ENCODED_NAME_AND_VARIANT_AND_VIEW_PATH,
 ) -> None:
     try:
         delete(request.url.path.removeprefix("/api/kits/"))

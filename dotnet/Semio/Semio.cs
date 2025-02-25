@@ -885,7 +885,7 @@ public class Representation : Model<Representation>
     ///     🏷️ The optional tags to group representations. No tags means default.
     /// </summary>
 
-    [Name("🏷️", "Tg*", "Tags", "The optional tags to group representations. No tags means default.", PropImportance.ID,
+    [Name("🏷️", "Tg*", "Tags*", "The optional tags to group representations. No tags means default.", PropImportance.ID,
         skipValidation: true)]
     public List<string> Tags { get; set; } = new();
 
@@ -945,7 +945,7 @@ public class Locator : Model<Locator>
     /// <summary>
     ///     📌 The optional sub-group of the locator. No sub-group means true.
     /// </summary>
-    [Name("📌", "SG?", "SGr", "The optional sub-group of the locator. No sub-group means true.", isDefaultValid: true)]
+    [Name("📌", "SG?", "SGr?", "The optional sub-group of the locator. No sub-group means true.", isDefaultValid: true)]
     public string Subgroup { get; set; } = "";
 
     public string ToIdString()
@@ -1121,7 +1121,7 @@ public class Port : Model<Port>
     /// <summary>
     ///     🆔 The optional local identifier of the port within the type. No id means the default port.
     /// </summary>
-    [Id("🆔", "Id?", "Idn", "The optional local identifier of the port within the type. No id means the default port.",
+    [Id("🆔", "Id?", "Idn?", "The optional local identifier of the port within the type. No id means the default port.",
         isDefaultValid: true)]
     [JsonProperty("id_")]
     public string Id { get; set; } = "";
@@ -1129,9 +1129,20 @@ public class Port : Model<Port>
     /// <summary>
     ///     💬 The optional human-readable description of the port.
     /// </summary>
-    [Description("💬", "Dc?", "Dsc", "The optional human-readable description of the port.")]
+    [Description("💬", "Dc?", "Dsc?", "The optional human-readable description of the port.")]
     public string Description { get; set; } = "";
 
+    /// <summary>
+    ///     👨‍👩‍👧‍👦 The optional family of the port. This allows to define explicit compatibility with other ports.
+    /// </summary>
+    [Name("👨‍👩‍👧‍👦", "Fa?", "Fam?", "The optional family of the port. This allows to define explicit compatibility with other ports.")]
+    public string Family { get; set; } = "";
+
+    /// <summary>
+    ///     ✅ The optional other compatible families of the port. An empty list means this port is compatible with all other ports.
+    /// </summary>
+    [Name("✅", "CF*", "CFas*", "The optional other compatible families of the port. An empty list means this port is compatible with all other ports.")]
+    public List<string> CompatibleFamilies { get; set; } = new();
     /// <summary>
     ///     ❌ The connection point of the port that is attracted to another connection point.
     /// </summary>
@@ -1149,7 +1160,7 @@ public class Port : Model<Port>
     /// <summary>
     ///     🗺️ The optional machine-readable locators of the port. Every port should have a unique set of locators.
     /// </summary>
-    [ModelProp("🗺️", "Lc*", "Locs",
+    [ModelProp("🗺️", "Lc*", "Locs*",
         "The optional machine-readable locators of the port. Every port should have a unique set of locators.",
         PropImportance.OPTIONAL)]
     public List<Locator> Locators { get; set; } = new();
@@ -1223,7 +1234,7 @@ public class PortId : Model<PortId>
     /// <summary>
     ///     🆔 The optional local identifier of the port within the type. No id means the default port.
     /// </summary>
-    [Id("🆔", "Id?", "Id", "The local identifier of the port within the type.", isDefaultValid: true)]
+    [Id("🆔", "Id?", "Id?", "The local identifier of the port within the type.", isDefaultValid: true)]
     [JsonProperty("id_")]
     public string Id { get; set; } = "";
 
@@ -1266,20 +1277,20 @@ public class Quality : Model<Quality>
     /// <summary>
     ///     🔢 The optional value [ text | url ] of the quality. No value is equivalent to true for the name.
     /// </summary>
-    [Description("🔢", "Vl?", "Val",
+    [Description("🔢", "Vl?", "Val?",
         "The optional value [ text | url ] of the quality. No value is equivalent to true for the name.")]
     public string Value { get; set; } = "";
 
     /// <summary>
     ///     Ⓜ️ The optional unit of the value of the quality.
     /// </summary>
-    [Name("Ⓜ️", "Ut?", "Unt", "The optional unit of the value of the quality.", isDefaultValid: true)]
+    [Name("Ⓜ️", "Ut?", "Unt?", "The optional unit of the value of the quality.", isDefaultValid: true)]
     public string Unit { get; set; } = "";
 
     /// <summary>
     ///     📖 The optional definition [ text | uri ] of the quality.
     /// </summary>
-    [Description("📖", "Df?", "Def", "The optional definition [ text | uri ] of the quality.")]
+    [Description("📖", "Df?", "Def?", "The optional definition [ text | uri ] of the quality.")]
     public string Definition { get; set; } = "";
 
     public string ToIdString()
@@ -1309,14 +1320,14 @@ public class TypeProps : Model<Type>
     /// <summary>
     ///     💬 The optional human-readable description of the type.
     /// </summary>
-    [Description("💬", "Dc?", "Dsc", "The optional human-readable description of the type.")]
+    [Description("💬", "Dc?", "Dsc?", "The optional human-readable description of the type.")]
     public string Description { get; set; } = "";
 
     /// <summary>
     ///     🪙 The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg |
     ///     svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico",
+    [Url("🪙", "Ic?", "Ico?",
         "The optional icon [ emoji | logogram | url ] of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
     public string Icon { get; set; } = "";
 
@@ -1324,14 +1335,14 @@ public class TypeProps : Model<Type>
     ///     🖼️ The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which
     ///     will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img",
+    [Url("🖼️", "Im?", "Img?",
         "The optional url to the image of the type. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
     public string Image { get; set; } = "";
 
     /// <summary>
     ///     🔀 The optional variant of the type. No variant means the default variant.
     /// </summary>
-    [Name("🔀", "Vn?", "Vnt", "The optional variant of the type. No variant means the default variant. ",
+    [Name("🔀", "Vn?", "Vnt?", "The optional variant of the type. No variant means the default variant. ",
         PropImportance.ID, true)]
     public string Variant { get; set; } = "";
 
@@ -1414,25 +1425,25 @@ public class Type : TypeProps
     /// <summary>
     ///     💾 The optional representations of the type.
     /// </summary>
-    [ModelProp("💾", "Rp*", "Reps", "The optional representations of the type.", PropImportance.OPTIONAL)]
+    [ModelProp("💾", "Rp*", "Reps*", "The optional representations of the type.", PropImportance.OPTIONAL)]
     public List<Representation> Representations { get; set; } = new();
 
     /// <summary>
     ///     🔌 The optional ports of the type.
     /// </summary>
-    [ModelProp("🔌", "Po*", "Pors", "The optional ports of the type.", PropImportance.OPTIONAL)]
+    [ModelProp("🔌", "Po*", "Pors*", "The optional ports of the type.", PropImportance.OPTIONAL)]
     public List<Port> Ports { get; set; } = new();
 
     /// <summary>
     ///     📏 The optional machine-readable qualities of the  type.
     /// </summary>
-    [ModelProp("📏", "Ql*", "Qals", "The optional machine-readable qualities of the  type.", PropImportance.OPTIONAL)]
+    [ModelProp("📏", "Ql*", "Qals*", "The optional machine-readable qualities of the  type.", PropImportance.OPTIONAL)]
     public List<Quality> Qualities { get; set; } = new();
 
     /// <summary>
     ///     👥 The optional authors of the type.
     /// </summary>
-    [ModelProp("👥", "Au*", "Auts", "The optional authors of the type.", PropImportance.OPTIONAL)]
+    [ModelProp("👥", "Au*", "Auts*", "The optional authors of the type.", PropImportance.OPTIONAL)]
     public List<Author> Authors { get; set; } = new();
 
     // TODO: Implement reflexive validation for model properties.
@@ -1500,7 +1511,7 @@ public class TypeId : Model<TypeId>
     /// <summary>
     ///     🔀 The optional variant of the type. No variant means the default variant.
     /// </summary>
-    [Name("🔀", "Vn?", "Vnt", "The optional variant of the type. No variant means the default variant. ",
+    [Name("🔀", "Vn?", "Vnt?", "The optional variant of the type. No variant means the default variant. ",
         PropImportance.ID, true)]
     public string Variant { get; set; } = "";
 
@@ -1553,7 +1564,7 @@ public class Piece : Model<Piece>
     /// <summary>
     ///     ◳ The optional plane of the piece. When pieces are connected only one piece can have a plane.
     /// </summary>
-    [ModelProp("◳", "Pn?", "Pln",
+    [ModelProp("◳", "Pn?", "Pln?",
         "The optional plane of the piece. When pieces are connected only one piece can have a plane.",
         PropImportance.OPTIONAL)]
     public Plane? Plane { get; set; }
@@ -1561,7 +1572,7 @@ public class Piece : Model<Piece>
     /// <summary>
     ///     ⌖ The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.
     /// </summary>
-    [ModelProp("⌖", "Ce?", "Cen",
+    [ModelProp("⌖", "Ce?", "Cen?",
         "The optional center of the piece in the diagram. When pieces are connected only one piece can have a center.",
         PropImportance.OPTIONAL)]
     public DiagramPoint? Center { get; set; }
@@ -1613,7 +1624,7 @@ public class PieceId : Model<PieceId>
     /// <summary>
     ///     🆔 The optional local identifier of the piece within the design. No id means the default piece.
     /// </summary>
-    [Id("🆔", "Id?", "Id",
+    [Id("🆔", "Id?", "Id?",
         "The optional local identifier of the piece within the design. No id means the default piece.",
         isDefaultValid: true)]
     [JsonProperty("id_")]
@@ -1683,7 +1694,7 @@ public class Connection : Model<Connection>
     /// <summary>
     ///     🔄 The optional horizontal rotation in port direction between the connected and the connecting piece in degrees.
     /// </summary>
-    [AngleProp("🔄", "Rt?", "Rot",
+    [AngleProp("🔄", "Rt?", "Rot?",
         "The optional horizontal rotation in port direction between the connected and the connecting piece in degrees.")]
     public float Rotation
     {
@@ -1695,7 +1706,7 @@ public class Connection : Model<Connection>
     ///     ∡ The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected
     ///     and the connecting piece in degrees.
     /// </summary>
-    [AngleProp("∡", "Tl?", "Tlt",
+    [AngleProp("∡", "Tl?", "Tlt?",
         "The optional horizontal tilt perpendicular to the port direction (applied after rotation) between the connected and the connecting piece in degrees.")]
     public float Tilt
     {
@@ -1707,7 +1718,7 @@ public class Connection : Model<Connection>
     ///     ↕️ The optional longitudinal gap (applied after rotation and tilt in port direction) between the connected and the
     ///     connecting piece.
     /// </summary>
-    [NumberProp("↕️", "Gp?", "Gap",
+    [NumberProp("↕️", "Gp?", "Gap?",
         "The optional longitudinal gap (applied after rotation and tilt in port direction) between the connected and the connecting piece.")]
     public float Gap { get; set; } = 0;
 
@@ -1716,7 +1727,7 @@ public class Connection : Model<Connection>
     ///     connecting piece.
     /// </summary>
 
-    [NumberProp("↔️", "Sf?", "Sft",
+    [NumberProp("↔️", "Sf?", "Sft?",
         "The optional lateral shift (applied after rotation and tilt in the plane) between the connected and the connecting piece.")]
     public float Shift { get; set; } = 0;
 
@@ -1724,7 +1735,7 @@ public class Connection : Model<Connection>
     ///     ➡️ The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit
     ///     is equal the width of a piece icon.
     /// </summary>
-    [NumberProp("➡️", "X?", "X",
+    [NumberProp("➡️", "X?", "X?",
         "The optional offset in x direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.")]
     public float X { get; set; }
 
@@ -1732,7 +1743,7 @@ public class Connection : Model<Connection>
     ///     ⬆️ The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit
     ///     is equal the width of a piece icon.
     /// </summary>
-    [NumberProp("⬆️", "Y?", "Y",
+    [NumberProp("⬆️", "Y?", "Y?",
         "The optional offset in y direction between the icons of the child and the parent piece in the diagram. One unit is equal the width of a piece icon.")]
     public float Y { get; set; } = 1;
 
@@ -1784,14 +1795,14 @@ public class DesignProps : Model<Design>
     /// <summary>
     ///     💬 The optional human-readable description of the design.
     /// </summary>
-    [Description("💬", "Dc?", "Dsc", "The optional human-readable description of the design.")]
+    [Description("💬", "Dc?", "Dsc?", "The optional human-readable description of the design.")]
     public string Description { get; set; } = "";
 
     /// <summary>
     ///     🪙 The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg
     ///     | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico",
+    [Url("🪙", "Ic?", "Ico?",
         "The optional icon [ emoji | logogram | url ] of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
     public string Icon { get; set; } = "";
 
@@ -1799,21 +1810,21 @@ public class DesignProps : Model<Design>
     ///     🖼️ The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which
     ///     will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img",
+    [Url("🖼️", "Im?", "Img?",
         "The optional url to the image of the design. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
     public string Image { get; set; } = "";
 
     /// <summary>
     ///     🔀 The optional variant of the design. No variant means the default variant.
     /// </summary>
-    [Name("🔀", "Vn?", "Vnt", "The optional variant of the design. No variant means the default variant.",
+    [Name("🔀", "Vn?", "Vnt?", "The optional variant of the design. No variant means the default variant.",
         PropImportance.ID, true)]
     public string Variant { get; set; } = "";
 
     /// <summary>
     ///     🥽 The optional view of the design. No view means the default view.
     /// </summary>
-    [Name("🥽", "Vw?", "Vew", "The optional view of the design. No view means the default view.", PropImportance.ID,
+    [Name("🥽", "Vw?", "Vew?", "The optional view of the design. No view means the default view.", PropImportance.ID,
         true)]
     public string View { get; set; } = "";
 
@@ -1850,25 +1861,25 @@ public class Design : DesignProps
     /// <summary>
     ///     ⭕ The optional pieces of the design.
     /// </summary>
-    [ModelProp("⭕", "Pc*", "Pcs", "The optional pieces of the design.", PropImportance.OPTIONAL)]
+    [ModelProp("⭕", "Pc*", "Pcs*", "The optional pieces of the design.", PropImportance.OPTIONAL)]
     public List<Piece> Pieces { get; set; } = new();
 
     /// <summary>
     ///     🔗 The optional connections of the design.
     /// </summary>
-    [ModelProp("🔗", "Co*", "Cons", "The optional connections of the design.", PropImportance.OPTIONAL)]
+    [ModelProp("🔗", "Co*", "Cons*", "The optional connections of the design.", PropImportance.OPTIONAL)]
     public List<Connection> Connections { get; set; } = new();
 
     /// <summary>
     ///     📏 The optional machine-readable qualities of the  design.
     /// </summary>
-    [ModelProp("📏", "Ql*", "Qals", "The optional machine-readable qualities of the  design.", PropImportance.OPTIONAL)]
+    [ModelProp("📏", "Ql*", "Qals*", "The optional machine-readable qualities of the  design.", PropImportance.OPTIONAL)]
     public List<Quality> Qualities { get; set; } = new();
 
     /// <summary>
     ///     👥 The optional authors of the design.
     /// </summary>
-    [ModelProp("👥", "Au*", "Auts", "The optional authors of the design.", PropImportance.OPTIONAL)]
+    [ModelProp("👥", "Au*", "Auts*", "The optional authors of the design.", PropImportance.OPTIONAL)]
     public List<Author> Authors { get; set; } = new();
 
     public void Bfs(Action<Piece> onRoot, Action<Piece, Piece, Connection> onConnection)
@@ -2335,16 +2346,24 @@ public class DesignId : Model<DesignId>
     /// <summary>
     ///     🔀 The optional variant of the design. No variant means the default variant.
     /// </summary>
-    [Name("🔀", "Vn?", "Vnt", "The optional variant of the design. No variant means the default variant.",
+    [Name("🔀", "Vn?", "Vnt?", "The optional variant of the design. No variant means the default variant.",
         PropImportance.ID, true)]
     public string Variant { get; set; } = "";
+
+    /// <summary>
+    ///     🥽 The optional view of the design. No view means the default view.
+    /// </summary>
+    [Name("🥽", "Vw?", "Vew?", "The optional view of the design. No view means the default view.", PropImportance.ID,
+        true)]
+    public string View { get; set; } = "";
 
     public static implicit operator DesignId(DesignProps design)
     {
         return new DesignId
         {
             Name = design.Name,
-            Variant = design.Variant
+            Variant = design.Variant,
+            View = design.View
         };
     }
 
@@ -2353,7 +2372,8 @@ public class DesignId : Model<DesignId>
         return new DesignId
         {
             Name = design.Name,
-            Variant = design.Variant
+            Variant = design.Variant,
+            View = design.View
         };
     }
 }
@@ -2369,14 +2389,14 @@ public class KitProps : Model<Kit>
     /// <summary>
     ///     💬 The optional human-readable description of the kit.
     /// </summary>
-    [Description("💬", "Dc?", "Dsc", "The optional human-readable description of the kit.")]
+    [Description("💬", "Dc?", "Dsc?", "The optional human-readable description of the kit.")]
     public string Description { get; set; } = "";
 
     /// <summary>
     ///     🪙 The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg |
     ///     svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.
     /// </summary>
-    [Url("🪙", "Ic?", "Ico",
+    [Url("🪙", "Ic?", "Ico?",
         "The optional icon [ emoji | logogram | url ] of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 256x256 pixels and smaller than 1 MB.")]
     public string Icon { get; set; } = "";
 
@@ -2384,7 +2404,7 @@ public class KitProps : Model<Kit>
     ///     🖼️ The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which
     ///     will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.
     /// </summary>
-    [Url("🖼️", "Im?", "Img",
+    [Url("🖼️", "Im?", "Img?",
         "The optional url to the image of the kit. The url must point to a quadratic image [ png | jpg | svg ] which will be cropped by a circle. The image must be at least 720x720 pixels and smaller than 5 MB.")]
     public string Image { get; set; } = "";
 
@@ -2392,33 +2412,33 @@ public class KitProps : Model<Kit>
     ///     🔮 The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ]
     ///     which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB.
     /// </summary>
-    [Url("🔮", "Pv?", "Prv",
+    [Url("🔮", "Pv?", "Prv?",
         "The optional url of the preview image of the kit. The url must point to a landscape image [ png | jpg | svg ] which will be cropped by a 2x1 rectangle. The image must be at least 1920x960 pixels and smaller than 15 MB.")]
     public string Preview { get; set; } = "";
 
     /// <summary>
     ///     🔀 The optional version of the kit. No version means the latest version.
     /// </summary>
-    [Name("🔀", "Vr?", "Ver", "The optional version of the kit. No version means the latest version.",
+    [Name("🔀", "Vr?", "Ver?", "The optional version of the kit. No version means the latest version.",
         PropImportance.ID, true)]
     public string Version { get; set; } = "";
 
     /// <summary>
     ///     ☁️ The optional Unique Resource Locator (URL) where to fetch the kit remotely.
     /// </summary>
-    [Url("☁️", "Rm?", "Rmt", "The optional Unique Resource Locator (URL) where to fetch the kit remotely.")]
+    [Url("☁️", "Rm?", "Rmt?", "The optional Unique Resource Locator (URL) where to fetch the kit remotely.")]
     public string Remote { get; set; } = "";
 
     /// <summary>
     ///     🏠 The optional Unique Resource Locator (URL) of the homepage of the kit.
     /// </summary>
-    [Url("🏠", "Hp?", "Hmp", "The optional Unique Resource Locator (URL) of the homepage of the kit.")]
+    [Url("🏠", "Hp?", "Hmp?", "The optional Unique Resource Locator (URL) of the homepage of the kit.")]
     public string Homepage { get; set; } = "";
 
     /// <summary>
     ///     ⚖️ The optional license [ spdx id | url ] of the kit.
     /// </summary>
-    [Url("⚖️", "Ln?", "Lcn", "The optional license [ spdx id | url ] of the kit.")]
+    [Url("⚖️", "Ln?", "Lcn?", "The optional license [ spdx id | url ] of the kit.")]
     public string License { get; set; } = "";
 }
 
@@ -2431,13 +2451,13 @@ public class Kit : KitProps
     /// <summary>
     ///     🧩 The optional types of the kit.
     /// </summary>
-    [ModelProp("🧩", "Ty*", "Typs", "The optional types of the kit.", PropImportance.OPTIONAL)]
+    [ModelProp("🧩", "Ty*", "Typs*", "The optional types of the kit.", PropImportance.OPTIONAL)]
     public List<Type> Types { get; set; } = new();
 
     /// <summary>
     ///     🏙️ The optional designs of the kit.
     /// </summary>
-    [ModelProp("🏙️", "Dn*", "Dsns", "The optional designs of the kit.", PropImportance.OPTIONAL)]
+    [ModelProp("🏙️", "Dn*", "Dsns*", "The optional designs of the kit.", PropImportance.OPTIONAL)]
     public List<Design> Designs { get; set; } = new();
 
     // TODO: Implement reflexive validation for model properties.
@@ -2563,12 +2583,12 @@ public interface IApi
     [Delete("/api/kits/{encodedKitUri}/types/{encodedTypeNameAndVariant}")]
     Task<ApiResponse<bool>> RemoveType(string encodedKitUri, string encodedTypeNameAndVariant);
 
-    [Put("/api/kits/{encodedKitUri}/designs/{encodedDesignNameAndVariant}")]
-    Task<ApiResponse<bool>> PutDesign(string encodedKitUri, string encodedDesignNameAndVariant,
+    [Put("/api/kits/{encodedKitUri}/designs/{encodedDesignNameAndVariantAndView}")]
+    Task<ApiResponse<bool>> PutDesign(string encodedKitUri, string encodedDesignNameAndVariantAndView,
         [Body] Design input);
 
-    [Delete("/api/kits/{encodedKitUri}/designs/{encodedDesignNameAndVariant}")]
-    Task<ApiResponse<bool>> RemoveDesign(string encodedKitUri, string encodedDesignNameAndVariant);
+    [Delete("/api/kits/{encodedKitUri}/designs/{encodedDesignNameAndVariantAndView}")]
+    Task<ApiResponse<bool>> RemoveDesign(string encodedKitUri, string encodedDesignNameAndVariantAndView);
 
     [Get("/api/assistant/predictDesign")]
     Task<ApiResponse<Design>> PredictDesign([Body] PredictDesignBody body);
@@ -2618,6 +2638,11 @@ public static class Api
         return Utility.Encode(name) + "," + Utility.Encode(variant);
     }
 
+    public static string EncodeNameAndVariantAndView(string name, string variant = "", string view = "")
+    {
+        return EncodeNameAndVariant(name, variant) + "," + Utility.Encode(view);
+    }
+
     public static Kit GetKit(string uri)
     {
         var response = GetApi().GetKit(Utility.Encode(uri)).Result;
@@ -2656,14 +2681,14 @@ public static class Api
     public static void PutDesign(string kitUrl, Design input)
     {
         var response = GetApi()
-            .PutDesign(Utility.Encode(kitUrl), EncodeNameAndVariant(input.Name, input.Variant), input).Result;
+            .PutDesign(Utility.Encode(kitUrl), EncodeNameAndVariantAndView(input.Name, input.Variant, input.View), input).Result;
         HandleErrors(response);
     }
 
     public static void RemoveDesign(string kitUrl, DesignId id)
     {
         var response = GetApi()
-            .RemoveDesign(Utility.Encode(kitUrl), EncodeNameAndVariant(id.Name, id.Variant)).Result;
+            .RemoveDesign(Utility.Encode(kitUrl), EncodeNameAndVariantAndView(id.Name, id.Variant, id.View)).Result;
         HandleErrors(response);
     }
 
@@ -2671,7 +2696,7 @@ public static class Api
     public static Design PredictDesign(string description, Type[] types, Design design)
     {
         var response = GetApi().PredictDesign(new PredictDesignBody
-            { Description = description, Types = types, Design = design }).Result;
+        { Description = description, Types = types, Design = design }).Result;
         if (response.IsSuccessStatusCode)
             return response.Content;
         HandleErrors(response);
